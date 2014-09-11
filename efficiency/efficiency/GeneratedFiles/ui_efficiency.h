@@ -10,6 +10,7 @@
 #define UI_EFFICIENCY_H
 
 #include <QtCore/QVariant>
+#include <QtWebKitWidgets/QWebView>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
@@ -25,25 +26,31 @@ QT_BEGIN_NAMESPACE
 class Ui_efficiencyClass
 {
 public:
+    QWidget *centralWidget;
+    QWebView *webView;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
-    QWidget *centralWidget;
     QStatusBar *statusBar;
 
     void setupUi(QMainWindow *efficiencyClass)
     {
         if (efficiencyClass->objectName().isEmpty())
             efficiencyClass->setObjectName(QStringLiteral("efficiencyClass"));
-        efficiencyClass->resize(600, 400);
+        efficiencyClass->resize(692, 544);
+        centralWidget = new QWidget(efficiencyClass);
+        centralWidget->setObjectName(QStringLiteral("centralWidget"));
+        webView = new QWebView(centralWidget);
+        webView->setObjectName(QStringLiteral("webView"));
+        webView->setGeometry(QRect(-1, -1, 961, 511));
+        webView->setUrl(QUrl(QStringLiteral("about:blank")));
+        efficiencyClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(efficiencyClass);
         menuBar->setObjectName(QStringLiteral("menuBar"));
+        menuBar->setGeometry(QRect(0, 0, 692, 21));
         efficiencyClass->setMenuBar(menuBar);
         mainToolBar = new QToolBar(efficiencyClass);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
-        efficiencyClass->addToolBar(mainToolBar);
-        centralWidget = new QWidget(efficiencyClass);
-        centralWidget->setObjectName(QStringLiteral("centralWidget"));
-        efficiencyClass->setCentralWidget(centralWidget);
+        efficiencyClass->addToolBar(Qt::TopToolBarArea, mainToolBar);
         statusBar = new QStatusBar(efficiencyClass);
         statusBar->setObjectName(QStringLiteral("statusBar"));
         efficiencyClass->setStatusBar(statusBar);

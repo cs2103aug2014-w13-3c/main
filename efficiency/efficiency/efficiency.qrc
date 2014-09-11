@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="efficiency">
+    <qresource prefix="/efficiency">
+        <file>Resources/index.html</file>
     </qresource>
 </RCC>
