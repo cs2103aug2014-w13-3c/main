@@ -31,7 +31,8 @@ public:
 	//set properties
 	void changeName(string name);
 	void setPriority(int priority);
-	void addTags(string *tags);
+	void addTags(vector<string>tags);
+	void addTag(string tag);
 	void setCompleteStatus(bool status);
 	void setStartDate(ptime sd);
 	void setEndDate(ptime ed);
