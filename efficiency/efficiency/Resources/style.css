@@ -1,0 +1,114 @@
+body {position: relative; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+}
+body {
+  min-height: 100%;
+}
+
+header, #main-content, footer {
+	display: block;
+	width: 100%;
+}
+
+#message-box, #command-space {
+	background-color: #5C6166;
+	color: white;
+}
+
+/* Top menu */
+#top-menu {
+	background-color: #A1CF64;
+	color: white;
+	height: 43px;
+}
+
+#user-message {
+	text-align: right;
+}
+
+/* Main Content */
+#sidebar {
+	width: 20%;
+	margin: 10px;
+	position: absolute;
+}
+
+#display {
+	width: 70%;
+	margin: 10px;
+	float: right;
+}
+
+nav, section {
+	top: 50px;
+	display: inline;
+}
+
+nav {
+	text-align: center;
+	position: relative; left: 0;
+}
+
+nav a {
+	font: bold 1em sans-serif;
+	display: block;
+	border-style: solid;
+	border-color: blue;
+	background-color: #ACE;
+}
+nav a:hover {color: #fff; background-color: black;}
+
+section {
+	position: relative;
+	border: solid #FFCC99;
+	font: 13px Verdana, sans-serif;
+    color: #f00;
+}
+section p {margin: 0 1em 1em;}
+section h3 {
+
+}
+/* Lookup psuedo classes, yes you can combine them.
+   Order matters here. Experiment say with placing 
+   a:visited last and see what happens. Rules are 
+   applied in order, so the last one applying to an
+   elements property wins.
+*/
+section a:link {
+	color: grey;
+}
+section a:visited {
+
+}
+section a:link:hover {
+
+}
+section a:visited:hover {
+
+}
+
+section>header>h1 {
+	background-color: #ACE;
+	text-align: right;
+	text-transform: lowercase;
+	font: bold 25px sans-serif;
+	letter-spacing: 0.5em;
+	color: #000;
+}
+
+code, pre {
+	color: #0f0; font: 110% monospace;
+}
+
+/* Footer */
+footer {
+	bottom: 0;
+	position: absolute;
+}
+
+#command-space {
+	height: 70px;
+}
+
