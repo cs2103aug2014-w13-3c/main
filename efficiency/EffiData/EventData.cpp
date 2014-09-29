@@ -52,7 +52,7 @@ int Event::getPriority(){
 	return this->eventContent.get<int>(PRIORITY);
 }
 vector<string> Event::getTags(){
-	return this->eventContent.get<vector<string>>(TAGS);
+	return this->eventContent.get<vector<string>>(TAGS); //This doesn't seem to be supported very well in property tree.
 }
 bool Event::getCompleteStatus(){
 	return this->eventContent.get<bool>(COMPLETE);
