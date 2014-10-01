@@ -9,6 +9,7 @@ const string COMPLETE = "complete";
 const string START = "start";
 const string END = "end";
 const string PARENT = "parent";
+const string CONTENT = "content";
 
 // constant priority values
 const int VERY_LOW = 5;
@@ -28,6 +29,7 @@ Event::Event(){
 	this->eventContent.put(START, NULL);
 	this->eventContent.put(END, NULL);
 	this->eventContent.put(PARENT, NULL);
+	this->eventContent.put(CONTENT, NULL);
 }
 
 Event::Event(string name){
@@ -40,6 +42,7 @@ Event::Event(string name){
 	this->eventContent.put(START, NULL);
 	this->eventContent.put(END, NULL);
 	this->eventContent.put(PARENT, NULL);
+	this->eventContent.put(CONTENT, NULL);
 }
 
 long Event::getId(){
