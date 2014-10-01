@@ -14,7 +14,9 @@
     <ClCompile Include="EventData.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandData.h" />
     <ClInclude Include="EventData.h" />
+    <ClInclude Include="TaskList.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}</ProjectGuid>

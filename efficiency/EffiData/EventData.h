@@ -37,6 +37,7 @@ public:
 	void setStartDate(ptime sd);
 	void setEndDate(ptime ed);
 	void setParent(ptree p);
+	void addDiscription(string s);
 
 	//static methods
 	static long generateID();

@@ -11,7 +11,14 @@ public:
 	TaskList();
 	TaskList(string name);
 private:
-	unordered_map<>
+	unordered_map<long, Event> userTaskList;
+	string name;
+public:
+	void setName(string name);
+	void addEvent(long id, Event e);
+	void updateEvent(long id);
+	void deleteEvent(long id);
+	void readEvent(long id);
 };
 
 #endif
