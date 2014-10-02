@@ -12,3 +12,8 @@ efficiency::~efficiency()
 {
 
 }
+
+QWebFrame* efficiency::getMainFrame()
+{
+	return ui.webView->page()->mainFrame();
+}
