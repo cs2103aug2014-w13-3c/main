@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QWebView" name="webView">
+     <widget class="QWebViewWithHooks" name="webView">
       <property name="url">
        <url>
         <string>about:blank</string>
@@ -52,6 +52,11 @@
    <class>QWebView</class>
    <extends>QWidget</extends>
    <header>QtWebKitWidgets/QWebView</header>
+  </customwidget>
+  <customwidget>
+   <class>QWebViewWithHooks</class>
+   <extends>QWebView</extends>
+   <header>QWebViewWithHooks.h</header>
   </customwidget>
  </customwidgets>
  <resources>
