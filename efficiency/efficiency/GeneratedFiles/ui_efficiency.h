@@ -21,6 +21,7 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include "QWebViewWithHooks.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -29,7 +30,7 @@ class Ui_efficiencyClass
 public:
     QWidget *centralWidget;
     QVBoxLayout *verticalLayout;
-    QWebView *webView;
+    QWebViewWithHooks *webView;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -45,7 +46,7 @@ public:
         verticalLayout->setSpacing(6);
         verticalLayout->setContentsMargins(11, 11, 11, 11);
         verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        webView = new QWebView(centralWidget);
+        webView = new QWebViewWithHooks(centralWidget);
         webView->setObjectName(QStringLiteral("webView"));
         webView->setUrl(QUrl(QStringLiteral("about:blank")));
 
