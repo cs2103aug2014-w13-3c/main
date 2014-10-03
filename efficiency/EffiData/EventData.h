@@ -10,6 +10,7 @@
 using namespace std;
 using boost::property_tree::ptree;
 using namespace boost::posix_time;
+
 class Event{
 public:
 	Event();
