@@ -28,6 +28,7 @@ public:
 	ptime getStartDate();
 	ptime getEndDate();
 	ptree getParent();
+	string getContent();
 	
 	//set properties
 	void changeName(string name);
@@ -38,7 +39,7 @@ public:
 	void setStartDate(ptime sd);
 	void setEndDate(ptime ed);
 	void setParent(ptree p);
-	void addDiscription(string s);
+	void addContent(string s);
 
 	//static methods
 	static long generateID();

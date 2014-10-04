@@ -11,7 +11,8 @@ class efficiency : public QMainWindow
 public:
 	efficiency(QWidget *parent = 0);
 	~efficiency();
-
+	QWebFrame* getMainFrame();
+		//@honoo: this is what you are looking for http://qt-project.org/doc/qt-5/qwebframe.html#findAllElements
 private:
 	Ui::efficiencyClass ui;
 };

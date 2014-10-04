@@ -112,3 +112,8 @@ footer {
 	height: 70px;
 }
 
+#command-box{
+	height: 40px;
+	width: 98%;
+	font-size: 14pt;
+}

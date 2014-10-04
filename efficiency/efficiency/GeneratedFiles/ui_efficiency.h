@@ -19,7 +19,9 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include "QWebViewWithHooks.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -27,7 +29,8 @@ class Ui_efficiencyClass
 {
 public:
     QWidget *centralWidget;
-    QWebView *webView;
+    QVBoxLayout *verticalLayout;
+    QWebViewWithHooks *webView;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -39,10 +42,16 @@ public:
         efficiencyClass->resize(692, 544);
         centralWidget = new QWidget(efficiencyClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
-        webView = new QWebView(centralWidget);
+        verticalLayout = new QVBoxLayout(centralWidget);
+        verticalLayout->setSpacing(6);
+        verticalLayout->setContentsMargins(11, 11, 11, 11);
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        webView = new QWebViewWithHooks(centralWidget);
         webView->setObjectName(QStringLiteral("webView"));
-        webView->setGeometry(QRect(-1, -1, 961, 511));
         webView->setUrl(QUrl(QStringLiteral("about:blank")));
+
+        verticalLayout->addWidget(webView);
+
         efficiencyClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(efficiencyClass);
         menuBar->setObjectName(QStringLiteral("menuBar"));

@@ -5,10 +5,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "efficiency", "efficiency\ef
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiData", "EffiData\EffiData.vcxproj", "{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}"
 EndProject
+<<<<<<< HEAD
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiUndo", "EffiUndo\EffiUndo.vcxproj", "{4C51223C-5CC3-4519-9234-BDFDC910C068}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "effiCommand", "effiCommand\effiCommand.vcxproj", "{370DEDD3-B1B1-470F-8C79-2C97F006D769}"
 EndProject
+=======
+>>>>>>> origin/master
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +28,7 @@ Global
 		{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}.Debug|Win32.Build.0 = Debug|Win32
 		{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}.Release|Win32.ActiveCfg = Release|Win32
 		{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}.Release|Win32.Build.0 = Release|Win32
+<<<<<<< HEAD
 		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Debug|Win32.Build.0 = Debug|Win32
 		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Release|Win32.ActiveCfg = Release|Win32
@@ -33,6 +37,8 @@ Global
 		{370DEDD3-B1B1-470F-8C79-2C97F006D769}.Debug|Win32.Build.0 = Debug|Win32
 		{370DEDD3-B1B1-470F-8C79-2C97F006D769}.Release|Win32.ActiveCfg = Release|Win32
 		{370DEDD3-B1B1-470F-8C79-2C97F006D769}.Release|Win32.Build.0 = Release|Win32
+=======
+>>>>>>> origin/master
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

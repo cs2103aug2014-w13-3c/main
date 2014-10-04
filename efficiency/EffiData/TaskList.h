@@ -18,7 +18,7 @@ public:
 	void addEvent(long id, Event e);
 	void updateEvent(long id);
 	void deleteEvent(long id);
-	void readEvent(long id);
+	void readEvent(long id); 
 };
 
 #endif
