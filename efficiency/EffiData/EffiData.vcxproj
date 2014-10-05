@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EventData.cpp" />
+    <ClCompile Include="TaskList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandData.h" />

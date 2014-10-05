@@ -14,6 +14,7 @@ using namespace boost::posix_time;
 class Event{
 	typedef ptree TagArray;
 public:
+	typedef unsigned long UUID;
 	Event();
 	Event(string name);
 protected:
@@ -21,7 +22,7 @@ protected:
 	TagArray _getTags();
 public:
 	//get information
-	long getId();
+	UUID getId();
 	string getName();
 	int getPriority();
 	vector<string> getTags();
@@ -42,8 +43,9 @@ public:
 	void setParent(ptree p);
 	void addContent(string s);
 
+protected:
 	//static methods
-	static long generateID();
+	static UUID generateID();
 
 };
 #endif

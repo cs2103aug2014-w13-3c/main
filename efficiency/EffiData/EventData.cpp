@@ -34,8 +34,8 @@ Event::Event(string name = NULL){
 	this->eventContent.put(CONTENT, NULL);
 }
 
-long Event::getId(){
-	return this->eventContent.get<long>(ID);
+Event::UUID Event::getId(){
+	return this->eventContent.get<Event::UUID>(ID);
 }
 string Event::getName(){
 	return this->eventContent.get<string>(NAME);	
@@ -100,9 +100,9 @@ void Event::setParent(ptree p){
 	//this->eventContent.put(PARENT, p);	
 }
 
-long Event::generateID(){
-	long id = 0;
-	return id;
+Event::UUID Event::generateID(){
+	static UUID id = 0; //TODO: initialize properly.
+	return id++;
 }
 
 
