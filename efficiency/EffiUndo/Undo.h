@@ -1,14 +1,25 @@
-#ifndef UNDO_H
-#define UNDO_H
+#ifndef UNDO_H_
+#define UNDO_H_
+
+#include <iostream>
+#include <string>
+#include <stack>
+#include <vector>
+
+using namespace std;
 
 class Undo{
+
 public:
-	Undo();
-	Undo(int attempt);
+
+	// find inverse function of an executed function to be push to undo stack
+	static string matchInverseFunction(vector<string> commandStringVector);
+
+	static vector<string> undo();
+
 private:
 
-public:
-
+	static stack< vector<string> > undoStack;
 
 };
 #endif
