@@ -18,9 +18,9 @@ public:
 	Event::UUID addEvent(std::string name);
 	//update using a functional.
 		//This enforces that all changes are done at once.
-	void updateEvent(Event::UUID id, EventOperator); 
+	void updateEvent(Event::UUID id, EventOperator op); 
 	void deleteEvent(Event::UUID id);
-	Event& getEvent(Event::UUID id); 
+	Event getEvent(Event::UUID id);  //Note that this returns a copy.
 	vector<Event> getAllEvents();
 };
 
