@@ -23,5 +23,11 @@
     <ClInclude Include="EventData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CommandData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

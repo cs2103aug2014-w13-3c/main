@@ -11,6 +11,7 @@ using namespace std;
 using boost::property_tree::ptree;
 using namespace boost::posix_time;
 class Event{
+	typedef ptree JSONarray;
 public:
 	Event();
 	Event(string name);
@@ -21,7 +22,7 @@ public:
 	long getId();
 	string getName();
 	int getPriority();
-	vector<string> getTags();
+	JSONarray getTags();
 	string getTag();
 	bool getCompleteStatus();
 	ptime getStartDate();

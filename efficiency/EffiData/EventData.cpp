@@ -1,5 +1,6 @@
 #include "EventData.h"
 
+//TODO: move to EventData.h
 // constant key values
 const string NAME ="name";
 const string ID = "id";
@@ -11,6 +12,7 @@ const string END = "end";
 const string PARENT = "parent";
 const string CONTENT = "content";
 
+//TODO: change to enum.
 // constant priority values
 const int VERY_LOW = 5;
 const int LOW = 4;
@@ -19,25 +21,25 @@ const int HIGH = 2;
 const int VERY_HIGH = 1;
 const int URGENT = 0;
 
-Event::Event(){
+/*Event::Event(){
 	this->eventContent = ptree();
 	this->eventContent.put(NAME, NULL);
 	this->eventContent.put(ID, Event::generateID());
 	this->eventContent.put(PRIORITY, VERY_LOW);
-	this->eventContent.put(TAGS , vector<string>());
+	this->eventContent.put(TAGS , ptree()); //TODO: typedef to jsonArray
 	this->eventContent.put(COMPLETE, false);
 	this->eventContent.put(START, NULL);
 	this->eventContent.put(END, NULL);
 	this->eventContent.put(PARENT, NULL);
 	this->eventContent.put(CONTENT, NULL);
-}
+}*/
 
-Event::Event(string name){
+Event::Event(string name = NULL){
 	this->eventContent = ptree();
 	this->eventContent.put(NAME, name);
 	this->eventContent.put(ID, Event::generateID());
 	this->eventContent.put(PRIORITY, VERY_LOW);
-	this->eventContent.put(TAGS , vector<string>());
+	this->eventContent.add_child(TAGS , Event::JSONarray());
 	this->eventContent.put(COMPLETE, false);
 	this->eventContent.put(START, NULL);
 	this->eventContent.put(END, NULL);
@@ -54,8 +56,8 @@ string Event::getName(){
 int Event::getPriority(){
 	return this->eventContent.get<int>(PRIORITY);
 }
-vector<string> Event::getTags(){
-	return this->eventContent.get<vector<string>>(TAGS); //This doesn't seem to be supported very well in property tree.
+Event::JSONarray Event::getTags(){
+	return this->eventContent.get_child(TAGS); 
 }
 bool Event::getCompleteStatus(){
 	return this->eventContent.get<bool>(COMPLETE);
@@ -66,8 +68,11 @@ ptime Event::getStartDate(){
 ptime Event::getEndDate(){
 	return this->eventContent.get<ptime>(END);
 }
+
+//TODO: fix.
 ptree Event::getParent(){
-	return this->eventContent.get<ptree>(PARENT);
+	//return this->eventContent.get<ptree>(PARENT);
+	return ptree();
 }
 	
 void Event::changeName(string name){
@@ -77,16 +82,15 @@ void Event::setPriority(int priority){
 	this->eventContent.put(PRIORITY, priority);
 }
 void Event::addTags(vector<string> tags){
-	vector<string> t = this->getTags();
 	for(size_t i =0; i<tags.size(); i++){
-		t.push_back(tags[i]);
+		addTag(tags[i]);
 	}
-	this->eventContent.put(TAGS, t);
 }
 void Event::addTag(string tag){
-	vector<string> t = this->getTags();
-	t.push_back(tag);
-	this->eventContent.put(TAGS, t);
+	ptree currtags = this->getTags();
+	ptree child;
+	child.put("", tag);
+	currtags.push_back(std::make_pair("", child));
 }
 void Event::setCompleteStatus(bool status){
 	this->eventContent.put(COMPLETE, status);
@@ -98,10 +102,17 @@ void Event::setEndDate(ptime ed){
 	this->eventContent.put(END, ed);
 }
 void Event::setParent(ptree p){
-	this->eventContent.put(PARENT, p);	
+	//this->eventContent.put(PARENT, p);	
 }
 
 long Event::generateID(){
 	long id = 0;
 	return id;
+}
+
+
+int main(int argc, char *argv[])
+{
+	std::cout<<"test"<<std::endl;
+	return 0;
 }
