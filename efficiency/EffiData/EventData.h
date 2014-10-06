@@ -40,7 +40,7 @@ public:
 	void setStartDate(ptime sd);
 	void setEndDate(ptime ed);
 	void setParent(ptree p);
-	void addContent(string s);
+	void setContent(string s);
 
 	//output overload
 	friend ostream& operator<<(ostream& os, const Event& evt);

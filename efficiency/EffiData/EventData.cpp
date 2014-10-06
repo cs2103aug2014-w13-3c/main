@@ -109,11 +109,3 @@ ostream& operator<<(ostream& os, const Event& evt){
 	write_json(os, evt.eventContent);
 	return os;
 }
-
-int main(int argc, char *argv[])
-{
-	Event e("test event");
-	std::cout<<e<<std::endl;
-	system("PAUSE");
-	return 0;
-}
