@@ -25,15 +25,4 @@ public:
 	friend ostream& operator<<(ostream& os, const TaskList t);
 };
 
-//TODO: actually test.
-ostream& operator<<(ostream& os, const TaskList t){
-	for(auto it = t.userTaskList.begin(); it!= t.userTaskList.end(); ++it)
-	{
-		auto uuid = get<0>(*it);
-		auto event = get<1>(*it);
-		os<<uuid<<" = "<<event<<endl;
-	}
-	return os;
-}
-
 #endif

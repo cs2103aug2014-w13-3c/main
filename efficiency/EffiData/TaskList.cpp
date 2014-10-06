@@ -1,10 +1,11 @@
-#include "TaskList.h"
+#include "stdafx.h"
 
 //TODO: test everything.
 Event::UUID TaskList::addEvent(std::string name, EventOperator op = [](Event& evt){ }){
 	Event evt(name);
 	op(evt);
 	userTaskList.insert(make_pair(evt.getId(), evt));
+	return evt.getId();
 }
 
 void TaskList::updateEvent(Event::UUID id, EventOperator op){
@@ -27,3 +28,15 @@ vector<Event> TaskList::getAllEvents(){
 	}
 	return results;
 }
+
+//TODO: actually test.
+ostream& operator<<(ostream& os, const TaskList t){
+	for(auto it = t.userTaskList.begin(); it!= t.userTaskList.end(); ++it)
+	{
+		auto uuid = get<0>(*it);
+		auto event = get<1>(*it);
+		os<<uuid<<" = "<<event<<endl;
+	}
+	return os;
+}
+
