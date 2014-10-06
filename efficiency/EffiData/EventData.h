@@ -15,7 +15,6 @@ class Event{
 	typedef ptree TagArray;
 public:
 	typedef unsigned long UUID;
-	Event();
 	Event(string name);
 protected:
 	ptree eventContent;
@@ -43,9 +42,13 @@ public:
 	void setParent(ptree p);
 	void addContent(string s);
 
+	//output overload
+	friend ostream& operator<<(ostream& os, const Event& evt);
+
 protected:
 	//static methods
 	static UUID generateID();
 
 };
+
 #endif

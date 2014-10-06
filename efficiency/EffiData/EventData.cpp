@@ -105,9 +105,15 @@ Event::UUID Event::generateID(){
 	return id++;
 }
 
+ostream& operator<<(ostream& os, const Event& evt){
+	write_json(os, evt.eventContent);
+	return os;
+}
 
 int main(int argc, char *argv[])
 {
-	std::cout<<"test"<<std::endl;
+	Event e("test event");
+	std::cout<<e<<std::endl;
+	system("PAUSE");
 	return 0;
 }
