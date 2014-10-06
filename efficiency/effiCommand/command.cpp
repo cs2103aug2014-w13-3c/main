@@ -3,6 +3,31 @@
 
 using namespace std;
 
+Command::Command(){
+
+	this->executedCommand = INVALID;
+
+}
+
+Command::Command(COMMAND_TYPE executedCommand, vector<string> parameters){
+
+	this->executedCommand = executedCommand;
+	this->parameters = parameters;
+
+}
+
+Command::COMMAND_TYPE Command::getCommandType(){
+
+	return Command::executedCommand;
+
+}
+
+vector<string> Command::getParameters(){
+
+	return Command::parameters;
+
+}
+
 void Command::promptCommand(){
 
 	while(true){
@@ -18,35 +43,53 @@ void Command::promptCommand(){
 
 }
 
-Command::COMMAND_TYPE Command::parseCommandType(const string command){
+void Command::promptCommand(){
+
+	while(true){
+
+		string userCommand;
+		getline(cin, userCommand);
+
+		string feedback = executeCommand(userCommand);
+
+		// parse to controller?
+
+	}
+
+}
+
+Command Command::parseCommandType(const string command){
+
+	vector<string> parameters = convertToStringVector(command);
+	Command parsedCommand;
 
 	if(areEqualStringsIgnoreCase(command, "add")){
-		return ADD_TASK;
+		parsedCommand = Command(ADD_TASK, parameters);
 	} else if(areEqualStringsIgnoreCase(command, "delete")) {
-		return DELETE_TASK;
-	} else if(areEqualStringsIgnoreCase(command, "exit")) {
-		return EXIT;
+		parsedCommand = Command(ADD_TASK, parameters);
+	} else if(areEqualStringsIgnoreCase(command, "exit")) {		
+		parsedCommand = Command(EXIT, parameters);
+	} else if(command.empty) {
+		parsedCommand = Command(EMPTY, parameters);
 	} else {
-		return INVALID;
+		parsedCommand = Command(INVALID, parameters);
 	}
+
+	return parsedCommand;
 
 }
 
 string Command::executeCommand(string userCommand){
 
-	if( userCommand == "") {
-		return "no command entered";
-	}
+	Command processedCommand = parseCommandType(userCommand);
 
-	COMMAND_TYPE processedCommandType = parseCommandType(userCommand);
-
-	vector<string> commandStringVector = convertToStringVector(userCommand);
-
-	switch(processedCommandType){
+	switch(processedCommand.getCommandType()){
 		case ADD_TASK:
-			return addTask(commandStringVector);
+			return addTask(processedCommand.getParameters());
 		case DELETE_TASK:
-			return deleteTask(commandStringVector);
+			return deleteTask(processedCommand.getParameters());
+		case EMPTY:
+			return "Nothing is entered!";
 		case INVALID:
 			return "Invalid command!";
 		case EXIT:
