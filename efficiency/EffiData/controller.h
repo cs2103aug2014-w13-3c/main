@@ -45,14 +45,24 @@ public:
 
 		vector<string> getTags();
 	};
+protected:
+	TaskList events;
+public:
 	typedef function<void()> unregisterAction;
 	typedef function<void(const vector<const CEvent>)> watchRangeCallback;
 	typedef function<bool(const CEvent&)> filter;
+
+	//Create, delete events, getById.
+	CEvent& createEvent(string name);
+	CEvent& getEventById(Event::UUID id);
+	void deleteEvent(Event::UUID id);
 	//Watches
 	unregisterAction watchRange(ptime start, ptime end, watchRangeCallback cb); //Defaults: start = 0, end = end of time.
 
 	//filters
 	unregisterAction addFilter(filter f);
+
+
 };
 
 #endif
