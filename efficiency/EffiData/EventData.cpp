@@ -64,10 +64,8 @@ ptime Event::getEndDate(){
 	return this->eventContent.get<ptime>(END);
 }
 
-//TODO: fix.
-ptree Event::getParent(){
-	//return this->eventContent.get<ptree>(PARENT);
-	return ptree();
+Event::UUID Event::getParent(){
+	return this->eventContent.get<UUID>(PARENT);
 }
 	
 void Event::changeName(string name){
@@ -96,8 +94,8 @@ void Event::setStartDate(ptime sd){
 void Event::setEndDate(ptime ed){
 	this->eventContent.put(END, ed);
 }
-void Event::setParent(ptree p){
-	//this->eventContent.put(PARENT, p);	
+void Event::setParent(Event::UUID p){
+	this->eventContent.put(PARENT, p);	
 }
 
 Event::UUID Event::generateID(){

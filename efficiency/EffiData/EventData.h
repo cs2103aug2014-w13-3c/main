@@ -28,7 +28,7 @@ public:
 	bool getCompleteStatus();
 	ptime getStartDate();
 	ptime getEndDate();
-	ptree getParent();
+	UUID getParent();
 	string getContent();
 	
 	//set properties
@@ -39,7 +39,7 @@ public:
 	void setCompleteStatus(bool status);
 	void setStartDate(ptime sd);
 	void setEndDate(ptime ed);
-	void setParent(ptree p);
+	void setParent(UUID p);
 	void setContent(string s);
 
 	//output overload
