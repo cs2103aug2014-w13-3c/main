@@ -16,7 +16,7 @@ protected:
 	string filename;
 public:
 	//void setName(string name);
-	Event::UUID addEvent(std::string name, EventOperator op);
+	Event::UUID addEvent(std::string name, EventOperator op = [](Event& evt){});
 	//update using a functional.
 		//This enforces that all changes are done at once.
 	void updateEvent(Event::UUID id, EventOperator op); 

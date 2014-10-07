@@ -23,7 +23,7 @@ TaskList::~TaskList(){
 	}*/
 }
 //TODO: test everything.
-Event::UUID TaskList::addEvent(std::string name, EventOperator op = [](Event& evt){ }){
+Event::UUID TaskList::addEvent(std::string name, EventOperator op){
 	Event evt(name);
 	op(evt);
 	userTaskList.insert(make_pair(evt.getId(), evt));
