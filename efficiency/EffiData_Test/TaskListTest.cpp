@@ -99,8 +99,7 @@ namespace TaskListTest
 			ss.str(contents);
 			ss>>t;
 			t.deleteEvent(40);
-
-
+			
 			string expected = "{\n"
 			"    \"name\": \"test event\",\n"
 			"    \"id\": \"2\",\n"
@@ -165,6 +164,50 @@ namespace TaskListTest
 			string result = consoleDump();
 			Logger::WriteMessage(result.c_str());
 			Assert::AreEqual(contents + nextcontents, result);
+		}
+
+		TEST_METHOD(UpdateTest){
+			string contents = "{\n"
+			"    \"name\": \"new test event\",\n"
+			"    \"id\": \"5\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			TaskList t("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>t;
+			t.updateEvent(5, [](Event& e){ e.addTag("meow"); });
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			string expected = "{\n"
+			"    \"name\": \"new test event\",\n"
+			"    \"id\": \"5\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\",\n"
+			"        \"meow\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+
+			Assert::AreEqual(expected, result);
 		}
 	};
 }

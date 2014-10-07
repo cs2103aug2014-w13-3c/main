@@ -117,6 +117,5 @@ namespace EffiData_Test
 			Logger::WriteMessage(result.c_str());
 			Assert::AreEqual(contents, result);
 		}
-
 	};
 }
