@@ -1,5 +1,12 @@
 #include "stdafx.h"
 
+TaskList::TaskList(string f): filename(f){
+
+}
+
+TaskList::~TaskList(){
+
+}
 //TODO: test everything.
 Event::UUID TaskList::addEvent(std::string name, EventOperator op = [](Event& evt){ }){
 	Event evt(name);

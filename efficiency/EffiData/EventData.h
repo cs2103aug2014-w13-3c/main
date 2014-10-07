@@ -12,6 +12,7 @@ using boost::property_tree::ptree;
 using namespace boost::posix_time;
 
 class Event{
+	friend class TaskList;
 	typedef ptree TagArray;
 public:
 	typedef unsigned long UUID;
@@ -19,6 +20,9 @@ public:
 protected:
 	ptree eventContent;
 	TagArray _getTags();
+	//TODO: implement for syndication.
+	vector<string> changes; //unimplemented.
+	vector<string> getAndClearChanges(); //unimplemented.
 public:
 	//get information
 	UUID getId();

@@ -9,10 +9,11 @@ using namespace std;
 class TaskList{
 public:
 	typedef std::function<void(Event&)> EventOperator;
-	TaskList();
+	TaskList(std::string filename); //Constructor will read file into TaskList.
+	~TaskList(); //Destructor will save TaskList into file.
 protected:
 	map<Event::UUID, Event> userTaskList;
-	//string name;
+	string filename;
 public:
 	//void setName(string name);
 	Event::UUID addEvent(std::string name, EventOperator op);
