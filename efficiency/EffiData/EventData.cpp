@@ -107,3 +107,8 @@ ostream& operator<<(ostream& os, const Event& evt){
 	write_json(os, evt.eventContent);
 	return os;
 }
+
+istream& operator>>(istream& is, Event& evt){
+	read_json(is, evt.eventContent);
+	return is;
+}

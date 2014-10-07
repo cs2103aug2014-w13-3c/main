@@ -48,6 +48,8 @@ public:
 
 	//output overload
 	friend ostream& operator<<(ostream& os, const Event& evt);
+	//input overload
+	friend istream& operator>>(istream& is, Event& evt);
 
 protected:
 	//static methods

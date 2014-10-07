@@ -56,5 +56,28 @@ namespace EffiData_Test
 			Assert::AreEqual(e.getId() +1 ,e2.getId());
 		}
 
+		TEST_METHOD(InputTest)
+		{
+			string contents = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"40\",\n"
+			"    \"priority\": \"3\",\n"
+			"    \"tags\": \"\",\n"
+			"    \"complete\": \"true\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n";
+			Event e("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>e;
+			std::cout<<e;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			Assert::AreEqual(contents, result);
+		}
+
 	};
 }
