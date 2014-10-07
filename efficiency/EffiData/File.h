@@ -31,6 +31,7 @@ public:
 	std::string filename() { return _filename; };
 
 	void forceClose();
+	friend ostream& operator<<(ostream &os, File &f); //Dumps the remainder of the file out.
 };
 
 //Utility function.

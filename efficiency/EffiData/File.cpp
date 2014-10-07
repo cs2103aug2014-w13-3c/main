@@ -34,6 +34,15 @@ void File::forceClose()
 		filestream.close();
 }
 
+ostream& operator<<(ostream &os, File &f){
+	string t;
+	while(f.filestream.good())
+	{
+		std::getline(f.filestream, t);
+	}
+	return os;
+}
+
 
 template<typename T>
 std::string toString(const T &obj ){
