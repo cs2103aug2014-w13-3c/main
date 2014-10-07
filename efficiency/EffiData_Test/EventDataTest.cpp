@@ -29,7 +29,7 @@ namespace EffiData_Test
 		}
 
 		TEST_METHOD(BasicPrintCheck)
-		{
+		{//id = 0
 			Event e("test event");
 			string expected = "{\n"
 			"    \"name\": \"test event\",\n"
@@ -48,8 +48,10 @@ namespace EffiData_Test
 			Assert::AreEqual(expected, result);
 		}
 
+
+		//WARNING: DO NOT RE-ORDER TESTS. ADD TO THE END.
 		TEST_METHOD(TagCheck)
-		{
+		{//id = 1
 			Event e("test event");
 			e.addTag("tag 1");
 			e.addTag("nextTag");
@@ -60,15 +62,41 @@ namespace EffiData_Test
 			Assert::IsTrue(std::find(tags.begin(), tags.end(), "nextTag")!=tags.end());
 		}
 
+		TEST_METHOD(TagPrintCheck)
+		{ //id = 2
+			Event e("test event");
+			e.addTag("tag 1");
+			e.addTag("nextTag");
+			std::cout<<e;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			std::string expected = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"2\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n";
+			Assert::AreEqual(expected, result);
+		
+		}
+
 		TEST_METHOD(IDIncrementCheck)
-		{
+		{ //id = 3,4
 			Event e("test event");
 			Event e2("test event");
 			Assert::AreEqual(e.getId() +1 ,e2.getId());
 		}
 
 		TEST_METHOD(InputTest)
-		{
+		{ //id=5.
 			string contents = "{\n"
 			"    \"name\": \"test event\",\n"
 			"    \"id\": \"40\",\n"
