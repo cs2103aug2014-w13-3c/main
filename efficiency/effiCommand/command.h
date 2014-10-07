@@ -44,7 +44,9 @@ public:
 	// convert command keyword into enumerator
 	static Command parseCommand(const string commandString);
 
-	static COMMAND_TYPE determineCommandType(const string commandKeyword);
+	static Command checkCommandSyntax(const string commandKeyword, vector<string> parameters);
+	static COMMAND_TYPE determineCommandType(const string commandKeyword, vector<string> parameters);
+	static vector<string> checkParamAndFields(const COMMAND_TYPE commandTypeEnum, vector<string> parameters);
 
 	static Command isValidParameters(const COMMAND_TYPE commandTypeEnum, vector<string> parameters);
 
@@ -71,7 +73,7 @@ public:
 private:
 
 	COMMAND_TYPE executingCommand;
-	vector<string> parameters;
+	vector<string> paramAndFieldValues;
 
 };
 #endif

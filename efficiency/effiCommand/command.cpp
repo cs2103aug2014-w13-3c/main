@@ -11,6 +11,7 @@ Command::COMMAND_TYPE Command::matchingCommandEnumerators[] = {	Command::ADD_TAS
 																Command::DELETE_TASK, Command::DELETE_TASK,
 																Command::EXIT};
 
+// CONTINUE HERE: TURN TO PAIRS
 string Command::validFields[] = { "-s", "-start",
 								  "-e", "-end",
 								  "-p", "-priority",
@@ -43,10 +44,10 @@ Command::Command(){
 
 }
 
-Command::Command(COMMAND_TYPE executedCommand, vector<string> parameters){
+Command::Command(COMMAND_TYPE executedCommand, vector<string> paramAndFieldValues){
 
 	this->executingCommand = executedCommand;
-	this->parameters = parameters;
+	this->paramAndFieldValues = paramAndFieldValues;
 
 }
 
@@ -58,7 +59,7 @@ Command::COMMAND_TYPE Command::getCommandType(){
 
 vector<string> Command::getParameters(){
 
-	return Command::parameters;
+	return Command::paramAndFieldValues;
 
 }
 
@@ -115,13 +116,7 @@ Command Command::parseCommand(const string commandString){
 
 	parameters = copy(commandStringTokens.begin() + 1, commandStringTokens.end(), parameters);
 
-	COMMAND_TYPE commandTypeEnum = determineCommandType(commandKeyword);
-
-	if(commandTypeEnum != INVALID){
-		return isValidParameters(commandTypeEnum, parameters);
-	}
-
-	return Command(commandTypeEnum, parameters);
+	return checkCommandSyntax(commandKeyword, parameters);
 
 }
 
@@ -138,19 +133,131 @@ vector<string> Command::tokenizeCommandString(string userCommand){
 
 }
 
-Command::COMMAND_TYPE Command::determineCommandType(const string commandKeyword){
+// Check the entire command syntax
+Command Command::checkCommandSyntax(const string commandKeyword, vector<string> parameters){
+
+	COMMAND_TYPE commandEnum = determineCommandType(commandKeyword, parameters);
+
+	vector<string> paramAndFieldValues = checkParamAndFields(commandEnum, parameters);
+
+	return Command(commandEnum, paramAndFieldValues);
+
+}
+
+// Check if a command exist, and if it has mandatory param (where applicable)
+Command::COMMAND_TYPE Command::determineCommandType(const string commandKeyword, vector<string> parameters){
+
+	COMMAND_TYPE determinedCommandEnum;
 
 	for(unsigned int i = 0; i <= sizeof(Command::validCommandKeywords); i++){
 
 		if( areEqualStringsIgnoreCase(commandKeyword, Command::validCommandKeywords[i]) ){
-
-			return Command::matchingCommandEnumerators[i];
-
+			determinedCommandEnum = Command::matchingCommandEnumerators[i];
 		}
 
 	}
 
-	return INVALID;
+	switch(determinedCommandEnum){
+	case ADD_TASK:
+	case DELETE_TASK:
+
+		if(parameters.size <= 0){
+			throw new exception("No parameters found");
+		}
+
+	case EXIT:
+		break;
+	default:
+		throw new exception("No such command found");
+	}
+
+	return determinedCommandEnum;
+
+}
+
+// process the param and option fields. 
+// Note to self:
+// invalid fields are thrown an exception
+// option fields with missing values are ignored rather than thrown an exception
+// by this stage, tasks that need param will definitely have one
+vector<string> Command::checkParamAndFields(const COMMAND_TYPE commandTypeEnum, vector<string> parameters){
+
+	switch (commandTypeEnum){
+
+	// has mandatory parameter and optional options
+	case ADD_TASK:
+	case DELETE_TASK:
+
+		bool noFields = false;
+
+		bool firstField = false;
+
+		for(unsigned int i = 0; i <= sizeof(parameters); i++){
+
+			for(unsigned int j = 0; j <= sizeof(validFields); j++){
+
+				if( areEqualStringsIgnoreCase(parameters[i], validFields[j]) ){
+
+					// if mandatory param does not exist
+					if(i = 0){
+
+						throw new exception("No parameters found");
+
+					} else {
+						
+						if(!firstField){
+
+							firstField = true;
+
+							string paramToAdd = ""; 
+
+							for(unsigned int k = 0; k <= i; k++){
+
+								paramToAdd = paramToAdd + parameters[k];
+
+							}
+
+							paramOptionFields[0] = paramToAdd;
+
+						}
+
+					}
+
+					// check if the option has values
+					if(hasFieldValues[j]){
+						paramOptionFields[fieldsToIdxMapping[j]] = parameters[i+1];
+					}
+
+				}
+
+				if(!firstField && i == sizeof(parameters) && j == sizeof(validFields)){
+
+					noFields = true;
+
+				}
+
+			}
+
+		}
+
+		if(noFields){
+
+			string paramToAdd = ""; 
+
+			for(unsigned int i = 0; i <= sizeof(parameters); i++){
+
+				paramToAdd = paramToAdd + parameters[i];
+
+			}
+
+		}
+
+	// has only param (filter and search)
+
+	// has no param and options
+	case EXIT:
+		return parameters;
+	}
 
 }
 
