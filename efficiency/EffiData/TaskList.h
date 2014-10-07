@@ -24,6 +24,7 @@ public:
 	Event getEvent(Event::UUID id);  //Note that this returns a copy.
 	vector<Event> getAllEvents(); //This returns copies too.
 	friend ostream& operator<<(ostream& os, const TaskList t);
+	friend istream& operator>>(istream& is, TaskList &t);
 };
 
 #endif
