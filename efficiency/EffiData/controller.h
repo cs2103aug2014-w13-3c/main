@@ -57,8 +57,9 @@ public:
 	CEvent& getEventById(Event::UUID id);
 	void deleteEvent(Event::UUID id);
 	//Watches
-	unregisterAction watchRange(ptime start, ptime end, watchRangeCallback cb); //Defaults: start = 0, end = end of time.
-
+	unregisterAction watchRange(ptime start, ptime end, watchRangeCallback cb);
+	unregisterAction watchFrom(ptime start, watchRangeCallback cb);
+	unregisterAction watchTill(ptime end, watchRangeCallback cb);
 	//filters
 	unregisterAction addFilter(filter f);
 
