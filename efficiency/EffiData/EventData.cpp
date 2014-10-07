@@ -43,16 +43,6 @@ string Event::getName(){
 int Event::getPriority(){
 	return this->eventContent.get<int>(PRIORITY);
 }
-Event::TagArray Event::_getTags(){
-	return this->eventContent.get_child(TAGS); 
-}
-
-vector<string> Event::getTags(){
-	auto tags = this->_getTags();
-	vector<string> result;
-	//TODO: implement.
-	return result;
-}
 
 bool Event::getCompleteStatus(){
 	return this->eventContent.get<bool>(COMPLETE);
@@ -80,11 +70,26 @@ void Event::addTags(vector<string> tags){
 	}
 }
 void Event::addTag(string tag){
-	ptree currtags = this->_getTags();
+	ptree& currtags = this->_getTags();
 	ptree child;
 	child.put("", tag);
 	currtags.push_back(std::make_pair("", child));
 }
+
+vector<string> Event::getTags(){
+	auto& tags = this->_getTags();
+	vector<string> result;
+	BOOST_FOREACH(const ptree::value_type& tag,
+                  tags.get_child("")) {
+		result.push_back(tag.second.get<std::string>(""));
+    }
+	return result;
+}
+
+Event::TagArray& Event::_getTags(){
+	return this->eventContent.get_child(TAGS); 
+}
+
 void Event::setCompleteStatus(bool status){
 	this->eventContent.put(COMPLETE, status);
 }

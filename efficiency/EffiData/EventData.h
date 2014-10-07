@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <boost/foreach.hpp>
 
 using namespace std;
 using boost::property_tree::ptree;
@@ -19,7 +20,7 @@ public:
 	Event(string name);
 protected:
 	ptree eventContent;
-	TagArray _getTags();
+	TagArray& _getTags();
 	//TODO: implement for syndication.
 	vector<string> changes; //unimplemented.
 	vector<string> getAndClearChanges(); //unimplemented.

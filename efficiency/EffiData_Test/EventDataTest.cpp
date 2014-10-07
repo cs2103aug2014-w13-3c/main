@@ -35,7 +35,7 @@ namespace EffiData_Test
 			"    \"name\": \"test event\",\n"
 			"    \"id\": \"0\",\n"
 			"    \"priority\": \"5\",\n"
-			"    \"tags\": \"\",\n"
+			"    \"tags\": \"\",\n" //Should be [], but boost property tree doesn't support it.
 			"    \"complete\": \"false\",\n"
 			"    \"start\": \"0\",\n"
 			"    \"end\": \"0\",\n"
@@ -46,7 +46,18 @@ namespace EffiData_Test
 			string result = consoleDump();
 			Logger::WriteMessage(result.c_str());
 			Assert::AreEqual(expected, result);
+		}
 
+		TEST_METHOD(TagCheck)
+		{
+			Event e("test event");
+			e.addTag("tag 1");
+			e.addTag("nextTag");
+			
+			auto tags = e.getTags();
+			Assert::AreEqual(2, (int)tags.size());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "tag 1")!=tags.end());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "nextTag")!=tags.end());
 		}
 
 		TEST_METHOD(IDIncrementCheck)
