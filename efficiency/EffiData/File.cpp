@@ -33,3 +33,11 @@ void File::forceClose()
 	if(filestream.is_open())
 		filestream.close();
 }
+
+
+template<typename T>
+std::string toString(const T &obj ){
+	std::stringstream ss();
+	ss<<obj;
+	return ss.str();
+}

@@ -5,6 +5,9 @@
 #include <fstream>
 #include <iostream>
 #include <assert.h>
+#include <vector>
+#include <sstream>
+
 
 class File{ //RAII wrapper around fstream
 
@@ -29,5 +32,9 @@ public:
 
 	void forceClose();
 };
+
+//Utility function.
+template<typename T>
+std::string toString(const T &obj);
 
 #endif

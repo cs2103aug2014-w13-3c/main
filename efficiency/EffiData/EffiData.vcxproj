@@ -11,7 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Controller.cpp" />
     <ClCompile Include="EventData.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="NoSuchItemException.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -20,6 +23,8 @@
   <ItemGroup>
     <ClInclude Include="controller.h" />
     <ClInclude Include="EventData.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="NoSuchItemException.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TaskList.h" />
   </ItemGroup>
