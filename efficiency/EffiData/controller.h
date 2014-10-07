@@ -62,8 +62,6 @@ public:
 	unregisterAction watchTill(ptime end, watchRangeCallback cb);
 	//filters
 	unregisterAction addFilter(filter f);
-
-
 };
 
 #endif
