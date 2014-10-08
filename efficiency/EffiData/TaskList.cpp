@@ -1,26 +1,33 @@
 #include "stdafx.h"
 
-TaskList::TaskList(string f = ""): filename(f){
+TaskList::TaskList(string f = ""): filebase(f){
 	//Check if primary file exists
-	//Does: Read it
-		//Check for journal file.
+	if(filebase!= "")
+	{
+		string filename = filebase+".json"; //TODO: remove const.
+		File db(filename); //creates if it doesn't exist.
+		stringstream ss;
+		ss.str(db.toString());
+		ss>>*this;
+		//TODO: Check for journal file.
 		//If have: read it, then clear it.
-		//Else create it.
-	//Does not: create it and journal file.
+	}
 }
 
 TaskList::~TaskList(){
 	//Save to primary file
-	/*if(filename != "")
+	if(filebase != "")
 	{
-		auto tempname = "~"+filename;
+		auto tempname = "~"+filebase+".json";
 		File newFile(tempname);
-		newFile.writeLine(toString(*this));
+		auto contents = toString(); //This is causing an infinite loop?!?!?!?!?!??
+			//Apparently because something to do with destructor.
+		newFile.writeLine(contents);
 		newFile.forceClose();
-		std::remove(filename.c_str());
-		rename(tempname.c_str(),filename.c_str());
+		std::remove((filebase+".json").c_str());
+		rename(tempname.c_str(),(filebase+".json").c_str());
 		//TODO: Delete journal file
-	}*/
+	}
 }
 //TODO: test everything.
 Event::UUID TaskList::addEvent(std::string name, EventOperator op){
@@ -51,7 +58,17 @@ vector<Event> TaskList::getAllEvents(){
 	return results;
 }
 
-//TODO: actually test.
+string TaskList::toString(){
+	stringstream os;
+	//i copy pasted, because <<*this causes infinite destructor loops.
+	for(auto it = userTaskList.begin(); it!= userTaskList.end(); ++it)
+	{
+		auto event = get<1>(*it);
+		os<<event<<endl; //Since JSON escapes newline characters, its safe to add newlines.
+	}
+	return os.str();
+}
+
 ostream& operator<<(ostream& os, const TaskList t){
 	for(auto it = t.userTaskList.begin(); it!= t.userTaskList.end(); ++it)
 	{

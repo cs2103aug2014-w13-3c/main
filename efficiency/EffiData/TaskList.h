@@ -13,7 +13,7 @@ public:
 	~TaskList(); //Destructor will save TaskList into file.
 protected:
 	map<Event::UUID, Event> userTaskList;
-	string filename;
+	string filebase;
 public:
 	//void setName(string name);
 	Event::UUID addEvent(std::string name, EventOperator op = [](Event& evt){});
@@ -25,6 +25,7 @@ public:
 	vector<Event> getAllEvents(); //This returns copies too.
 	friend ostream& operator<<(ostream& os, const TaskList t);
 	friend istream& operator>>(istream& is, TaskList &t);
+	std::string toString();
 };
 
 #endif

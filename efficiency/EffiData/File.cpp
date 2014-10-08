@@ -39,14 +39,14 @@ ostream& operator<<(ostream &os, File &f){
 	while(f.filestream.good())
 	{
 		std::getline(f.filestream, t);
+		os<<t<<std::endl;
 	}
 	return os;
 }
 
 
-template<typename T>
-std::string toString(const T &obj ){
-	std::stringstream ss();
-	ss<<obj;
+std::string File::toString(){
+	std::stringstream ss;
+	ss<<*this;
 	return ss.str();
 }

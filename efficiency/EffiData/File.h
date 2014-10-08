@@ -32,10 +32,11 @@ public:
 
 	void forceClose();
 	friend ostream& operator<<(ostream &os, File &f); //Dumps the remainder of the file out.
+	std::string toString();
 };
 
 //Utility function.
-template<typename T>
-std::string toString(const T &obj);
+//template<typename T>
+//std::string toString(T &obj);
 
 #endif
