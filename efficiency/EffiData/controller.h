@@ -18,15 +18,18 @@ public:
 	protected:
 		Event::UUID uuid;
 		vector<command> cmdlist;
+		TaskList * events;
 	public:
-		void exec(); //commits all changes to database.
+		void exec(); //commits changes to database.
+		CEvent(Event::UUID id, TaskList * tl);
+		~CEvent();
 		//TODO: All the event related functionalities go here.
 		CEvent& setName(string name);
 
 		//Leaving the optional field out clears it.
 		CEvent& setStart(ptime datetime /*OPTIONAL*/);
 		CEvent& setEnd(ptime datetime/*OPTIONAL*/);
-		CEvent& setPriority(string tag /*OPTIONAL*/);
+		CEvent& setPriority(string tag /*OPTIONAL*/); //This declaration is wrong.
 		CEvent& getParent(CEvent evt/*OPTIONAL*/);
 		CEvent& setContent(string content/*OPTIONAL*/);
 
@@ -36,6 +39,7 @@ public:
 
 		//getters
 		Event::UUID getId();
+		string getName();
 		ptime getStart();
 		ptime getEnd();
 		int getPriority(); //TODO: change to enum.
@@ -47,7 +51,10 @@ public:
 	};
 protected:
 	TaskList events;
+	vector<CEvent> cevents;
 public:
+	Controller();
+
 	typedef function<void()> unregisterAction;
 	typedef function<void(const vector<const CEvent>)> watchRangeCallback;
 	typedef function<bool(const CEvent&)> filter;
