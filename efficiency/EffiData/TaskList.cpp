@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-TaskList::TaskList(string f = ""): filebase(f){
+TaskList::TaskList(string f = ""): filebase(f), userTaskList(){
 	//Check if primary file exists
 	if(filebase!= "")
 	{
