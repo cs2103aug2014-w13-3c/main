@@ -209,5 +209,18 @@ namespace TaskListTest
 
 			Assert::AreEqual(expected, result);
 		}
+
+		TEST_METHOD(AddFromEmptyTest){
+
+			std::remove("TESTUSER10X.json");
+			TaskList t("TESTUSER10X");
+			t.addEvent("add");
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			//Well it clearly DOES NOT CRASH HERE.
+			Assert::IsTrue(true);
+			//Assert::AreEqual(nextcontents, result);
+		}
 	};
 }
