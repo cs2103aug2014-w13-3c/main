@@ -31,8 +31,16 @@ header, #main-content, footer {
 /* Main Content */
 #sidebar {
 	width: 20%;
-	margin: 10px;
+	margin-left: 10px;
 	position: absolute;
+	height: 100%;
+}
+
+#message-box {
+	width: 100%;
+	position: relative;
+	height: 100px;
+	top: 30%;
 }
 
 #display {
