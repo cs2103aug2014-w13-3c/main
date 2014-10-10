@@ -29,4 +29,4 @@ protected:
 	int watchUuid;
 };
 
-#endif // EFFICIENCY_H
+#endif // QWEBVIEWWITHHOOKS_H

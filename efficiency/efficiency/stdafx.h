@@ -5,3 +5,4 @@
 #include <QUrl>
 #include <QWebViewWithHooks.h>
 #include <unordered_map>
+#include "uiController.h"

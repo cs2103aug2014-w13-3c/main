@@ -25,6 +25,10 @@ string Controller::CEvent::getName(){
 	return events->getEvent(uuid).getName();
 }
 
+Event::UUID Controller::CEvent::getId(){
+	return uuid;
+}
+
 //Actual controller stuff.
 Controller::Controller(): events("TESTUSER"), cevents()
 {}

@@ -1,3 +1,5 @@
+// This file extends the QWebView class to add additional functionality.
+
 #include "stdafx.h"
 using namespace std;
 void QWebViewWithHooks::watch(string selector, Getter getter, Callback callback){
