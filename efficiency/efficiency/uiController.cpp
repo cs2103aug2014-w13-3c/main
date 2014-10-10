@@ -5,7 +5,12 @@ using namespace std;
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView) , controller(std::move(ctrl)){
 	webView->watch("#command-box",
 		[](QWebElement &element)->QString{ return element.evaluateJavaScript("this.value").toString(); },
-		[this](std::string s) { onCommandInput(s); });
+		[this](std::string s, QKeyEvent *key) { 
+				if((key->key() == Qt::Key_Enter) || (key->key() == Qt::Key_Return)){
+					onCommandInput(s); 
+				}
+			});
+		// there is a value watcher but not keypress watcher?
 }
 
 void uiController::onCommandInput(string input){

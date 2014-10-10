@@ -12,7 +12,7 @@ class QWebViewWithHooks : public QWebView
 {
 	Q_OBJECT
 	typedef std::function<QString(QWebElement&)> Getter;
-	typedef std::function<void(std::string)> Callback;
+	typedef std::function<void(std::string, QKeyEvent *key)> Callback;
 	typedef unsigned int UUID;
 public:
 	QWebViewWithHooks(QWidget *parent): QWebView(parent), watches(), watchUuid(0), watchValues() {}

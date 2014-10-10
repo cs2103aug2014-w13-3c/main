@@ -12,6 +12,8 @@ void QWebViewWithHooks::watch(string selector, Getter getter, Callback callback)
 
 void QWebViewWithHooks::keyReleaseEvent(QKeyEvent * ev)
 {
+	// Look for all watches and get values that are changed.
+	// If there is a change, call the callback.
 	for(auto it = watches.begin(); it != watches.end(); ++it) {
 		auto selector = get<0>(*it);
 		auto getter = get<1>(*it);
@@ -19,10 +21,10 @@ void QWebViewWithHooks::keyReleaseEvent(QKeyEvent * ev)
 		auto uuid = get<3>(*it);
 		auto element = this->page()->mainFrame()->findFirstElement(selector);
 		auto currentValue = getter(element).toStdString();
-		if(currentValue != watchValues[uuid])
+		if(currentValue != watchValues[uuid] || ev->key() == Qt::Key_Enter || ev->key() == Qt::Key_Return)
 		{
 			watchValues[uuid] = currentValue;
-			callback(currentValue);
+			callback(currentValue, ev);
 		}
 	}
 }
