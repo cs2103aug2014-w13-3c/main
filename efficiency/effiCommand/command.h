@@ -3,11 +3,15 @@
 
 #include <iostream>
 #include <sstream>
+#include <functional>
 #include <string>
 #include <vector>
-#include <QtWidgets/QMainWindow>
+#include <map>
 
-
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/any.hpp"
+using namespace boost;
+using namespace boost::posix_time;
 using namespace std;
 
 class Command{
@@ -18,21 +22,33 @@ public:
 		ADD_TASK, DELETE_TASK, EXIT, EMPTY, INVALID
 	};
 
-	static string validCommandKeywords[];
-	static COMMAND_TYPE matchingCommandEnumerators[];
-	static string validFields[];
-	static bool hasFieldValues[];
-
-	static int fieldsToIdxMapping[];
-	static const int NUM_OF_PARAM_OPTION_FIELDS = 8;
-	static string paramOptionFields[NUM_OF_PARAM_OPTION_FIELDS];
+	static const string COMMAND;
+	static const string PARAMETERS;
+	static const string START_OPTION;
+	static const string END_OPTION;
+	static const string PRIORITY_OPTION;
+	static const string RECURSIVE_OPTION;
+	static const string TAG_OPTION;
+	static const string LINK_OPTION;
+	static const string HELP_OPTION;
 
 	Command();
-	Command(COMMAND_TYPE, vector<string>);
+	Command(multimap<string, any> cmdParamAndOpt);
 	~Command();
 
-	COMMAND_TYPE getCommandType();
-	vector<string> getParameters();
+	//API
+	COMMAND_TYPE getCommand();
+	string getParameters();
+	ptime getStartOption();
+	ptime getEndOption();
+	int getPriorityOption();
+	string isRecursiveOption();
+	vector<string> getTagOption();
+	string getLinkOption();
+	bool getHelpOption();
+
+	static void loadValidCommandKeywords();
+	static void loadCategorizeMap();
 
 	// Command input prompt
 	static void promptCommand();
@@ -44,9 +60,9 @@ public:
 	// convert command keyword into enumerator
 	static Command parseCommand(const string commandString);
 
-	static Command checkCommandSyntax(const string commandKeyword, vector<string> parameters);
-	static COMMAND_TYPE determineCommandType(const string commandKeyword, vector<string> parameters);
-	static vector<string> checkParamAndFields(const COMMAND_TYPE commandTypeEnum, vector<string> parameters);
+	static Command checkCommandSyntax(vector<string> commandStringTokens);
+	static COMMAND_TYPE determineCommandType(vector<string> commandStringTokens);
+	static Command checkParamAndFields(const COMMAND_TYPE commandTypeEnum, vector<string> parameters);
 
 	static Command isValidParameters(const COMMAND_TYPE commandTypeEnum, vector<string> parameters);
 
@@ -56,11 +72,8 @@ public:
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand);
 	
-	static string addTask(vector<string> commandStringVector);
-	static string deleteTask(vector<string> commandStringVector);
-
-	// extract line of text to be added from command string 
-	static string getTaskDetailsToAdd(vector<string> commandString);
+	static string addTask();
+	static string deleteTask();
 
 	// check if two strings are equal, ignoring case sensitivity
 	static bool areEqualStringsIgnoreCase(const string& s, const string& delimiters = " \f\n\r\t\v" );
@@ -72,8 +85,9 @@ public:
 
 private:
 
-	COMMAND_TYPE executingCommand;
-	vector<string> paramAndFieldValues;
+	multimap<string, any> cmdParamAndOpt;
+	static pair<string, bool> categorizeMap[];
+	static vector<pair<string, COMMAND_TYPE>> validCommandKeywords;
 
 };
 #endif
