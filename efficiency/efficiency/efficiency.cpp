@@ -6,12 +6,8 @@ efficiency::efficiency(QWidget *parent)
 {
 	ui.setupUi(this);
 	ui.webView->load(QUrl ("qrc:///efficiency/Resources/index.html"));
+	uicontroller = std::move(unique_ptr<uiController>(new uiController(ui.webView, unique_ptr<Controller>(new Controller()))));
 
-	//Main controller initialization.
-	Controller controller;
-	// Initialise UI Controller
-	uiController(ui.webView, &controller);
-	
 	/*	//demo use of watch.
 	ui.webView->watch("#command-box", 
 		[](QWebElement &element)->QString{ return element.evaluateJavaScript("this.value").toString();  }, 

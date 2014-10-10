@@ -13,8 +13,9 @@ public:
 	~efficiency();
 	QWebFrame* getMainFrame();
 		//@honoo: this is what you are looking for http://qt-project.org/doc/qt-5/qwebframe.html#findAllElements
-private:
+protected:
 	Ui::efficiencyClass ui;
+	unique_ptr<uiController> uicontroller;
 };
 
 #endif // EFFICIENCY_H

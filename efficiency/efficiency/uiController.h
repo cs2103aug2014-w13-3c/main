@@ -8,12 +8,12 @@
 class uiController
 {
 public:
-	uiController(QWebViewWithHooks *webView, Controller * mainController);
+	uiController(QWebViewWithHooks *webView, unique_ptr<Controller> mainController);
 	void onCommandInput(std::string input);
 
 protected:
 	QWebViewWithHooks * webView;
-	Controller * controller;
+	unique_ptr<Controller> controller;
 };
 
 /*
