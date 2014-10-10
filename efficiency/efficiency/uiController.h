@@ -8,12 +8,15 @@
 class uiController
 {
 public:
+	enum result_message_t { add_message, delete_message };
 	uiController(QWebViewWithHooks *webView, unique_ptr<Controller> mainController);
 	void onCommandInput(std::string input);
+	void displayResultMessage(result_message_t message);
 
 protected:
 	QWebViewWithHooks * webView;
 	unique_ptr<Controller> controller;
+	
 };
 
 /*
