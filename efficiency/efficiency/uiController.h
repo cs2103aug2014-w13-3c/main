@@ -8,15 +8,34 @@
 class uiController
 {
 public:
-	enum result_message_t { add_message, delete_message };
-	uiController(QWebViewWithHooks *webView, unique_ptr<Controller> mainController);
-	void onCommandInput(std::string input);
-	void displayResultMessage(result_message_t message);
+	// Properties
+	enum result_message_t {add_message, delete_message};
+	enum button_click_t {add_button, delete_button, search_button, exit_button};
 
+	// Methods
+	// Constructor
+	uiController(QWebViewWithHooks *webView, unique_ptr<Controller> mainController);
+	// Input from GUI
+	void onCommandInput(std::string input);
+	void onButtonInput(button_click_t button);
+	
 protected:
+	// Properties
 	QWebViewWithHooks * webView;
 	unique_ptr<Controller> controller;
+	enum view_type_t {agenda_view, calendar_view};
 	
+	//  Methods
+	// Output to GUI
+	void displayResultMessage(result_message_t message);
+	void addToGUI(/* takes Issue */);
+	void addToAgenda(/* takes Issue */);
+	void addToCalendar(/* takes Issue */);
+	void clearIssue(/* takes Issue */);
+	void clearFromAgenda(/* takes Issue */);
+	void clearFromCalendar(/* takes Issue */);
+	// Manipulate GUI
+	void swapView(view_type_t view);
 };
 
 /*
