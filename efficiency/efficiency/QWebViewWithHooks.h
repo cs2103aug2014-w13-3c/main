@@ -26,7 +26,7 @@ protected:
 	void keyReleaseEvent(QKeyEvent * ev) override;
 	std::vector<std::tuple<QString, Getter, Callback, UUID> > watches;
 	std::unordered_map<UUID, std::string> watchValues;
-	int watchUuid;
+	UUID watchUuid;
 };
 
 #endif // QWEBVIEWWITHHOOKS_H
