@@ -3,67 +3,115 @@
 
 using namespace std;
 
-string Command::validCommandKeywords[] = {	"/a", "add",
-											"/d", "delete"
-											"exit"};
+const string Command::COMMAND = "cmdType";
+const string Command::PARAMETERS = "param";
+const string Command::START_OPTION = "-s";
+const string Command::END_OPTION = "-e";
+const string Command::PRIORITY_OPTION = "-p";
+const string Command::RECURSIVE_OPTION = "-r";
+const string Command::TAG_OPTION = "-t";
+const string Command::LINK_OPTION = "-l";
+const string Command::HELP_OPTION = "-h";
 
-Command::COMMAND_TYPE Command::matchingCommandEnumerators[] = {	Command::ADD_TASK, Command::ADD_TASK,
-																Command::DELETE_TASK, Command::DELETE_TASK,
-																Command::EXIT};
+vector< pair<string, Command::COMMAND_TYPE> > Command::validCommandKeywords;
+pair<string, bool> Command::categorizeMap[9];
 
-// CONTINUE HERE: TURN TO PAIRS
-string Command::validFields[] = { "-s", "-start",
-								  "-e", "-end",
-								  "-p", "-priority",
-								  "-r", "-repeat", "-recursive", // -r can be used as delete recursive or repeat
-								  "-t", "-tag",
-								  "-l", "-link",
-								  "-h", "-help"};
+void Command::loadValidCommandKeywords(){
 
-bool Command::hasFieldValues[] = { true, true,
-								  true, true,
-								  true, true,
-								  true, true, false, // -r can be used as delete recursive or repeat
-								  true, true,
-								  true, true,
-								  false, false};
+	Command::validCommandKeywords.push_back(make_pair("add",Command::ADD_TASK));
+	Command::validCommandKeywords.push_back(make_pair("/a",Command::ADD_TASK));
+	Command::validCommandKeywords.push_back(make_pair("delete",Command::DELETE_TASK));
+	Command::validCommandKeywords.push_back(make_pair("/d",Command::DELETE_TASK));
+	Command::validCommandKeywords.push_back(make_pair("exit",Command::EXIT));
 
-int Command::fieldsToIdxMapping[] = { 1, 1,
-								  2, 2,
-								  3, 3,
-								  4, 4, 4, // -r can be used as delete recursive or repeat
-								  5, 5,
-								  6, 6,
-								  7, 7};
+}
 
-string Command::paramOptionFields[];
+void Command::loadCategorizeMap(){
+
+	Command::categorizeMap[0] = make_pair(COMMAND,false);
+	Command::categorizeMap[1] = make_pair(PARAMETERS,true);
+	Command::categorizeMap[2] = make_pair(START_OPTION,true);
+	Command::categorizeMap[3] = make_pair(END_OPTION,true);
+	Command::categorizeMap[4] = make_pair(PRIORITY_OPTION,true);
+	Command::categorizeMap[5] = make_pair(RECURSIVE_OPTION,true);
+	Command::categorizeMap[6] = make_pair(TAG_OPTION,true);
+	Command::categorizeMap[7] = make_pair(LINK_OPTION,true);
+	Command::categorizeMap[8] = make_pair(HELP_OPTION,false);
+
+}
 
 Command::Command(){
 
-	this->executingCommand = INVALID;
+	this->cmdParamAndOpt.insert( pair<string, any>(COMMAND, INVALID) );
 
 }
 
-Command::Command(COMMAND_TYPE executedCommand, vector<string> paramAndFieldValues){
+Command::Command( multimap<string, any> cmdParamAndOpt){
 
-	this->executingCommand = executedCommand;
-	this->paramAndFieldValues = paramAndFieldValues;
-
-}
-
-Command::COMMAND_TYPE Command::getCommandType(){
-
-	return Command::executingCommand;
+	multimap<string, any>::iterator it = this->cmdParamAndOpt.begin();
+	while(it != cmdParamAndOpt.end()) {
+		this->cmdParamAndOpt.insert( pair<string,any>(it->first, it->second) );
+		it++;
+	}
 
 }
 
-vector<string> Command::getParameters(){
+Command::COMMAND_TYPE Command::getCommand(){
 
-	return Command::paramAndFieldValues;
+	return any_cast<Command::COMMAND_TYPE>(Command::cmdParamAndOpt.find(COMMAND)->second);
+
+}
+
+string Command::getParameters(){
+
+	return any_cast<string>(Command::cmdParamAndOpt.find(PARAMETERS)->second);
+
+}
+
+ptime Command::getStartOption(){
+
+	return any_cast<ptime>(Command::cmdParamAndOpt.find(START_OPTION)->second);
+}
+
+ptime Command::getEndOption(){
+
+	return any_cast<ptime>(Command::cmdParamAndOpt.find(END_OPTION)->second);
+
+}
+
+int Command::getPriorityOption(){
+
+	return any_cast<int>(Command::cmdParamAndOpt.find(PRIORITY_OPTION)->second);
+
+}
+
+string Command::isRecursiveOption(){
+
+	return any_cast<string>(Command::cmdParamAndOpt.find(RECURSIVE_OPTION)->second);
+
+}
+
+vector<string> Command::getTagOption(){
+
+	return any_cast<vector<string>>(Command::cmdParamAndOpt.find(TAG_OPTION)->second);
+
+}
+
+string Command::getLinkOption(){
+
+	return any_cast<string>(Command::cmdParamAndOpt.find(LINK_OPTION)->second);
+
+}
+
+bool Command::getHelpOption(){
+
+	return any_cast<bool>(Command::cmdParamAndOpt.find(HELP_OPTION)->second);
 
 }
 
 void Command::promptCommand(){
+
+	loadValidCommandKeywords();
 
 	while(true){
 
@@ -83,40 +131,30 @@ string Command::executeCommand(string userCommand){
 
 	Command processedCommand = parseCommand(userCommand);
 
-	switch(processedCommand.getCommandType()){
+	switch(processedCommand.getCommand()){
 		case ADD_TASK:
-			return addTask(processedCommand.getParameters());
+			return addTask();
 		case DELETE_TASK:
-			return deleteTask(processedCommand.getParameters());
-		case EMPTY:
-			return "Nothing is entered!";
-		case INVALID:
-			return "Invalid command!";
+			return deleteTask();
 		case EXIT:
 			exit(0);
 		default:
-			throw new exception("Command execution error!");
+			throw "Command execution error!";
 	}
 
 }
 
 Command Command::parseCommand(const string commandString){
 
-	string Command::paramOptionFields[Command::NUM_OF_PARAM_OPTION_FIELDS];
-
-	vector<string> parameters;
+	multimap<string,any> cmdParamAndOpt;
 
 	if( trim(commandString) == "" ){
-		return Command(EMPTY, parameters);
+		throw "No command found.";
 	}
 
 	vector<string> commandStringTokens = tokenizeCommandString(commandString);
 
-	string commandKeyword = commandStringTokens.front;
-
-	parameters = copy(commandStringTokens.begin() + 1, commandStringTokens.end(), parameters);
-
-	return checkCommandSyntax(commandKeyword, parameters);
+	return checkCommandSyntax(commandStringTokens);
 
 }
 
@@ -134,25 +172,25 @@ vector<string> Command::tokenizeCommandString(string userCommand){
 }
 
 // Check the entire command syntax
-Command Command::checkCommandSyntax(const string commandKeyword, vector<string> parameters){
+Command Command::checkCommandSyntax(vector<string> commandStringTokens){
 
-	COMMAND_TYPE commandEnum = determineCommandType(commandKeyword, parameters);
+	COMMAND_TYPE commandEnum = determineCommandType(commandStringTokens);
 
-	vector<string> paramAndFieldValues = checkParamAndFields(commandEnum, parameters);
+	vector<string> parameters = copy(commandStringTokens.begin + 1, commandStringTokens.end, parameters);
 
-	return Command(commandEnum, paramAndFieldValues);
+	return checkParamAndFields(commandEnum, parameters);
 
 }
 
 // Check if a command exist, and if it has mandatory param (where applicable)
-Command::COMMAND_TYPE Command::determineCommandType(const string commandKeyword, vector<string> parameters){
+Command::COMMAND_TYPE Command::determineCommandType(vector<string> commandStringTokens){
 
 	COMMAND_TYPE determinedCommandEnum;
 
 	for(unsigned int i = 0; i <= sizeof(Command::validCommandKeywords); i++){
 
-		if( areEqualStringsIgnoreCase(commandKeyword, Command::validCommandKeywords[i]) ){
-			determinedCommandEnum = Command::matchingCommandEnumerators[i];
+		if( areEqualStringsIgnoreCase(commandStringTokens[0], validCommandKeywords[i].first) ){
+			determinedCommandEnum = Command::validCommandKeywords[i].second;
 		}
 
 	}
@@ -160,15 +198,11 @@ Command::COMMAND_TYPE Command::determineCommandType(const string commandKeyword,
 	switch(determinedCommandEnum){
 	case ADD_TASK:
 	case DELETE_TASK:
-
-		if(parameters.size <= 0){
-			throw new exception("No parameters found");
-		}
-
+		break;
 	case EXIT:
 		break;
 	default:
-		throw new exception("No such command found");
+		throw "no such command found.";
 	}
 
 	return determinedCommandEnum;
@@ -180,7 +214,11 @@ Command::COMMAND_TYPE Command::determineCommandType(const string commandKeyword,
 // invalid fields are thrown an exception
 // option fields with missing values are ignored rather than thrown an exception
 // by this stage, tasks that need param will definitely have one
-vector<string> Command::checkParamAndFields(const COMMAND_TYPE commandTypeEnum, vector<string> parameters){
+Command Command::checkParamAndFields(const COMMAND_TYPE commandTypeEnum, vector<string> parameters){
+
+	loadCategorizeMap();
+
+	multimap<string,any> cmdParamAndOptMap;
 
 	switch (commandTypeEnum){
 
@@ -188,197 +226,67 @@ vector<string> Command::checkParamAndFields(const COMMAND_TYPE commandTypeEnum, 
 	case ADD_TASK:
 	case DELETE_TASK:
 
-		bool noFields = false;
+		if( areEqualStringsIgnoreCase(parameters[0], categorizeMap[0].first ) ) {
 
-		bool firstField = false;
+			throw "No comand parameter found";
 
-		for(unsigned int i = 0; i <= sizeof(parameters); i++){
+		} else {
 
-			for(unsigned int j = 0; j <= sizeof(validFields); j++){
-
-				if( areEqualStringsIgnoreCase(parameters[i], validFields[j]) ){
-
-					// if mandatory param does not exist
-					if(i = 0){
-
-						throw new exception("No parameters found");
-
-					} else {
-						
-						if(!firstField){
-
-							firstField = true;
-
-							string paramToAdd = ""; 
-
-							for(unsigned int k = 0; k <= i; k++){
-
-								paramToAdd = paramToAdd + parameters[k];
-
-							}
-
-							paramOptionFields[0] = paramToAdd;
-
-						}
-
-					}
-
-					// check if the option has values
-					if(hasFieldValues[j]){
-						paramOptionFields[fieldsToIdxMapping[j]] = parameters[i+1];
-					}
-
-				}
-
-				if(!firstField && i == sizeof(parameters) && j == sizeof(validFields)){
-
-					noFields = true;
-
-				}
-
-			}
-
-		}
-
-		if(noFields){
-
-			string paramToAdd = ""; 
+			bool isFirstOption = true;
+			bool hasNoOptions = true;
 
 			for(unsigned int i = 0; i <= sizeof(parameters); i++){
 
-				paramToAdd = paramToAdd + parameters[i];
+				for(unsigned int j = 0; j <= sizeof(categorizeMap); j++){
+
+					if( areEqualStringsIgnoreCase(parameters[i], categorizeMap[j].first ) ){
+
+						if (isFirstOption){
+
+							isFirstOption = false;
+							hasNoOptions = false;
+							vector<string> extractParam = copy(parameters.begin, parameters.begin + j, extractParam);
+
+						}
+
+
+
+					}
+
+				}
+
+			}
+
+			if(hasNoOptions){
+			 
+				string extractParam = copy(parameters.begin, parameters.end, extractParam).str();
+				cmdParamAndOptMap.insert( pair<string, any>(COMMAND, commandTypeEnum) );
+				cmdParamAndOptMap.insert( pair<string, any>(PARAMETERS, extractParam) );
+				return cmdParamAndOptMap;
 
 			}
 
 		}
 
-	// has only param (filter and search)
+	// has only param (complete)
+
+	// supports multiple commands (search and filter)
 
 	// has no param and options
 	case EXIT:
-		return parameters;
+		cmdParamAndOptMap.insert( pair<string, any>(COMMAND, commandTypeEnum) );
+		return Command(cmdParamAndOptMap);
 	}
 
 }
 
-Command Command::isValidParameters(const COMMAND_TYPE commandTypeEnum, vector<string> parameters){
-
-	switch (commandTypeEnum){
-
-	// has mandatory parameter and optional options
-	case ADD_TASK:
-	case DELETE_TASK:
-
-		if(parameters.size <= 0){
-			return Command(INVALID, parameters);
-		}
-
-		bool noFields = false;
-
-		bool firstField = false;
-
-		for(unsigned int i = 0; i <= sizeof(parameters); i++){
-
-			for(unsigned int j = 0; j <= sizeof(validFields); j++){
-
-				if( areEqualStringsIgnoreCase(parameters[i], validFields[j]) ){
-
-					// if mandatory param does not exist
-					if(i = 0){
-						return Command(INVALID, parameters);
-					} else {
-						
-						if(!firstField){
-
-							firstField = true;
-
-							string paramToAdd = ""; 
-
-							for(unsigned int k = 0; k <= i; k++){
-
-								paramToAdd = paramToAdd + parameters[k];
-
-							}
-
-							paramOptionFields[0] = paramToAdd;
-
-						}
-
-					}
-
-					// check if the option has values
-					if(hasFieldValues[j]){
-						paramOptionFields[fieldsToIdxMapping[j]] = parameters[i+1];
-					}
-
-				}
-
-				if(!firstField && i == sizeof(parameters) && j == sizeof(validFields)){
-
-					noFields = true;
-
-				}
-
-			}
-
-		}
-
-		if(noFields){
-
-			string paramToAdd = ""; 
-
-			for(unsigned int i = 0; i <= sizeof(parameters); i++){
-
-				paramToAdd = paramToAdd + parameters[i];
-
-			}
-
-		}
-
-	// has only param (filter and search)
-
-	// has no param and options
-	case EXIT:
-		return Command(commandTypeEnum, parameters);
-	}
-
-}
-
-string Command::addTask(vector<string> commandStringVector){
-
-	string taskAdded = getTaskDetailsToAdd(commandStringVector);
-	
-	// Call Sherry's methods
-
-	string inverseCommand = Undo::matchInverseFunction(commandStringVector);
+string Command::addTask(){
 
 	return "task added";
 
 }
 
-string Command::getTaskDetailsToAdd(vector<string> commandString){
-
-	string text = "";
-
-	unsigned int lastIndex = commandString.size() - 1;
-
-	for(unsigned int i = 1; i < commandString.size(); i++){
-
-		text = text + commandString[i];	
-
-		if (i != lastIndex){
-			text = text + " ";
-		}
-
-	}
-
-	return text;
-
-}
-
-string Command::deleteTask(vector<string> commandStringVector){
-
-	// call Sherry's API
+string Command::deleteTask(){
 
 	return "task deleted";
 
