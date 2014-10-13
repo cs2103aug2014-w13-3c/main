@@ -98,9 +98,6 @@
     <ProjectReference Include="..\effiCommand\effiCommand.vcxproj">
       <Project>{370dedd3-b1b1-470f-8c79-2c97f006d769}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\EffiUndo\EffiUndo.vcxproj">
-      <Project>{4c51223c-5cc3-4519-9234-bdfdc910c068}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
