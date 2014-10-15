@@ -76,6 +76,9 @@
     <ClInclude Include="uiController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="easylogging++.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="efficiency.h">

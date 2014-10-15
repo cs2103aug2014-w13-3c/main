@@ -55,7 +55,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalOptions>-Zm133 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm165 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,6 +113,7 @@
     <ClCompile Include="uiController.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="easylogging++.h" />
     <ClInclude Include="GeneratedFiles\ui_efficiency.h" />
     <ClInclude Include="uiController.h" />
     <CustomBuild Include="efficiency.h">
