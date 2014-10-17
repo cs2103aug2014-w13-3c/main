@@ -2,7 +2,10 @@
 
 using namespace std;
 
-uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView) , controller(std::move(ctrl)){
+uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
+							controller(std::move(ctrl)){
+	// Register the various GUI watches here.
+	
 	webView->watch("#command-box",
 		[](QWebElement &element)->QString{ return element.evaluateJavaScript("this.value").toString(); },
 		[this](std::string s, QKeyEvent *key) { 
@@ -33,6 +36,7 @@ void uiController::onCommandInput(string input){
 
 	if(functionStore.find(command) == functionStore.end()) {
 			qDebug()<< QString::fromStdString("Error: Please enter a valid command.\n");
+			LOG(INFO) << "Error: Please enter a valid command.\n";
 	}
 	else {
 		functionStore[command](content);

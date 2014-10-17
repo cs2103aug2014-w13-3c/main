@@ -8,11 +8,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "efficiency", "efficiency\ef
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiData", "EffiData\EffiData.vcxproj", "{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiUndo", "EffiUndo\EffiUndo.vcxproj", "{4C51223C-5CC3-4519-9234-BDFDC910C068}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "effiCommand", "effiCommand\effiCommand.vcxproj", "{370DEDD3-B1B1-470F-8C79-2C97F006D769}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiData_Test", "EffiData_Test\EffiData_Test.vcxproj", "{4F1EB6D7-16FB-4EAB-92A8-0D2B244037A4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "effiCommand_Test", "effiCommand_Test\effiCommand_Test.vcxproj", "{061EA7DC-76AE-41CB-93BC-33E34D0184DF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiUndo", "EffiUndo\EffiUndo.vcxproj", "{FD49E453-928F-4101-AA56-0636482A9C17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +32,6 @@ Global
 		{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}.Debug|Win32.Build.0 = Debug|Win32
 		{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}.Release|Win32.ActiveCfg = Release|Win32
 		{CCB99166-62DC-41FE-AF8A-9D9F6802A2FC}.Release|Win32.Build.0 = Release|Win32
-		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Debug|Win32.Build.0 = Debug|Win32
-		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Release|Win32.ActiveCfg = Release|Win32
-		{4C51223C-5CC3-4519-9234-BDFDC910C068}.Release|Win32.Build.0 = Release|Win32
 		{370DEDD3-B1B1-470F-8C79-2C97F006D769}.Debug|Win32.ActiveCfg = Debug|Win32
 		{370DEDD3-B1B1-470F-8C79-2C97F006D769}.Debug|Win32.Build.0 = Debug|Win32
 		{370DEDD3-B1B1-470F-8C79-2C97F006D769}.Release|Win32.ActiveCfg = Release|Win32
@@ -44,6 +42,14 @@ Global
 		{4F1EB6D7-16FB-4EAB-92A8-0D2B244037A4}.Release|Win32.ActiveCfg = Release|Win32
 		{4F1EB6D7-16FB-4EAB-92A8-0D2B244037A4}.Release|Win32.Build.0 = Release|Win32
 		{4F1EB6D7-16FB-4EAB-92A8-0D2B244037A4}.Release|Win32.Deploy.0 = Release|Win32
+		{061EA7DC-76AE-41CB-93BC-33E34D0184DF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{061EA7DC-76AE-41CB-93BC-33E34D0184DF}.Debug|Win32.Build.0 = Debug|Win32
+		{061EA7DC-76AE-41CB-93BC-33E34D0184DF}.Release|Win32.ActiveCfg = Release|Win32
+		{061EA7DC-76AE-41CB-93BC-33E34D0184DF}.Release|Win32.Build.0 = Release|Win32
+		{FD49E453-928F-4101-AA56-0636482A9C17}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FD49E453-928F-4101-AA56-0636482A9C17}.Debug|Win32.Build.0 = Debug|Win32
+		{FD49E453-928F-4101-AA56-0636482A9C17}.Release|Win32.ActiveCfg = Release|Win32
+		{FD49E453-928F-4101-AA56-0636482A9C17}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
