@@ -31,9 +31,6 @@ protected:
 	void showOnGUI(/* takes a vector of issues and date range */);
 	void showOnAgenda(/* takes a vector of issues and date range */);
 	void showOnCalendar(/* takes a vector of issues and date range */);
-	void clearIssue(/* takes a vector of issues and date range */);
-	void clearFromAgenda(/* takes a vector of issues and date range */);
-	void clearFromCalendar(/* takes a vector of issues and date range */);
 	// Manipulate GUI
 	void swapView(view_type_t view);
 };

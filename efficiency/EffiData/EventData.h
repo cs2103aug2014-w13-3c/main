@@ -41,6 +41,7 @@ public:
 	void setPriority(int priority);
 	void addTags(vector<string>tags);
 	void addTag(string tag);
+	void removeTag(string tag);
 	void setCompleteStatus(bool status);
 	void setStartDate(ptime sd);
 	void setEndDate(ptime ed);

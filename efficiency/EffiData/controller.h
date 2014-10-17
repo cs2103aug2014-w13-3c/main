@@ -63,6 +63,12 @@ public:
 	CEvent& createEvent(string name);
 	CEvent& getEventById(Event::UUID id);
 	void deleteEvent(Event::UUID id);
+	/* Change to:
+	+addEvent(name): &CEvent
+	+deleteEvent(id): void
+	+getEvent(id): &CEvent	
+	+getAllEvents(): vector<CEvent>
+	*/
 	//Watches
 	unregisterAction watchRange(ptime start, ptime end, watchRangeCallback cb);
 	unregisterAction watchFrom(ptime start, watchRangeCallback cb);
