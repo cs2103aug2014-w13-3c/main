@@ -57,6 +57,10 @@ ptime Event::getEndDate(){
 Event::UUID Event::getParent(){
 	return this->eventContent.get<UUID>(PARENT);
 }
+
+string Event::getContent(){
+	return this->eventContent.get<string>(CONTENT);
+}
 	
 void Event::changeName(string name){
 	this->eventContent.put(NAME, name);

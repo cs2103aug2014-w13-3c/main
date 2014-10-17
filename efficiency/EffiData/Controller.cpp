@@ -41,18 +41,49 @@ void Controller::CEvent::exec(){
 		CEvent& setContent(string s);
 
 */
-Controller::CEvent& Controller::CEvent::changeName(string name){
-	cmdlist.push_back([&name](Event& evt) { evt.changeName(name); } );
-	return *this;
+
+Event::UUID Controller::CEvent::getId(){
+	return uuid;
 }
 
 string Controller::CEvent::getName(){
 	return events->getEvent(uuid).getName();
 }
 
-Event::UUID Controller::CEvent::getId(){
-	return uuid;
+int Controller::CEvent::getPriority(){
+	return events->getEvent(uuid).getPriority();
 }
+
+vector<string> Controller::CEvent::getTags(){
+	return events->getEvent(uuid).getTags();
+}
+
+bool Controller::CEvent::getCompleteStatus(){
+	return events->getEvent(uuid).getCompleteStatus();
+}
+
+ptime Controller::CEvent::getStartDate(){
+	return events->getEvent(uuid).getStartDate();
+}
+
+ptime Controller::CEvent::getEndDate(){
+	return events->getEvent(uuid).getEndDate();
+}
+
+Event::UUID Controller::CEvent::getParent(){
+	return events->getEvent(uuid).getParent();
+}
+
+string Controller::CEvent::getContent(){
+	return events->getEvent(uuid).getContent();
+}
+
+
+Controller::CEvent& Controller::CEvent::changeName(string name){
+	cmdlist.push_back([&name](Event& evt) { evt.changeName(name); } );
+	return *this;
+}
+
 
 //Actual controller stuff.
 Controller::Controller(): events("TESTUSER"), cevents()
@@ -60,7 +91,7 @@ Controller::Controller(): events("TESTUSER"), cevents()
 
 Controller::CEvent& Controller::addEvent(string name){
 	auto id = events.addEvent(name);
-	cevents.insert(make_pair(id, CEvent(id, &events));
+	cevents.insert(make_pair(id, CEvent(id, &events)));
 	return cevents.at(id);
 }
 

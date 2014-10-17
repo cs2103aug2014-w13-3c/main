@@ -35,7 +35,7 @@ public:
 		bool getCompleteStatus();
 		ptime getStartDate();
 		ptime getEndDate();
-		UUID getParent();
+		Event::UUID getParent();
 		string getContent();
 	
 		//set properties
