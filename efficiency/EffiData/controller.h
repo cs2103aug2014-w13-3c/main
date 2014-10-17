@@ -24,34 +24,36 @@ public:
 		CEvent(Event::UUID id, TaskList * tl);
 		~CEvent();
 		//TODO: All the event related functionalities go here.
-		CEvent& setName(string name);
 
-		//Leaving the optional field out clears it.
-		CEvent& setStart(ptime datetime /*OPTIONAL*/);
-		CEvent& setEnd(ptime datetime/*OPTIONAL*/);
-		CEvent& setPriority(string tag /*OPTIONAL*/); //This declaration is wrong.
-		CEvent& getParent(CEvent evt/*OPTIONAL*/);
-		CEvent& setContent(string content/*OPTIONAL*/);
-
-		CEvent& setCompleteStatus(bool isComplete);
-		CEvent& addTag(string tag);
-		CEvent& removeTag(string tag);
-
-		//getters
+		//Literally pasted from eventData.h
+			//Please keep in sync.
+		//get information
 		Event::UUID getId();
 		string getName();
-		ptime getStart();
-		ptime getEnd();
-		int getPriority(); //TODO: change to enum.
-		CEvent& getParent();
-		bool isComplete();
-		string getContent();
-
+		int getPriority();
 		vector<string> getTags();
+		bool getCompleteStatus();
+		ptime getStartDate();
+		ptime getEndDate();
+		UUID getParent();
+		string getContent();
+	
+		//set properties
+			//The only change is the return value - its for chaining.
+		CEvent& changeName(string name);
+		CEvent& setPriority(int priority);
+		CEvent& addTags(vector<string>tags);
+		CEvent& addTag(string tag);
+		CEvent& removeTag(string tag);
+		CEvent& setCompleteStatus(bool status);
+		CEvent& setStartDate(ptime sd);
+		CEvent& setEndDate(ptime ed);
+		CEvent& setParent(UUID p);
+		CEvent& setContent(string s);
 	};
 protected:
 	TaskList events;
-	vector<CEvent> cevents;
+	map<Event::UUID, CEvent> cevents;
 public:
 	Controller();
 
