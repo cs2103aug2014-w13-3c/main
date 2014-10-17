@@ -21,7 +21,7 @@ void uiController::onCommandInput(string input){
 	map<string,function<void(string)>> functionStore;
 	functionStore["add"] = [this](string input)->
 							void{ 
-								controller->createEvent(input);
+								controller->addEvent(input);
 								displayResultMessage(add_message);
 							};
 	//functionStore["update"] = [this](string input)->void{};

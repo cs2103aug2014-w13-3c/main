@@ -33,12 +33,12 @@ Event::UUID Controller::CEvent::getId(){
 Controller::Controller(): events("TESTUSER"), cevents()
 {}
 
-Controller::CEvent& Controller::createEvent(string name){
+Controller::CEvent& Controller::addEvent(string name){
 	auto id = events.addEvent(name);
 	cevents.push_back(CEvent(id, &events));
 	return cevents.at(cevents.size()-1);
 }
-Controller::CEvent& Controller::getEventById(Event::UUID id){
+Controller::CEvent& Controller::getEvent(Event::UUID id){
 	for(auto it = cevents.begin(); it!= cevents.end(); ++it)
 	{
 		if( (*it).getId() == id)

@@ -60,15 +60,11 @@ public:
 	typedef function<bool(const CEvent&)> filter;
 
 	//Create, delete events, getById.
-	CEvent& createEvent(string name);
-	CEvent& getEventById(Event::UUID id);
+	CEvent& addEvent(string name);
+	CEvent& getEvent(Event::UUID id);
 	void deleteEvent(Event::UUID id);
-	/* Change to:
-	+addEvent(name): &CEvent
-	+deleteEvent(id): void
-	+getEvent(id): &CEvent	
-	+getAllEvents(): vector<CEvent>
-	*/
+	vector<CEvent&> getAllEvents();
+
 	//Watches
 	unregisterAction watchRange(ptime start, ptime end, watchRangeCallback cb);
 	unregisterAction watchFrom(ptime start, watchRangeCallback cb);
