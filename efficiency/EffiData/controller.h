@@ -40,7 +40,7 @@ public:
 	
 		//set properties
 			//The only change is the return value - its for chaining.
-		CEvent& changeName(string name);
+		CEvent& setName(string name);
 		CEvent& setPriority(int priority);
 		CEvent& addTags(vector<string>tags);
 		CEvent& addTag(string tag);
@@ -48,7 +48,7 @@ public:
 		CEvent& setCompleteStatus(bool status);
 		CEvent& setStartDate(ptime sd);
 		CEvent& setEndDate(ptime ed);
-		CEvent& setParent(UUID p);
+		CEvent& setParent(Event::UUID p);
 		CEvent& setContent(string s);
 	};
 protected:
