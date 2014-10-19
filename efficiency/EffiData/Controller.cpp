@@ -142,6 +142,14 @@ Controller::CEvent& Controller::addEvent(string name){
 Controller::CEvent& Controller::getEvent(Event::UUID id){
 	return cevents.at(id);
 }
+
+vector<Controller::CEvent> Controller::getAllEvents(){
+	vector<Controller::CEvent> t;
+	for(auto it = cevents.begin(); it!=cevents.end();++it)
+		t.push_back((*it).second);
+	return t;
+}
+
 void Controller::deleteEvent(Event::UUID id){
 	events.deleteEvent(id); //TODO: check if event exists. Actually don't bother, just let it throw out.
 	cevents.erase(id);

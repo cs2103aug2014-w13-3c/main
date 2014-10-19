@@ -5,6 +5,9 @@
 #include <vector>
 #include <map>
 
+#include "commandTypeEnum.h"
+#include "optionField.h"
+
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/any.hpp"
 using namespace boost;
@@ -16,9 +19,11 @@ public:
 
 	// execute a given command string
 	// NOTE TO SELF: TO BE CALLED BY UI CONTROLLER
-	static void executeCommand(multimap<string,any> processedCommand);
+	static void executeCommand(Parser processedCommand);
 
 private:
+
+	static multimap<string,any> getProcessedCommandContents(Parser processedCommand);
 
 	static CommandTypeEnum::COMMAND_TYPE getCommandType(multimap<string,any> processedCommand);
 	static string getParameters(multimap<string,any> processedCommand);

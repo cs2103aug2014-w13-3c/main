@@ -65,7 +65,7 @@ public:
 	CEvent& addEvent(string name);
 	CEvent& getEvent(Event::UUID id);
 	void deleteEvent(Event::UUID id);
-	vector<CEvent&> getAllEvents();
+	vector<CEvent> getAllEvents();
 
 	//Watches
 	unregisterAction watchRange(ptime start, ptime end, watchRangeCallback cb);

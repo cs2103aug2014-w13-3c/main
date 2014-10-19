@@ -8,6 +8,9 @@
 #include <vector>
 #include <map>
 
+#include "commandTypeEnum.h"
+#include "optionField.h"
+
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/any.hpp"
 using namespace boost;
@@ -17,24 +20,39 @@ using namespace std;
 class Parser{
 public:
 
-	// convert command keyword into enumerator
-	// NOTE: External API TO BE CALLED BY UI CONTROLLER!
-	static multimap<string, any> parseCommand(const string commandString);
+	Parser(const string commandString);
+	~Parser();
+
+	// Accessors
+	// For executor (to execute) 
+	multimap<string, any> getCommandContents();
+	// and UI controller (to check valid) only
+	bool getValid();
+
+protected:
+
+	multimap<string, any> cmdResult;
 
 private:
 
-	static vector<pair<string, bool>> optionFieldsChecker;
-	static vector<pair<string, CommandTypeEnum::COMMAND_TYPE>> validCommandKeywords;
+	// Attributes
+	vector<pair<string, bool>> optionFieldsChecker;
+	vector<pair<string, CommandTypeEnum::COMMAND_TYPE>> validCommandKeywords;
 
-	static void loadValidCommandKeywords();
-	static void loadOptionFieldsChecker();
+	// Functions
 
-	static multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
-	static CommandTypeEnum::COMMAND_TYPE determineCommandType(vector<string> commandStringTokens);
-	static multimap<string, any> checkParamAndFields(const CommandTypeEnum::COMMAND_TYPE commandTypeEnum, vector<string> parameters);
+	// parse the Command
+	// Called by constructor
+	multimap<string, any> parseCommand(const string commandString);
+
+	void loadValidCommandKeywords();
+	void loadOptionFieldsChecker();
+
+	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand);
+	static string joinVector(const vector<string>& commandVector);
 
 	// check if two strings are equal, ignoring case sensitivity
 	static bool areEqualStringsIgnoreCase(const string& s, const string& delimiters = " \f\n\r\t\v" );
