@@ -61,7 +61,11 @@ Event::UUID Event::getParent(){
 string Event::getContent(){
 	return this->eventContent.get<string>(CONTENT);
 }
-	
+
+void Event::setContent(string content){
+	this->eventContent.put(CONTENT, content);
+}
+
 void Event::changeName(string name){
 	this->eventContent.put(NAME, name);
 }
@@ -78,6 +82,13 @@ void Event::addTag(string tag){
 	ptree child;
 	child.put("", tag);
 	currtags.push_back(std::make_pair("", child));
+}
+
+void Event::removeTag(string tag){
+	/*ptree& currtags = this->_getTags();
+	ptree child;
+	child.put("", tag);
+	currtags.push_back(std::make_pair("", child));*/
 }
 
 vector<string> Event::getTags(){
