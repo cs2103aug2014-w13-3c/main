@@ -2,6 +2,7 @@
 #define UI_CONTROLLER_H
 
 #include <string>
+#include <vector>
 #include <QWebViewWithHooks.h>
 #include "controller.h"
 

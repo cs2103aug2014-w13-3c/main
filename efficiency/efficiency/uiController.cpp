@@ -23,12 +23,14 @@ void uiController::onCommandInput(string input){
 							void{ 
 								controller->addEvent(input);
 								displayResultMessage(add_message);
+								showOnGUI();
 							};
 	//functionStore["update"] = [this](string input)->void{};
 	functionStore["delete"] = [this](string input)->
 								void{
 									controller->deleteEvent(atoi(input.c_str()));
 									displayResultMessage(delete_message);
+									showOnGUI();
 								};
 
 	string command = input.substr(0, input.find(" "));
@@ -43,9 +45,24 @@ void uiController::onCommandInput(string input){
 	}
 }
 
+void uiController::showOnGUI(){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	vector<Controller::CEvent> events;
+	events = controller->getAllEvents();
+	string name;
+
+	for(auto i = events.begin(); i != events.end(); ++i){
+		name = i->getName();
+		dom.findFirst("#issue-display").appendInside(QString::fromStdString(name)+"<br>");
+	}
+}
+
 void uiController::displayResultMessage(result_message_t message){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	if(message == add_message){
 		dom.findFirst("#message-box").appendInside("<p>Task added.</p>");
+	}
+	else if(message == delete_message){
+		dom.findFirst("#message-box").appendInside("<p>Task deleted.</p>");
 	}
 }
