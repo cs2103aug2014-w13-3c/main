@@ -5,7 +5,7 @@ namespace CommandTypeEnum {
 
 	// these are the possible command types
 	enum COMMAND_TYPE {
-		ADD_TASK, DELETE_TASK, EXIT, EMPTY, INVALID
+		ADD_TASK, DELETE_TASK, EXIT
 	};
 
 };

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
+#include "parser.h"
+
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace effiCommand_Test
@@ -9,9 +11,8 @@ namespace effiCommand_Test
 	{
 	public:
 		
-		TEST_METHOD(TestMethod1)
-		{
-			// TODO: Your test code here
+		TEST_METHOD(noCommand){
+			
 		}
 
 	};

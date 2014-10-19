@@ -5,9 +5,10 @@
 
 using namespace std;
 
-namespace optionField {
+namespace cmdOptionField {
 
-	static const string COMMAND = "cmdType";
+	static const string VALID = "valid";
+	static const string COMMAND = "cmd";
 	static const string PARAMETERS = "param";
 	static const string START_OPTION = "-s";
 	static const string END_OPTION = "-e";
