@@ -70,9 +70,8 @@ nav a:hover {color: #fff; background-color: black;}
 
 section {
 	position: relative;
-	border: solid #FFCC99;
+	border: solid;
 	font: 13px Verdana, sans-serif;
-    color: #f00;
 }
 section p {margin: 0 1em 1em;}
 section h3 {
