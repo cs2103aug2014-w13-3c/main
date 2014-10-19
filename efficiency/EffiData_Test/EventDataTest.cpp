@@ -117,5 +117,19 @@ namespace EffiData_Test
 			Logger::WriteMessage(result.c_str());
 			Assert::AreEqual(contents, result);
 		}
+
+		TEST_METHOD(TagDeleteCheck)
+		{//id = 6
+			Event e("test event");
+			e.addTag("tag 1");
+			e.addTag("nextTag");
+			e.addTag("final tag");
+			e.removeTag("nextTag");
+			e.removeTag("noexisttag");
+			auto tags = e.getTags();
+			Assert::AreEqual(2, (int)tags.size());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "tag 1")!=tags.end());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "final tag")!=tags.end());
+		}
 	};
 }

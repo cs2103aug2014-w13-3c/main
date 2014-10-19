@@ -84,11 +84,20 @@ void Event::addTag(string tag){
 	currtags.push_back(std::make_pair("", child));
 }
 
+//TODO: maybe notify success/failure?
 void Event::removeTag(string tag){
-	/*ptree& currtags = this->_getTags();
-	ptree child;
-	child.put("", tag);
-	currtags.push_back(std::make_pair("", child));*/
+	ptree& currtags = this->_getTags();
+	auto& tags = currtags.get_child("");
+	for(auto it = tags.begin();it!=tags.end();++it)
+	{
+		if(it->second.get<std::string>("") == tag)
+		{
+			tags.erase(it);
+			break;
+			//return true;
+		}
+	}
+	//return false;
 }
 
 vector<string> Event::getTags(){
