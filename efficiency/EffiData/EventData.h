@@ -19,6 +19,7 @@ public:
 	typedef unsigned long UUID;
 	Event(string name);
 protected:
+	static UUID id; //this is a global id.
 	ptree eventContent;
 	TagArray& _getTags();
 	//TODO: implement for syndication.
@@ -26,6 +27,7 @@ protected:
 	vector<string> getAndClearChanges(); //unimplemented.
 public:
 	//get information
+	static void setGlobalID(UUID id);
 	UUID getId();
 	string getName();
 	int getPriority();

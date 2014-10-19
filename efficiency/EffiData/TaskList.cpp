@@ -83,6 +83,7 @@ istream& operator>>(istream& is, TaskList &t){
 	std::stringstream ss;
 	string input; 
 	std::getline(is, input);
+	Event::UUID idmax = 0;
 	while(true)
 	{
 		if(input == "")
@@ -96,11 +97,13 @@ istream& operator>>(istream& is, TaskList &t){
 				ss>>newevent;
 				t.userTaskList.insert(make_pair(newevent.getId(), newevent));
 				ss.str("");
+				idmax = max(newevent.getId(), idmax);
 			}
 		}
 		ss<<input;
 		std::getline(is, input);
 	}
+	Event::setGlobalID(idmax);
 	return is;
 }
 

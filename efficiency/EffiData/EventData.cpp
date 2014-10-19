@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+//static
+Event::UUID Event::id = 0;
+
 //TODO: move to EventData.h
 // constant key values
 const string NAME ="name";
@@ -128,8 +131,12 @@ void Event::setParent(Event::UUID p){
 }
 
 Event::UUID Event::generateID(){
-	static UUID id = 0; //TODO: initialize properly.
-	return id++;
+	return ++id;
+}
+
+void Event::setGlobalID(Event::UUID _id)
+{
+	id = _id;
 }
 
 ostream& operator<<(ostream& os, const Event& evt){
