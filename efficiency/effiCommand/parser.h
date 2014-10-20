@@ -26,14 +26,8 @@ public:
 	// Accessors
 	// and UI controller (to check valid and parse)
 	multimap<string, any> parseCommand(const string commandString);
-	bool getValid();
 
-protected:
-
-	multimap<string, any> cmdResult;
-
-public:
-
+private:
 	// Attributes
 	vector<pair<string, bool>> optionFieldsChecker;
 	vector<pair<string, CommandTypeEnum::COMMAND_TYPE>> validCommandKeywords;

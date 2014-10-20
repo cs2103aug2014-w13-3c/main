@@ -37,12 +37,6 @@ Parser::~Parser(){
 
 }
 
-bool Parser::getValid(){
-
-	return any_cast<bool>(cmdResult.find(cmdOptionField::VALID)->second);
-
-}
-
 multimap<string, any> Parser::parseCommand(const string commandString){
 
 	// TODO: refactor
