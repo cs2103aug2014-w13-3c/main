@@ -1,9 +1,20 @@
 #include "stdafx.h"
 
 using namespace std;
+using namespace boost::posix_time;
+using namespace boost::gregorian;
 
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
 							controller(std::move(ctrl)){
+	
+	// TODO: add the date to the display
+	webView->registerPageLoad([webView](){
+		ptime now = second_clock::local_time();
+		date today = now.date();
+		string date_string =  to_simple_string(today);
+		QWebElement dom = webView->page()->mainFrame()->documentElement();
+		dom.findFirst("#date").appendInside("Today's date is "+QString::fromStdString(date_string));
+	});
 	// Register the various GUI watches here.
 	
 	webView->watch("#command-box",
@@ -61,7 +72,6 @@ void uiController::showOnGUI(){
 	events = controller->getAllEvents();
 	string name;
 
-	// TODO: clear the display first
 	clearGUI();
 
 	for(auto i = events.begin(); i != events.end(); ++i){

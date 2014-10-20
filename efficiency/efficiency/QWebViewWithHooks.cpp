@@ -2,6 +2,12 @@
 
 #include "stdafx.h"
 using namespace std;
+
+QWebViewWithHooks::QWebViewWithHooks(QWidget *parent): QWebView(parent), watches(), watchUuid(0), watchValues() {
+	QObject::connect(this, SIGNAL(loadFinished(bool)),
+					this, SLOT(onPageLoad(bool)));
+}
+
 void QWebViewWithHooks::watch(string selector, Getter getter, Callback callback){
 	int uuid = watchUuid++;
 	watches.push_back(make_tuple(QString::fromStdString(selector), getter, callback, uuid) );
@@ -27,4 +33,14 @@ void QWebViewWithHooks::keyReleaseEvent(QKeyEvent * ev)
 			callback(currentValue, ev);
 		}
 	}
+}
+
+void QWebViewWithHooks::registerPageLoad(QWebViewWithHooks::Action action)
+{
+	actions.push_back(action);
+}
+
+void QWebViewWithHooks::onPageLoad(bool loaded){
+	for(auto it = actions.begin(); it != actions.end(); ++it)
+		(*it)();
 }
