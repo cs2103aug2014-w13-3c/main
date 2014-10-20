@@ -37,12 +37,6 @@ Parser::~Parser(){
 
 }
 
-multimap<string, any> Parser::getCommandContents(){
-
-	return cmdResult;
-
-}
-
 bool Parser::getValid(){
 
 	return any_cast<bool>(cmdResult.find(cmdOptionField::VALID)->second);

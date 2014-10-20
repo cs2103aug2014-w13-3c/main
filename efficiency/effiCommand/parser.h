@@ -24,8 +24,6 @@ public:
 	~Parser();
 
 	// Accessors
-	// For executor (to execute) 
-	multimap<string, any> getCommandContents();
 	// and UI controller (to check valid and parse)
 	multimap<string, any> parseCommand(const string commandString);
 	bool getValid();
