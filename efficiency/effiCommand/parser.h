@@ -33,7 +33,7 @@ protected:
 
 	multimap<string, any> cmdResult;
 
-private:
+public:
 
 	// Attributes
 	vector<pair<string, bool>> optionFieldsChecker;
@@ -49,13 +49,14 @@ private:
 	void loadOptionFieldsChecker();
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
+	tuple<string, any, int> extractOptionValue(vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand);
-	static string joinVector(const vector<string>& commandVector);
+	static string joinVector(const vector<string>& commandVector, const string& token);
 
 	// check if two strings are equal, ignoring case sensitivity
-	static bool areEqualStringsIgnoreCase(const string& s, const string& delimiters = " \f\n\r\t\v" );
+	static bool areEqualStringsIgnoreCase(const string& s, const string& delimiters = " \f\n\r\t\v");
 
 	// trim strings
 	static string trimRight(const string& s, const string& delimiters = " \f\n\r\t\v" );

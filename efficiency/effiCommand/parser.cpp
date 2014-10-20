@@ -71,12 +71,13 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	CommandTypeEnum::COMMAND_TYPE cmdType;
 	multimap<string,any> cmdParamAndOptMap;
 
-	for(unsigned int i = 0; i <= sizeof(validCommandKeywords); i++){
+	for(unsigned int i = 0; i < validCommandKeywords.size(); i++){
 
 		if( areEqualStringsIgnoreCase(commandStringTokens[0], validCommandKeywords[i].first) ){
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::COMMAND, validCommandKeywords[i].second));
 			cmdType = validCommandKeywords[i].second;
-		} else if( i == sizeof(Parser::validCommandKeywords)){
+			break;
+		} else if( i == validCommandKeywords.size() - 1){
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
 			return cmdParamAndOptMap;
 		}
@@ -91,11 +92,11 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	case CommandTypeEnum::ADD_TASK:
 	case CommandTypeEnum::DELETE_TASK:
 
-		for(unsigned int i = 1; i <= sizeof(commandStringTokens); i++){
+		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
 
-			for(unsigned int j = 0; j <= sizeof(optionFieldsChecker); j++){
+			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
-				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[0].first )){
+				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first )){
 
 					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
 					return cmdParamAndOptMap;
@@ -107,13 +108,23 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 						isFirstOption = false;
 						hasNoOptions = false;
 						vector<string> extractParam;
-						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + (i-1), back_inserter(extractParam));
-						string Param = joinVector(extractParam);
+						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+						string Param = joinVector(extractParam, " ");
 						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
 
 					}
 
-					//string currentOptionValue = processOption(commandStringTokens, i , optionFieldsChecker[j]);
+					tuple<string, any, int> currentOptionValue = extractOptionValue(commandStringTokens, i , optionFieldsChecker[j]);
+					string fieldOptions;
+					any fieldValue;
+					int k = 0;
+					tie(fieldOptions, fieldValue, k) = currentOptionValue;
+
+					if(!areEqualStringsIgnoreCase(fieldOptions, cmdOptionField::EMPTY_FIELD)){
+						cmdParamAndOptMap.insert( pair<string,any> (fieldOptions, fieldValue));
+					}
+
+					i = k;
 
 				}
 
@@ -123,18 +134,24 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		if(hasNoOptions){
 			 
-			string extractParam = accumulate(commandStringTokens.begin() + 1, commandStringTokens.end(), extractParam);
-			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::COMMAND, cmdType) );
-			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, extractParam) );
+			vector<string> extractParam;
+			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			string Param = joinVector(extractParam, " ");
+			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, Param) );
 			return cmdParamAndOptMap;
 
 		}
 
-	// has only param (complete)
+		return cmdParamAndOptMap;
+
+	// has only param (complete and undo)
 
 	// supports logical operations (search and filter)
 
 	// has no param and options
+	case CommandTypeEnum::SETTINGS:
+	case CommandTypeEnum::MINIMIZE:
+	case CommandTypeEnum::LOGOUT:
 	case CommandTypeEnum::EXIT:
 
 		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
@@ -145,6 +162,99 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
 		return cmdParamAndOptMap;
+
+	}
+
+}
+
+tuple<string, any, int> Parser::extractOptionValue(vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair){
+
+	string currentOptionField = currentOptionFieldPair.first;
+
+	string fieldValue;
+	vector<string> fieldValueVector;
+
+	tuple<string, any, int> result;
+
+	bool hasFieldValueEntered = false;
+
+	bool hasFieldValueFormat = currentOptionFieldPair.second;
+
+	if(!hasFieldValueFormat){
+
+		result = make_tuple(currentOptionField, true, fieldPos);
+		return result;
+
+	} else {
+
+		if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::REPEAT_OPTION)){
+
+		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
+
+		} else if(areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION)){
+
+		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
+
+		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::LINK_OPTION) ||
+				   areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::PRIORITY_OPTION)){
+
+			for(unsigned int i = fieldPos; i < commandStringTokens.size() - 1; i++){
+
+				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+
+					if(fieldPos == commandStringTokens.size() - 1){
+
+						result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
+						return result;
+
+					} else {
+
+						if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
+
+							if(!hasFieldValueEntered){
+
+								result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
+								return result;
+
+							} else {
+
+								copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.begin() + (i+1), back_inserter(fieldValueVector));
+								fieldValue = joinVector(fieldValueVector, " ");
+								result = make_tuple(currentOptionField, fieldValue, i);
+								return result;
+
+							}
+
+						} else {
+
+							if( (i + 1 == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ){
+
+								copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));
+								fieldValue = joinVector(fieldValueVector, " ");
+								result = make_tuple(currentOptionField, fieldValue, i);
+								return result;
+
+							}
+
+						}
+
+					}
+
+				}
+
+				hasFieldValueEntered = true;
+
+			}
+
+			result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
+			return result;
+
+		} else {
+
+			result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
+			return result;
+
+		}
 
 	}
 
@@ -163,9 +273,18 @@ vector<string> Parser::tokenizeCommandString(string userCommand){
 
 }
 
-string Parser::joinVector(const vector<string>& commandVector){
+string Parser::joinVector(const vector<string>& commandVector, const string& token){
 
-	return std::accumulate( commandVector.begin(), commandVector.end(), string(""));
+  ostringstream result;
+
+  for (vector<string>::const_iterator i = commandVector.begin(); i != commandVector.end(); i++){
+    if (i != commandVector.begin()) {
+		result << token;
+	}
+    result << *i;
+  }
+
+  return result.str();
 
 }
 
@@ -178,7 +297,7 @@ bool Parser::areEqualStringsIgnoreCase(const string& stringOne, const string& st
 	for (string::const_iterator charOne = stringOne.begin(), charTwo = stringTwo.begin(); 
 		charOne != stringOne.end(); 
 		++charOne, ++charTwo) {
-
+	
         if (tolower(*charOne) != tolower(*charTwo)) {
             return false;
         }
