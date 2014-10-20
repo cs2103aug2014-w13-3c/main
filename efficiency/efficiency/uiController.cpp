@@ -45,11 +45,24 @@ void uiController::onCommandInput(string input){
 	}
 }
 
+void uiController::displayResultMessage(result_message_t message){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	if(message == add_message){
+		dom.findFirst("#message-box").appendInside("Task added.<br>");
+	}
+	else if(message == delete_message){
+		dom.findFirst("#message-box").appendInside("Task deleted.<br>");
+	}
+}
+
 void uiController::showOnGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	vector<Controller::CEvent> events;
 	events = controller->getAllEvents();
 	string name;
+
+	// TODO: clear the display first
+	clearGUI();
 
 	for(auto i = events.begin(); i != events.end(); ++i){
 		name = i->getName();
@@ -57,12 +70,8 @@ void uiController::showOnGUI(){
 	}
 }
 
-void uiController::displayResultMessage(result_message_t message){
+void uiController::clearGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	if(message == add_message){
-		dom.findFirst("#message-box").appendInside("<p>Task added.</p>");
-	}
-	else if(message == delete_message){
-		dom.findFirst("#message-box").appendInside("<p>Task deleted.</p>");
-	}
+	QWebElement issueDisplay = dom.findFirst("#issue-display");
+	issueDisplay.removeAllChildren();
 }

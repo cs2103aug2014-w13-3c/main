@@ -29,6 +29,7 @@ protected:
 	//  Methods
 	// Output to GUI
 	void displayResultMessage(result_message_t message);
+	void clearGUI();
 	void showOnGUI(/* takes a vector of issues and date range */);
 	void showOnAgenda(/* takes a vector of issues and date range */);
 	void showOnCalendar(/* takes a vector of issues and date range */);
