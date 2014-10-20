@@ -29,11 +29,11 @@ namespace EffiData_Test
 		}
 
 		TEST_METHOD(BasicPrintCheck)
-		{//id = 0
+		{//id = 1
 			Event e("test event");
 			string expected = "{\n"
 			"    \"name\": \"test event\",\n"
-			"    \"id\": \"0\",\n"
+			"    \"id\": \"1\",\n"
 			"    \"priority\": \"5\",\n"
 			"    \"tags\": \"\",\n" //Should be [], but boost property tree doesn't support it.
 			"    \"complete\": \"false\",\n"
@@ -51,7 +51,7 @@ namespace EffiData_Test
 
 		//WARNING: DO NOT RE-ORDER TESTS. ADD TO THE END.
 		TEST_METHOD(TagCheck)
-		{//id = 1
+		{//id = 2
 			Event e("test event");
 			e.addTag("tag 1");
 			e.addTag("nextTag");
@@ -63,7 +63,7 @@ namespace EffiData_Test
 		}
 
 		TEST_METHOD(TagPrintCheck)
-		{ //id = 2
+		{ //id = 3
 			Event e("test event");
 			e.addTag("tag 1");
 			e.addTag("nextTag");
@@ -72,7 +72,7 @@ namespace EffiData_Test
 			Logger::WriteMessage(result.c_str());
 			std::string expected = "{\n"
 			"    \"name\": \"test event\",\n"
-			"    \"id\": \"2\",\n"
+			"    \"id\": \"3\",\n"
 			"    \"priority\": \"5\",\n"
 			"    \"tags\": [\n"
 			"        \"tag 1\",\n"
@@ -89,14 +89,14 @@ namespace EffiData_Test
 		}
 
 		TEST_METHOD(IDIncrementCheck)
-		{ //id = 3,4
+		{ //id = 4,5
 			Event e("test event");
 			Event e2("test event");
 			Assert::AreEqual(e.getId() +1 ,e2.getId());
 		}
 
 		TEST_METHOD(InputTest)
-		{ //id=5.
+		{ //id=6.
 			string contents = "{\n"
 			"    \"name\": \"test event\",\n"
 			"    \"id\": \"40\",\n"
