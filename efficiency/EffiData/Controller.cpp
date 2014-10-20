@@ -131,7 +131,12 @@ Controller::CEvent& Controller::CEvent::setContent(string content){
 
 //Actual controller stuff.
 Controller::Controller(): events("TESTUSER"), cevents()
-{}
+{
+	auto _events = events.getAllEvents();
+	//get data from previous events.
+	for(auto it = _events.begin(); it!= _events.end(); ++it)
+		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events)));
+}
 
 Controller::CEvent& Controller::addEvent(string name){
 	auto id = events.addEvent(name);
