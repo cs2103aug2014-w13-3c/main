@@ -26,13 +26,10 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
-Parser::Parser(const string commandString){
+Parser::Parser(){
 
-	vector< pair<string, CommandTypeEnum::COMMAND_TYPE> > validCommandKeywords;
 	loadValidCommandKeywords();
-	vector< pair<string, bool> > optionFieldsChecker;
 	loadOptionFieldsChecker();
-	cmdResult = parseCommand(commandString);
 
 }
 
