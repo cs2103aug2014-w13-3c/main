@@ -37,7 +37,7 @@ private:
 	void loadOptionFieldsChecker();
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
-	tuple<string, any, int> extractOptionValue(vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair);
+	std::tuple<string, any, int> extractOptionValue(vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand);
