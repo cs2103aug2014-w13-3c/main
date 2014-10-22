@@ -77,45 +77,41 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	case CommandTypeEnum::ADD_TASK:
 	case CommandTypeEnum::DELETE_TASK:
 
-		for(unsigned int i = 0; i < commandStringTokens.size(); i++){
+		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
 
 			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
-				for(unsigned int k = 0; k < optionFieldsChecker.size(); k++){
+				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first )){
 
-					if(i == 0 && areEqualStringsIgnoreCase(commandStringTokens[i], validCommandKeywords[k].first )){
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+					return cmdParamAndOptMap;
 
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
-						return cmdParamAndOptMap;
+				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first ) ){
 
-					} else if( areEqualStringsIgnoreCase(commandStringTokens[i], validCommandKeywords[k].first ) ){
+					if (isFirstOption){
 
-						if (isFirstOption){
-
-							isFirstOption = false;
-							hasNoOptions = false;
-							vector<string> extractParam;
-							copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
-							string Param = joinVector(extractParam, " ");
-							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-
-						}
-
-						tuple<string, any, int> currentOptionValue = extractOptionValue(commandStringTokens, i , optionFieldsChecker[j]);
-						string fieldOptions;
-						any fieldValue;
-						int m = 0;
-						tie(fieldOptions, fieldValue, m) = currentOptionValue;
-
-						if(!areEqualStringsIgnoreCase(fieldOptions, cmdOptionField::EMPTY_FIELD)){
-							cmdParamAndOptMap.insert( pair<string,any> (fieldOptions, fieldValue));
-						}
-
-						i = m;
-
-						break;
+						isFirstOption = false;
+						hasNoOptions = false;
+						vector<string> extractParam;
+						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+						string Param = joinVector(extractParam, " ");
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
 
 					}
+
+					tuple<string, any, int> currentOptionValue = extractOptionValue(commandStringTokens, i , optionFieldsChecker[j]);
+					string fieldOptions;
+					any fieldValue;
+					int m = 0;
+					tie(fieldOptions, fieldValue, m) = currentOptionValue;
+
+					if(!areEqualStringsIgnoreCase(fieldOptions, cmdOptionField::EMPTY_FIELD)){
+						cmdParamAndOptMap.insert( pair<string,any> (fieldOptions, fieldValue));
+					}
+
+					i = m;
+
+					break;
 
 				}
 
@@ -127,6 +123,10 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 			 
 			vector<string> extractParam;
 			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			if(extractParam.empty()){
+				cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+				return cmdParamAndOptMap;
+			}
 			string Param = joinVector(extractParam, " ");
 			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, Param) );
 			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );

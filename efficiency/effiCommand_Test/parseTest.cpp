@@ -41,6 +41,20 @@ namespace effiCommand_Test
 			
 		}
 
+		TEST_METHOD(basicCommand){
+
+			string commandString = "add meeting tomorrow";
+
+			Parser parser;
+
+			multimap<string, any> test = parser.parseCommand(commandString);
+
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
+			
+		}
+
 		TEST_METHOD(missingParameters){
 
 			string commandString = "add -p 2 -l G983";
