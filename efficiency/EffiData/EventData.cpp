@@ -31,10 +31,10 @@ Event::Event(string name = NULL){
 	this->eventContent.put(PRIORITY, VERY_LOW);
 	this->eventContent.add_child(TAGS , Event::TagArray());
 	this->eventContent.put(COMPLETE, false);
-	this->eventContent.put(START, NULL);
-	this->eventContent.put(END, NULL);
-	this->eventContent.put(PARENT, NULL);
-	this->eventContent.put(CONTENT, NULL);
+	this->eventContent.put(START, ptime());
+	this->eventContent.put(END, ptime());
+	this->eventContent.put(PARENT, 0);
+	this->eventContent.put(CONTENT, "");
 }
 
 Event::UUID Event::getId(){
