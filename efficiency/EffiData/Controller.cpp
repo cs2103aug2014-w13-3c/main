@@ -155,6 +155,13 @@ vector<Controller::CEvent> Controller::getAllEvents(){
 	return t;
 }
 
+Controller::CEvent& Controller::getEventByName(string name){
+	for(auto it = cevents.begin(); it!=cevents.end();++it)
+		if((*it).second.getName() == name)
+			return (*it).second;
+	throw std::exception("Failed to find target"); //TODO: throw specialized exception.
+}
+
 void Controller::deleteEvent(Event::UUID id){
 	events.deleteEvent(id); //TODO: check if event exists. Actually don't bother, just let it throw out.
 	cevents.erase(id);

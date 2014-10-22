@@ -16,7 +16,9 @@ Executor::Executor(Controller* ptr): ctrl(ptr)
 {}
 
 Event::UUID Executor::find_task(Executor::Command command){
-	return 0; //TBD.
+	string param = get<string>("param",command);
+	//TODO: if its ID?
+	return ctrl->getEventByName(param).getId();
 }
 
 Event::UUID Executor::add_task(Executor::Command command){

@@ -64,6 +64,7 @@ public:
 	//Create, delete events, getById.
 	CEvent& addEvent(string name);
 	CEvent& getEvent(Event::UUID id);
+	CEvent& getEventByName(std::string name);
 	void deleteEvent(Event::UUID id);
 	vector<CEvent> getAllEvents();
 
