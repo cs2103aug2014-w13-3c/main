@@ -1,82 +1,56 @@
 #include "parser.h"
 #include "executor.h"
 #include "Undo.h"
+#include "controller.h"
 
 using namespace std;
+using CommandTypeEnum::COMMAND_TYPE;
 
-multimap<string, any> Executor::getProcessedCommandContents(Parser processedCommand){
 
-	return processedCommand.getCommandContents();
-
+template<typename T>
+T get(std::string key, Executor::Command command){
+	return any_cast<T>((*command.find(key)).second);
 }
 
-CommandTypeEnum::COMMAND_TYPE Executor::getCommandType(multimap<string,any> processedCommand){
+Executor::Executor(Controller* ptr): ctrl(ptr)
+{}
 
-	return any_cast<CommandTypeEnum::COMMAND_TYPE>(processedCommand.find(cmdOptionField::COMMAND)->second);
-
+Event::UUID Executor::find_task(Executor::Command command){
+	return 0; //TBD.
 }
 
-string Executor::getParameters(multimap<string,any> processedCommand){
-
-	return any_cast<string>(processedCommand.find(cmdOptionField::PARAMETERS)->second);
-
+Event::UUID Executor::add_task(Executor::Command command){
+	return ctrl->addEvent(get<string>("param",command)).getId();
 }
 
-ptime Executor::getStartOption(multimap<string,any> processedCommand){
 
-	return any_cast<ptime>(processedCommand.find(cmdOptionField::START_OPTION)->second);
+//update_task must be able to work on both add/update commands.
+void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
+	if(!taskid)
+		taskid = find_task(command);
+	Controller::CEvent& evt = ctrl->getEvent(taskid);
+	//TODO.
+	//for each possible property
+		//check if its available
+			//if so, add it.
+	evt.exec();
 }
 
-ptime Executor::getEndOption(multimap<string,any> processedCommand){
-
-	return any_cast<ptime>(processedCommand.find(cmdOptionField::END_OPTION)->second);
-
-}
-
-int Executor::getPriorityOption(multimap<string,any> processedCommand){
-
-	return any_cast<int>(processedCommand.find(cmdOptionField::PRIORITY_OPTION)->second);
-
-}
-
-string Executor::isRecursiveOption(multimap<string,any> processedCommand){
-
-	return any_cast<string>(processedCommand.find(cmdOptionField::RECURSIVE_OPTION)->second);
-
-}
-
-vector<string> Executor::getTagOption(multimap<string,any> processedCommand){
-
-	return any_cast<vector<string>>(processedCommand.find(cmdOptionField::TAG_OPTION)->second);
-
-}
-
-string Executor::getLinkOption(multimap<string,any> processedCommand){
-
-	return any_cast<string>(processedCommand.find(cmdOptionField::LINK_OPTION)->second);
-
-}
-
-bool Executor::getHelpOption(multimap<string,any> processedCommand){
-
-	return any_cast<bool>(processedCommand.find(cmdOptionField::HELP_OPTION)->second);
-
-}
-
-void Executor::executeCommand(Parser processedCommand){
-
-	multimap<string,any> processedCommandContents = getProcessedCommandContents(processedCommand);
-
-}
-
-string Executor::addTask(){
-
-	return "task added";
-
-}
-
-string Executor::deleteTask(){
-
-	return "task deleted";
-
+void Executor::executeCommand(Executor::Command command){
+	assert(ctrl!=NULL);
+	assert(get<bool>("valid", command) == true);
+	COMMAND_TYPE cmdtype = get<COMMAND_TYPE>("cmd", command);
+	Event::UUID taskid = 0; //assume nothing can have taskid of 0.
+	switch(cmdtype){
+	case COMMAND_TYPE::ADD_TASK:
+		//Write in terms of an add and then update.
+		taskid = add_task(command);
+	case COMMAND_TYPE::UPDATE_TASK:
+		update_task(command, taskid);
+		break;
+	case COMMAND_TYPE::DELETE_TASK:
+		break;
+	default:
+		assert(false); //Unimplemented.
+	}
 }
