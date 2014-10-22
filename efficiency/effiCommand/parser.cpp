@@ -123,10 +123,12 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
 			string Param = joinVector(extractParam, " ");
 			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, Param) );
+			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
 			return cmdParamAndOptMap;
 
 		}
 
+		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
 		return cmdParamAndOptMap;
 
 	// has only param (complete and undo)
