@@ -20,31 +20,19 @@ using namespace std;
 class Parser{
 public:
 
-	Parser(const string commandString);
+	Parser();
 	~Parser();
 
 	// Accessors
-	// For executor (to execute) 
-	multimap<string, any> getCommandContents();
-	// and UI controller (to check valid) only
-	bool getValid();
+	// and UI controller (to check valid and parse)
+	multimap<string, any> parseCommand(const string commandString);
 
-protected:
-
-	multimap<string, any> cmdResult;
-
-public:
-
+private:
 	// Attributes
 	vector<pair<string, bool>> optionFieldsChecker;
 	vector<pair<string, CommandTypeEnum::COMMAND_TYPE>> validCommandKeywords;
 
 	// Functions
-
-	// parse the Command
-	// Called by constructor
-	multimap<string, any> parseCommand(const string commandString);
-
 	void loadValidCommandKeywords();
 	void loadOptionFieldsChecker();
 

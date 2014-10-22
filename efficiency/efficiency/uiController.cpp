@@ -1,9 +1,26 @@
 #include "stdafx.h"
 
 using namespace std;
+using namespace boost::posix_time;
+using namespace boost::gregorian;
 
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
 							controller(std::move(ctrl)){
+	
+	// Add the date to the display on load
+	webView->registerPageLoad([webView](){
+		ptime now = second_clock::local_time();
+		date today = now.date();
+		string date_string =  to_simple_string(today);
+		QWebElement dom = webView->page()->mainFrame()->documentElement();
+		dom.findFirst("#date").appendInside("Today's date is "+QString::fromStdString(date_string));
+	});
+
+	// Show existing issues on load
+	webView->registerPageLoad([this](){
+		showOnGUI();
+	});
+
 	// Register the various GUI watches here.
 	
 	webView->watch("#command-box",
@@ -45,24 +62,32 @@ void uiController::onCommandInput(string input){
 	}
 }
 
+void uiController::displayResultMessage(result_message_t message){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	if(message == add_message){
+		dom.findFirst("#message-box").appendInside("Task added.<br>");
+	}
+	else if(message == delete_message){
+		dom.findFirst("#message-box").appendInside("Task deleted.<br>");
+	}
+}
+
 void uiController::showOnGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	vector<Controller::CEvent> events;
 	events = controller->getAllEvents();
 	string name;
 
+	clearGUI();
+
 	for(auto i = events.begin(); i != events.end(); ++i){
 		name = i->getName();
-		dom.findFirst("#issue-display").appendInside(QString::fromStdString(name)+"<br>");
+		dom.findFirst("#issue-display").appendInside(QString::fromStdString(name)+"<hr><br>");
 	}
 }
 
-void uiController::displayResultMessage(result_message_t message){
+void uiController::clearGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	if(message == add_message){
-		dom.findFirst("#message-box").appendInside("<p>Task added.</p>");
-	}
-	else if(message == delete_message){
-		dom.findFirst("#message-box").appendInside("<p>Task deleted.</p>");
-	}
+	QWebElement issueDisplay = dom.findFirst("#issue-display");
+	issueDisplay.removeAllChildren();
 }

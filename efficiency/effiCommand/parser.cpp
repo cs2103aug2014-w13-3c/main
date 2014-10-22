@@ -26,29 +26,14 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
-Parser::Parser(const string commandString){
+Parser::Parser(){
 
-	vector< pair<string, CommandTypeEnum::COMMAND_TYPE> > validCommandKeywords;
 	loadValidCommandKeywords();
-	vector< pair<string, bool> > optionFieldsChecker;
 	loadOptionFieldsChecker();
-	cmdResult = parseCommand(commandString);
 
 }
 
 Parser::~Parser(){
-
-}
-
-multimap<string, any> Parser::getCommandContents(){
-
-	return cmdResult;
-
-}
-
-bool Parser::getValid(){
-
-	return any_cast<bool>(cmdResult.find(cmdOptionField::VALID)->second);
 
 }
 

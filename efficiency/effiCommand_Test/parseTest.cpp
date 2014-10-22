@@ -15,9 +15,9 @@ namespace effiCommand_Test
 
 			string commandString = "plus meeting tomorrow -p 2 -l G983";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			bool invalid = any_cast<bool> ( test.find("valid")->second );
 
@@ -29,9 +29,9 @@ namespace effiCommand_Test
 
 			string commandString = "add -p 2 -l G983";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			bool invalid = any_cast<bool> ( test.find("valid")->second );
 
@@ -43,9 +43,9 @@ namespace effiCommand_Test
 
 			string commandString = "add Meeting tomorrow -p 2 -l G983";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			string num = any_cast<string> ( test.find("-p")->second );
 			string ID = any_cast<string> ( test.find("-l")->second );
@@ -62,9 +62,9 @@ namespace effiCommand_Test
 
 			string commandString = "add Meeting tomorrow -p 2 6 -l G983";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			string num = any_cast<string> ( test.find("-p")->second );
 			string ID = any_cast<string> ( test.find("-l")->second );
@@ -81,9 +81,9 @@ namespace effiCommand_Test
 
 			string commandString = "add Meeting tomorrow -p 2 -l";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			string num = any_cast<string> ( test.find("-p")->second );
 
@@ -101,9 +101,9 @@ namespace effiCommand_Test
 
 			string commandString = "add Meeting tomorrow -p -l";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			string param = any_cast<string> ( test.find("param")->second );
 
@@ -125,9 +125,9 @@ namespace effiCommand_Test
 
 			string commandString = "add Meeting tomorrow -a 1 -v 2";
 
-			Parser Parser(commandString);
+			Parser parser;
 
-			multimap<string, any> test = Parser.getCommandContents();
+			multimap<string, any> test = parser.parseCommand(commandString);
 
 			string param = any_cast<string> ( test.find("param")->second );
 
