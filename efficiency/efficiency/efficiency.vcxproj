@@ -38,11 +38,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>$(SolutionDir)EffiData;C:\Qt\Qt5.3.1\5.3\msvc2012_opengl\include;C:\local\boost_1_56_0;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)EffiCommand;$(SolutionDir)EffiData;C:\Qt\Qt5.3.1\5.3\msvc2012_opengl\include;C:\local\boost_1_56_0;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Debug;C:\local\boost_1_56_0\lib32-msvc-11.0;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(SolutionDir)EffiCommand;$(SolutionDir)EffiData;C:\Qt\Qt5.3.1\5.3\msvc2012_opengl\include;C:\local\boost_1_56_0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -162,6 +163,14 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\qrc_%(Filename).cpp;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\rcc.exe" -name "%(Filename)" -no-compress "%(FullPath)" -o .\GeneratedFiles\qrc_%(Filename).cpp</Command>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\effiCommand\effiCommand.vcxproj">
+      <Project>{370dedd3-b1b1-470f-8c79-2c97f006d769}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\EffiData\EffiData.vcxproj">
+      <Project>{ccb99166-62dc-41fe-af8a-9d9f6802a2fc}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

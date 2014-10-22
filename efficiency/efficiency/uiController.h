@@ -5,12 +5,15 @@
 #include <vector>
 #include <QWebViewWithHooks.h>
 #include "controller.h"
+#include "executor.h"
+#include "parser.h"
+#include "commandTypeEnum.h"
 
 class uiController
 {
 public:
 	// Properties
-	enum result_message_t {add_message, delete_message};
+	enum result_message_t {add_message, delete_message, invalid_message};
 	enum button_click_t {add_button, delete_button, search_button, exit_button};
 
 	// Methods
@@ -24,6 +27,8 @@ protected:
 	// Properties
 	QWebViewWithHooks * webView;
 	unique_ptr<Controller> controller;
+	Parser parser;
+	unique_ptr<Executor> executor;
 	enum view_type_t {agenda_view, calendar_view};
 	std::vector<result_message_t> resultMessageStore;
 	

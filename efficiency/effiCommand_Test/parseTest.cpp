@@ -22,6 +22,36 @@ namespace effiCommand_Test
 			bool invalid = any_cast<bool> ( test.find("valid")->second );
 
 			Assert::AreEqual(false, invalid);
+
+			commandString = "add";
+
+			test = parser.parseCommand(commandString);
+
+			invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(false, invalid);
+
+			commandString = "delete";
+
+			test = parser.parseCommand(commandString);
+
+			invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(false, invalid);
+			
+		}
+
+		TEST_METHOD(basicCommand){
+
+			string commandString = "add meeting tomorrow";
+
+			Parser parser;
+
+			multimap<string, any> test = parser.parseCommand(commandString);
+
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
 			
 		}
 
@@ -55,6 +85,9 @@ namespace effiCommand_Test
 
 			Assert::AreEqual(two, num);
 			Assert::AreEqual(correctID, ID);
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
 			
 		}
 
@@ -74,6 +107,10 @@ namespace effiCommand_Test
 
 			Assert::AreEqual(two, num);
 			Assert::AreEqual(correctID, ID);
+
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
 			
 		}
 
@@ -94,6 +131,10 @@ namespace effiCommand_Test
 			int c = test.count("-l");
 
 			Assert::AreEqual(0, c);
+
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
 			
 		}
 
@@ -118,6 +159,10 @@ namespace effiCommand_Test
 			c = test.count("-p");
 
 			Assert::AreEqual(0, c);
+
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
 			
 		}
 
@@ -135,9 +180,13 @@ namespace effiCommand_Test
 
 			int mmSize = test.size();
 
-			Assert::AreEqual(2, mmSize);
+			Assert::AreEqual(3, mmSize);
 
 			Assert::AreEqual(expect, param);
+
+			bool invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(true, invalid);
 			
 		}
 
