@@ -55,32 +55,6 @@ void uiController::onCommandInput(string input){
 	else {
 		displayResultMessage(invalid_message);
 	}
-
-	/*map<string,function<void(string)>> functionStore;
-	functionStore["add"] = [this](string input)->
-							void{
-								controller->addEvent(input);
-								displayResultMessage(add_message);
-								showOnGUI();
-							};
-	//functionStore["update"] = [this](string input)->void{};
-	functionStore["delete"] = [this](string input)->
-								void{
-									controller->deleteEvent(atoi(input.c_str()));
-									displayResultMessage(delete_message);
-									showOnGUI();
-								};
-
-	string command = input.substr(0, input.find(" "));
-	string content = input.substr(input.find(" ")+1);
-
-	if(functionStore.find(command) == functionStore.end()) {
-			qDebug()<< QString::fromStdString("Error: Please enter a valid command.\n");
-			LOG(INFO) << "Error: Please enter a valid command.\n";
-	}
-	else {
-		functionStore[command](content);
-	}*/
 }
 
 void uiController::displayResultMessage(result_message_t message){
@@ -105,13 +79,6 @@ void uiController::displayResultMessage(result_message_t message){
 			dom.findFirst("#message-box").appendInside("Error: Enter valid command.<br>");
 		}
 	}
-
-	/*if(message == add_message){
-		dom.findFirst("#message-box").appendInside("Task added.<br>");
-	}
-	else if(message == delete_message){
-		dom.findFirst("#message-box").appendInside("Task deleted.<br>");
-	}*/
 }
 
 void uiController::showOnGUI(){
