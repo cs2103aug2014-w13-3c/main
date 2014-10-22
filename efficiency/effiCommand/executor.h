@@ -7,6 +7,7 @@
 
 #include "commandTypeEnum.h"
 #include "optionField.h"
+#include "controller.h"
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/any.hpp"
@@ -16,27 +17,20 @@ using namespace std;
 
 class Executor{
 public:
+	typedef multimap<std::string, boost::any> Command;
 
-	// execute a given command string
-	// NOTE TO SELF: TO BE CALLED BY UI CONTROLLER
-	static void executeCommand(Parser processedCommand);
+	Executor(Controller * ctrl);
+	// execute a given command
+		// NOTE TO SELF: TO BE CALLED BY UI CONTROLLER
+	//Throws: CannotFindTarget('targetstring')
+	void executeCommand(Command processedCommand);
 
-private:
+protected:
+	Controller * ctrl;
+	Event::UUID find_task(Executor::Command command);
 
-	static multimap<string,any> getProcessedCommandContents(Parser processedCommand);
+	Event::UUID add_task(Executor::Command command);
 
-	static CommandTypeEnum::COMMAND_TYPE getCommandType(multimap<string,any> processedCommand);
-	static string getParameters(multimap<string,any> processedCommand);
-	static ptime getStartOption(multimap<string,any> processedCommand);
-	static ptime getEndOption(multimap<string,any> processedCommand);
-	static int getPriorityOption(multimap<string,any> processedCommand);
-	static string isRecursiveOption(multimap<string,any> processedCommand);
-	static vector<string> getTagOption(multimap<string,any> processedCommand);
-	static string getLinkOption(multimap<string,any> processedCommand);
-	static bool getHelpOption(multimap<string,any> processedCommand);
-
-	static string addTask();
-	static string deleteTask();
-
+	void update_task(Executor::Command command, Event::UUID taskid);
 };
 #endif
