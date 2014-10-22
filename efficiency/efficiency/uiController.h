@@ -25,6 +25,7 @@ protected:
 	QWebViewWithHooks * webView;
 	unique_ptr<Controller> controller;
 	enum view_type_t {agenda_view, calendar_view};
+	std::vector<result_message_t> resultMessageStore;
 	
 	//  Methods
 	// Output to GUI
