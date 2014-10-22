@@ -43,7 +43,6 @@ void uiController::onCommandInput(string input){
 
 	if(any_cast<bool>(parsedCommand.find("valid")->second) == true){
 		executor->executeCommand(parsedCommand);
-		showOnGUI();
 
 		if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == ADD_TASK){
 			displayResultMessage(add_message);
@@ -51,6 +50,8 @@ void uiController::onCommandInput(string input){
 		else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == DELETE_TASK){
 			displayResultMessage(delete_message);
 		}
+
+		showOnGUI();
 	}
 	else {
 		displayResultMessage(invalid_message);
@@ -84,14 +85,22 @@ void uiController::displayResultMessage(result_message_t message){
 void uiController::showOnGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	vector<Controller::CEvent> events;
-	events = controller->getAllEvents();
-	string name;
+	int iterator = 0;
 
+	string name;
+	ptime start;
+	ptime end;
+
+	events = controller->getAllEvents();
 	clearGUI();
 
 	for(auto i = events.begin(); i != events.end(); ++i){
 		name = i->getName();
-		dom.findFirst("#issue-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+		start = i->getStartDate();
+		end = i->getEndDate();
+		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
+			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+		}
 	}
 }
 
