@@ -76,7 +76,7 @@ void uiController::showOnGUI(){
 
 	for(auto i = events.begin(); i != events.end(); ++i){
 		name = i->getName();
-		dom.findFirst("#issue-display").appendInside(QString::fromStdString(name)+"<br>");
+		dom.findFirst("#issue-display").appendInside(QString::fromStdString(name)+"<hr><br>");
 	}
 }
 
