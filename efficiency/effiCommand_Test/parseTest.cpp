@@ -22,6 +22,22 @@ namespace effiCommand_Test
 			bool invalid = any_cast<bool> ( test.find("valid")->second );
 
 			Assert::AreEqual(false, invalid);
+
+			commandString = "add";
+
+			test = parser.parseCommand(commandString);
+
+			invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(false, invalid);
+
+			commandString = "delete";
+
+			test = parser.parseCommand(commandString);
+
+			invalid = any_cast<bool> ( test.find("valid")->second );
+
+			Assert::AreEqual(false, invalid);
 			
 		}
 
