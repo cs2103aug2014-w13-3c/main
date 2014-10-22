@@ -56,7 +56,7 @@ header, #main-content, footer {
 #message-box {
 	width: 100%;
 	position: relative;
-	height: 150px;
+	height: 100px;
 	top: 30%;
 }
 

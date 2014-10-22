@@ -64,12 +64,30 @@ void uiController::onCommandInput(string input){
 
 void uiController::displayResultMessage(result_message_t message){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	if(message == add_message){
+
+	if(resultMessageStore.size() >= 5){
+		resultMessageStore.erase(resultMessageStore.begin(),resultMessageStore.begin()+1);
+	}
+	resultMessageStore.push_back(message);
+
+	QWebElement messageBox = dom.findFirst("#message-box");
+	messageBox.removeAllChildren();
+
+	for (auto it = resultMessageStore.begin(); it != resultMessageStore.end(); ++it) {
+		if(*it == add_message){
+			dom.findFirst("#message-box").appendInside("Task added.<br>");
+		}
+		else if(*it == delete_message) {
+			dom.findFirst("#message-box").appendInside("Task deleted.<br>");
+		}
+	}
+
+	/*if(message == add_message){
 		dom.findFirst("#message-box").appendInside("Task added.<br>");
 	}
 	else if(message == delete_message){
 		dom.findFirst("#message-box").appendInside("Task deleted.<br>");
-	}
+	}*/
 }
 
 void uiController::showOnGUI(){
