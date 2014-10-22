@@ -7,7 +7,7 @@ using namespace boost::gregorian;
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
 							controller(std::move(ctrl)){
 	
-	// TODO: add the date to the display
+	// Add the date to the display on load
 	webView->registerPageLoad([webView](){
 		ptime now = second_clock::local_time();
 		date today = now.date();
@@ -15,6 +15,12 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		QWebElement dom = webView->page()->mainFrame()->documentElement();
 		dom.findFirst("#date").appendInside("Today's date is "+QString::fromStdString(date_string));
 	});
+
+	// Show existing issues on load
+	webView->registerPageLoad([this](){
+		showOnGUI();
+	});
+
 	// Register the various GUI watches here.
 	
 	webView->watch("#command-box",
