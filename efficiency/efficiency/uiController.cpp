@@ -101,11 +101,21 @@ void uiController::showOnGUI(){
 		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
 			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<hr><br>");
 		}
+		else if(end.is_not_a_date_time()){
+			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+		}
+		else {
+			dom.findFirst("#event-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+		}
 	}
 }
 
 void uiController::clearGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	QWebElement issueDisplay = dom.findFirst("#issue-display");
+	QWebElement issueDisplay = dom.findFirst("#event-display");
+	issueDisplay.removeAllChildren();
+	issueDisplay = dom.findFirst("#deadline-display");
+	issueDisplay.removeAllChildren();
+	issueDisplay = dom.findFirst("#task-display");
 	issueDisplay.removeAllChildren();
 }
