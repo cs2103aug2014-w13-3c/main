@@ -31,6 +31,8 @@ protected:
 
 	Event::UUID add_task(Executor::Command command);
 
+	void delete_task(Executor::Command command, Event::UUID taskid);
+
 	void update_task(Executor::Command command, Event::UUID taskid);
 };
 #endif

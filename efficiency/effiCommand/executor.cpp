@@ -38,6 +38,13 @@ void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
 	evt.exec();
 }
 
+void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
+{
+	if(!taskid)
+		taskid = find_task(command);
+	ctrl->deleteEvent(taskid);
+}
+
 void Executor::executeCommand(Executor::Command command){
 	assert(ctrl!=NULL);
 	assert(get<bool>("valid", command) == true);
@@ -51,6 +58,7 @@ void Executor::executeCommand(Executor::Command command){
 		update_task(command, taskid);
 		break;
 	case COMMAND_TYPE::DELETE_TASK:
+		delete_task(command);
 		break;
 	default:
 		assert(false); //Unimplemented.
