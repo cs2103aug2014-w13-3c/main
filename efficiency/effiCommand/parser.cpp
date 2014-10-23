@@ -2,6 +2,7 @@
 
 using namespace std;
 
+// stores all valid command keywords
 void Parser::loadValidCommandKeywords(){
 
 	validCommandKeywords.push_back(make_pair("add",CommandTypeEnum::ADD_TASK));
@@ -12,6 +13,7 @@ void Parser::loadValidCommandKeywords(){
 
 }
 
+// stores all available options and be ready to output to multimap
 void Parser::loadOptionFieldsChecker(){
 
 	optionFieldsChecker.push_back(make_pair(cmdOptionField::COMMAND,false));
@@ -26,6 +28,7 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
+// Constructor
 Parser::Parser(){
 
 	loadValidCommandKeywords();
@@ -33,10 +36,12 @@ Parser::Parser(){
 
 }
 
+// Destructor
 Parser::~Parser(){
 
 }
 
+// API to parse command
 multimap<string, any> Parser::parseCommand(const string commandString){
 
 	// TODO: refactor
@@ -53,15 +58,22 @@ multimap<string, any> Parser::parseCommand(const string commandString){
 // Check the entire command syntax
 multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTokens){
 
+	// Init Enum for identification
 	CommandTypeEnum::COMMAND_TYPE cmdType;
+
+	// Final multimap result
 	multimap<string,any> cmdParamAndOptMap;
 
+	// REMEMBER: THIS FOR LOOP IS FOR COMMAND TYPE!
 	for(unsigned int i = 0; i < validCommandKeywords.size(); i++){
 
+		// FOUND AVAILABLE COMMAND
 		if( areEqualStringsIgnoreCase(commandStringTokens[0], validCommandKeywords[i].first) ){
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::COMMAND, validCommandKeywords[i].second));
 			cmdType = validCommandKeywords[i].second;
 			break;
+
+		// REACHED END OF LIST OF VALID COMMANDS, IE NOT FOUND
 		} else if( i == validCommandKeywords.size() - 1){
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
 			return cmdParamAndOptMap;
@@ -69,49 +81,44 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 		
 	}
 
-	bool isFirstOption = true;
+	// SET FLAG FOR OPTION WITH PARAM BEFORE IT
 	bool hasNoOptions = true;
 
 	switch (cmdType){
 	// has mandatory parameter and optional options
 	case CommandTypeEnum::ADD_TASK:
-	case CommandTypeEnum::DELETE_TASK:
+	case CommandTypeEnum::DELETE_TASK:		
 
+		// ITERATE THRU ENTIRE ENTERED COMMAND
 		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
 
+			// ITERATE THRU AVAILABLE OPTIONS FIELD
 			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
+				// PARAM MISSING
 				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first )){
 
 					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
 					return cmdParamAndOptMap;
 
+				// OPTIONS MATCH
 				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first ) ){
 
-					if (isFirstOption){
+					// IF IT IS THE FIRST ONE FOUND
+					if (hasNoOptions){
 
-						isFirstOption = false;
 						hasNoOptions = false;
 						vector<string> extractParam;
 						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
 						string Param = joinVector(extractParam, " ");
 						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
 
 					}
 
-					tuple<string, any, int> currentOptionValue = extractOptionValue(commandStringTokens, i , optionFieldsChecker[j]);
-					string fieldOptions;
-					any fieldValue;
-					int m = 0;
-					tie(fieldOptions, fieldValue, m) = currentOptionValue;
-
-					if(!areEqualStringsIgnoreCase(fieldOptions, cmdOptionField::EMPTY_FIELD)){
-						cmdParamAndOptMap.insert( pair<string,any> (fieldOptions, fieldValue));
-					}
-
-					i = m;
-
-					break;
+					// EXTRACT OPTION VALUE AND TIE THEM UP FOR CHECK
+					cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j]);			
+					return cmdParamAndOptMap;
 
 				}
 
@@ -119,14 +126,19 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		}
 
+		// IF ENTERED COMMAND HAS NO OPTIONS FOUND
 		if(hasNoOptions){
 			 
 			vector<string> extractParam;
 			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			
+			// IF PARAM NOT FOUND, COMMAND INVALID
 			if(extractParam.empty()){
 				cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
 				return cmdParamAndOptMap;
 			}
+
+			// IF THERE IS PARAM, EXTRACT AND INSERT, MARK AS TRUE
 			string Param = joinVector(extractParam, " ");
 			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, Param) );
 			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
@@ -134,7 +146,6 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		}
 
-		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
 		return cmdParamAndOptMap;
 
 	// has only param (complete and undo)
@@ -153,6 +164,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 	default:
 
+		// SHOULD NEVER BE RUN
 		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
 		return cmdParamAndOptMap;
 
@@ -160,72 +172,111 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 }
 
-tuple<string, any, int> Parser::extractOptionValue(vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair){
+// ONCE A OPTION FIELD IS FOUND, EXTRACT VALUE
+// multimap to update, entered command, current option index, extracted option and bool for value needed
+multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdParamAndOptMap, 
+									 vector<string> commandStringTokens, 
+									 int fieldPos, 
+									 pair<string, bool> currentOptionFieldPair){
 
+	// TAKE CURRENT OPTION
 	string currentOptionField = currentOptionFieldPair.first;
+
+	bool hasFieldValueFormat = currentOptionFieldPair.second;
 
 	string fieldValue;
 	vector<string> fieldValueVector;
 
-	tuple<string, any, int> result;
-
 	bool hasFieldValueEntered = false;
 
-	bool hasFieldValueFormat = currentOptionFieldPair.second;
+	bool processComplete = false;
 
+	// IF THE FOUND OPTION DOESN'T NEED VALUE, SIMPLY RETURN BOOL AS TRUE
 	if(!hasFieldValueFormat){
 
-		result = make_tuple(currentOptionField, true, fieldPos);
-		return result;
+		cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, true) );
 
+		// READ VALUE FROM THE POSITION AT FIELD INDEX
+		for(unsigned int i = fieldPos; i < commandStringTokens.size() - 1; i++){
+
+			// IF POSITION OF OPTION NEEDING VALUE IS AT THE END, NO MORE FUTURE OPTIONS
+			if(fieldPos != commandStringTokens.size() - 1){
+
+				// ITERATE THROUGH AVAILABLE OPTIONS UNTIL WE HIT NEXT AVAILABLE OPTIONS FIELD
+				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+
+					// IF FOUND NEXT OPTION, RECURSIVELY CALL FOR NEXT PROCESS
+					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
+
+						cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
+						processComplete = true;
+						break;
+
+					}
+
+				}
+
+			}
+
+			if(processComplete){
+				break;
+			}
+
+		}	
+
+	// IF THE FOUND OPTION NEEDS VALUE, PROCESS VALUE ACCORDING TO OPTION FOUND
 	} else {
 
 		if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::REPEAT_OPTION)){
 
 		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
 
-		} else if(areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION)){
+		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION)){
 
 		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
 
 		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::LINK_OPTION) ||
 				   areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::PRIORITY_OPTION)){
 
+			// READ VALUE FROM THE POSITION AT FIELD INDEX
 			for(unsigned int i = fieldPos; i < commandStringTokens.size() - 1; i++){
 
-				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+				// IF POSITION OF OPTION NEEDING VALUE IS AT THE END, NO WAY IT IS VALID
+				if(fieldPos != commandStringTokens.size() - 1){
 
-					if(fieldPos == commandStringTokens.size() - 1){
+					// ITERATE THROUGH AVAILABLE OPTIONS UNTIL WE HIT NEXT AVAILABLE OPTIONS FIELD
+					for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
-						result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
-						return result;
-
-					} else {
-
+						// IF FOUND NEXT OPTION, PREPROCESS
 						if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
 
-							if(!hasFieldValueEntered){
-
-								result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
-								return result;
-
-							} else {
+							if(hasFieldValueEntered){
 
 								copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.begin() + (i+1), back_inserter(fieldValueVector));
 								fieldValue = joinVector(fieldValueVector, " ");
-								result = make_tuple(currentOptionField, fieldValue, i);
-								return result;
+								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
+								cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
+								processComplete = true;
+								break;
+
+							} else {
+
+								cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
+								processComplete = true;
+								break;
 
 							}
 
 						} else {
 
+							// IF VALUE EXTENDS TO END OF ENTERED COMMAND AND NO NEXT OPTION IS FOUND
 							if( (i + 1 == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ){
 
 								copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));
 								fieldValue = joinVector(fieldValueVector, " ");
-								result = make_tuple(currentOptionField, fieldValue, i);
-								return result;
+								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
+								processComplete = true;
+								break;
 
 							}
 
@@ -235,21 +286,19 @@ tuple<string, any, int> Parser::extractOptionValue(vector<string> commandStringT
 
 				}
 
+				if(processComplete){
+					break;
+				}
+
 				hasFieldValueEntered = true;
 
 			}
 
-			result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
-			return result;
-
-		} else {
-
-			result = make_tuple(cmdOptionField::EMPTY_FIELD, "null", fieldPos);
-			return result;
-
 		}
 
 	}
+
+	return cmdParamAndOptMap;
 
 }
 
