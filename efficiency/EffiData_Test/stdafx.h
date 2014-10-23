@@ -11,5 +11,7 @@
 #include "CppUnitTest.h"
 
 // TODO: reference additional headers your program requires here
+#include <string>
 #include "EventData.h"
 #include "TaskList.h"
+#include "boost/date_time/posix_time/posix_time.hpp"

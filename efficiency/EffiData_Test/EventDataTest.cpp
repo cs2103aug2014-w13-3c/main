@@ -131,5 +131,31 @@ namespace EffiData_Test
 			Assert::IsTrue(std::find(tags.begin(), tags.end(), "tag 1")!=tags.end());
 			Assert::IsTrue(std::find(tags.begin(), tags.end(), "final tag")!=tags.end());
 		}
+
+		// Set the start date for an event.
+		TEST_METHOD(SetStartDateTest)
+		{
+			string ts("2002-01-20 23:59:59.000");
+			ptime datetime(time_from_string(ts));
+			Event e("test event");
+			e.setStartDate(datetime);
+			Assert::AreEqual(to_simple_string(datetime), to_simple_string(e.getStartDate()));
+		}
+
+		// Set the content of an event.
+		TEST_METHOD(SetContentTest)
+		{
+			Event e("test event");
+			string content = "test content";
+			e.setContent(content);
+			Assert::AreEqual(content, e.getContent());
+		}
+
+		// Check that the default content of an event is an empty string.
+		TEST_METHOD(ContentDefaultTest){
+			Event e("test event");
+			string empty = "";
+			Assert::AreEqual(empty, e.getContent());
+		}
 	};
 }
