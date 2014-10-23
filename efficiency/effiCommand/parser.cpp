@@ -7,8 +7,30 @@ void Parser::loadValidCommandKeywords(){
 
 	validCommandKeywords.push_back(make_pair("add",CommandTypeEnum::ADD_TASK));
 	validCommandKeywords.push_back(make_pair("/a",CommandTypeEnum::ADD_TASK));
+
+	validCommandKeywords.push_back(make_pair("update",CommandTypeEnum::UPDATE_TASK));
+	validCommandKeywords.push_back(make_pair("/u",CommandTypeEnum::UPDATE_TASK));
+
 	validCommandKeywords.push_back(make_pair("delete",CommandTypeEnum::DELETE_TASK));
 	validCommandKeywords.push_back(make_pair("/d",CommandTypeEnum::DELETE_TASK));
+
+	validCommandKeywords.push_back(make_pair("complete",CommandTypeEnum::MARK_COMPLETE));
+	validCommandKeywords.push_back(make_pair("completed",CommandTypeEnum::MARK_COMPLETE));
+	validCommandKeywords.push_back(make_pair("/c",CommandTypeEnum::MARK_COMPLETE));
+
+	validCommandKeywords.push_back(make_pair("undo",CommandTypeEnum::UNDO));
+	validCommandKeywords.push_back(make_pair("/z",CommandTypeEnum::UNDO));
+
+	validCommandKeywords.push_back(make_pair("setting",CommandTypeEnum::SETTINGS));
+	validCommandKeywords.push_back(make_pair("settings",CommandTypeEnum::SETTINGS));
+	validCommandKeywords.push_back(make_pair("/t",CommandTypeEnum::SETTINGS));
+
+	validCommandKeywords.push_back(make_pair("minimize",CommandTypeEnum::MINIMIZE));
+	validCommandKeywords.push_back(make_pair("/m",CommandTypeEnum::MINIMIZE));
+	
+	validCommandKeywords.push_back(make_pair("help",CommandTypeEnum::HELP));
+	validCommandKeywords.push_back(make_pair("/?",CommandTypeEnum::HELP));
+
 	validCommandKeywords.push_back(make_pair("exit",CommandTypeEnum::EXIT));
 
 }
@@ -148,13 +170,35 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		return cmdParamAndOptMap;
 
-	// has only param (complete and undo)
+	// has only param
+	// case CommandTypeEnum::VIEW:
+	case CommandTypeEnum::MARK_COMPLETE:	
+
+		if(commandStringTokens.size() <= 1){
+
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+			return cmdParamAndOptMap;
+
+		} else {
+
+			vector<string> extractParam;
+			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			string Param = joinVector(extractParam, " ");
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+			return cmdParamAndOptMap;
+
+		}
 
 	// supports logical operations (search and filter)
+	//case CommandTypeEnum::SEARCH:
+	//case CommandTypeEnum::FILTER:
 
 	// has no param and options
+	case CommandTypeEnum::UNDO:
 	case CommandTypeEnum::SETTINGS:
 	case CommandTypeEnum::MINIMIZE:
+	case CommandTypeEnum::HELP:
 	case CommandTypeEnum::LOGOUT:
 	case CommandTypeEnum::EXIT:
 

@@ -52,6 +52,20 @@ namespace effiCommand_Test
 			bool invalid = any_cast<bool> ( test.find("-valid")->second );
 
 			Assert::AreEqual(true, invalid);
+
+			commandString = "/c G983";
+
+			test = parser.parseCommand(commandString);
+
+			invalid = any_cast<bool> ( test.find("-valid")->second );
+
+			Assert::AreEqual(true, invalid);
+
+			string Param = any_cast<string> ( test.find("-param")->second );
+
+			string correctParam = "G983";
+
+			Assert::AreEqual(correctParam, Param);
 			
 		}
 
