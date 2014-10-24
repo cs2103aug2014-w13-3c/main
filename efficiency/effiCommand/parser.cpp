@@ -31,6 +31,8 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("help",CommandTypeEnum::HELP));
 	validCommandKeywords.push_back(make_pair("/?",CommandTypeEnum::HELP));
 
+	validCommandKeywords.push_back(make_pair("logout",CommandTypeEnum::LOGOUT));
+
 	validCommandKeywords.push_back(make_pair("exit",CommandTypeEnum::EXIT));
 
 }
@@ -109,7 +111,8 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	switch (cmdType){
 	// has mandatory parameter and optional options
 	case CommandTypeEnum::ADD_TASK:
-	case CommandTypeEnum::DELETE_TASK:		
+	case CommandTypeEnum::DELETE_TASK:	
+	case CommandTypeEnum::UPDATE_TASK:		
 
 		// ITERATE THRU ENTIRE ENTERED COMMAND
 		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
