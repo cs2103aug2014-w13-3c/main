@@ -41,6 +41,30 @@ namespace effiCommand_Test
 			bool invalid = any_cast<bool> ( test.find("-valid")->second );
 			Assert::AreEqual(true, invalid);
 
+			//tag test
+			commandString = "add meeting tomorrow -t meeting,tomorrow UTown, Starbucks";
+			test = parser.parseCommand(commandString);
+			invalid = any_cast<bool> ( test.find("-valid")->second );
+			Assert::AreEqual(true, invalid);
+
+			//start/end time good 1 test
+			commandString = "add meeting tomorrow -s 01-Jan-2014";
+			test = parser.parseCommand(commandString);
+			invalid = any_cast<bool> ( test.find("-valid")->second );
+			Assert::AreEqual(true, invalid);
+
+			//start/end time good 2 test
+			commandString = "add meeting tomorrow -e 2014-01-01 23:59";
+			test = parser.parseCommand(commandString);
+			invalid = any_cast<bool> ( test.find("-valid")->second );
+			Assert::AreEqual(true, invalid);
+
+			//start/end time fail test
+			commandString = "add meeting tomorrow -s pizza";
+			test = parser.parseCommand(commandString);
+			invalid = any_cast<bool> ( test.find("-valid")->second );
+			Assert::AreEqual(true, invalid);
+
 			//update
 			commandString = "update meeting tomorrow";
 			test = parser.parseCommand(commandString);

@@ -28,6 +28,7 @@ public:
 	multimap<string, any> parseCommand(const string commandString);
 
 private:
+
 	// Attributes
 	vector<pair<string, bool>> optionFieldsChecker;
 	vector<pair<string, CommandTypeEnum::COMMAND_TYPE>> validCommandKeywords;
@@ -38,9 +39,10 @@ private:
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 	multimap<string, any> extractOptionsAndValues(multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair);
+	bool checkDateTime(string dtFieldValue);
 
 	// convert the command string to a string vector
-	static vector<string> tokenizeCommandString(string userCommand);
+	static vector<string> tokenizeCommandString(string userCommand, bool forTagComma);
 	static string joinVector(const vector<string>& commandVector, const string& token);
 
 	// check if two strings are equal, ignoring case sensitivity

@@ -52,6 +52,91 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
+bool Parser::checkDateTime(string dtFieldValue){
+
+	const locale inputFormats[] = {
+
+		locale(locale::classic(), new time_input_facet("%b/%d/%Y")),
+		locale(locale::classic(), new time_input_facet("%B/%d/%Y")),
+		locale(locale::classic(), new time_input_facet("%d/%b/%Y")),
+		locale(locale::classic(), new time_input_facet("%d/%B/%Y")),
+
+		locale(locale::classic(), new time_input_facet("%b-%d-%Y")),
+		locale(locale::classic(), new time_input_facet("%B-%d-%Y")),
+		locale(locale::classic(), new time_input_facet("%d-%b-%Y")),
+		locale(locale::classic(), new time_input_facet("%d-%B-%Y")),
+
+		locale(locale::classic(), new time_input_facet("%Y/%b/%d")),
+		locale(locale::classic(), new time_input_facet("%Y/%B/%d")),
+		locale(locale::classic(), new time_input_facet("%Y-%B-%d")),
+		locale(locale::classic(), new time_input_facet("%Y-%b-%d")),
+
+		locale(locale::classic(), new time_input_facet("%d-%m-%Y")),
+		locale(locale::classic(), new time_input_facet("%Y-%m-%d")),
+		locale(locale::classic(), new time_input_facet("%d/%m/%Y")),
+		locale(locale::classic(), new time_input_facet("%Y/%m/%d")),
+
+		locale(locale::classic(), new time_input_facet("%b/%d/%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%B/%d/%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%d/%b/%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%d/%B/%Y %H:%M")),
+
+		locale(locale::classic(), new time_input_facet("%b-%d-%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%B-%d-%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%d-%b-%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%d-%B-%Y %H:%M")),
+
+		locale(locale::classic(), new time_input_facet("%Y/%b/%d %H:%M")),
+		locale(locale::classic(), new time_input_facet("%Y/%B/%d %H:%M")),
+		locale(locale::classic(), new time_input_facet("%Y-%B-%d %H:%M")),
+		locale(locale::classic(), new time_input_facet("%Y-%b-%d %H:%M")),
+
+		locale(locale::classic(), new time_input_facet("%d-%m-%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%Y-%m-%d %H:%M")),
+		locale(locale::classic(), new time_input_facet("%d/%m/%Y %H:%M")),
+		locale(locale::classic(), new time_input_facet("%Y/%m/%d %H:%M")),
+
+		locale(locale::classic(), new time_input_facet("%b/%d/%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%B/%d/%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%d/%b/%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%d/%B/%Y %I:%M")),
+
+		locale(locale::classic(), new time_input_facet("%b-%d-%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%B-%d-%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%d-%b-%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%d-%B-%Y %I:%M")),
+
+		locale(locale::classic(), new time_input_facet("%Y/%b/%d %I:%M")),
+		locale(locale::classic(), new time_input_facet("%Y/%B/%d %I:%M")),
+		locale(locale::classic(), new time_input_facet("%Y-%B-%d %I:%M")),
+		locale(locale::classic(), new time_input_facet("%Y-%b-%d %I:%M")),
+
+		locale(locale::classic(), new time_input_facet("%d-%m-%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%Y-%m-%d %I:%M")),
+		locale(locale::classic(), new time_input_facet("%d/%m/%Y %I:%M")),
+		locale(locale::classic(), new time_input_facet("%Y/%m/%d %I:%M"))
+
+	};
+
+	const size_t dtFormats = sizeof(inputFormats)/sizeof(inputFormats[0]);
+
+	for(size_t i=0; i < dtFormats; ++i){
+
+		istringstream ss(dtFieldValue);
+		ss.imbue(inputFormats[i]);
+		ptime dateTime;
+		ss >> dateTime;
+
+		if(dateTime != not_a_date_time){
+			return true;
+		}
+
+	}
+
+	return false;
+
+}
+
 // Constructor
 Parser::Parser(){
 
@@ -73,7 +158,7 @@ multimap<string, any> Parser::parseCommand(const string commandString){
 		throw "No command found.";
 	}
 
-	vector<string> commandStringTokens = tokenizeCommandString(commandString);
+	vector<string> commandStringTokens = tokenizeCommandString(commandString, false);
 
 	return checkCommandSyntax(commandStringTokens);
 
@@ -231,7 +316,7 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 	bool hasFieldValueFormat = currentOptionFieldPair.second;
 
-	string fieldValue;
+	any fieldValue;
 	vector<string> fieldValueVector;
 
 	bool hasFieldValueEntered = false;
@@ -274,58 +359,99 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 	// IF THE FOUND OPTION NEEDS VALUE, PROCESS VALUE ACCORDING TO OPTION FOUND
 	} else {
 
-		if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::REPEAT_OPTION)){
+		// READ VALUE FROM THE POSITION AT FIELD INDEX
+		for(unsigned int i = fieldPos; i < commandStringTokens.size() - 1; i++){
 
-		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
+			// IF POSITION OF OPTION NEEDING VALUE IS AT THE END, NO WAY IT IS VALID
+			if(fieldPos != commandStringTokens.size() - 1){
 
-		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION)){
+				// ITERATE THROUGH AVAILABLE OPTIONS UNTIL WE HIT NEXT AVAILABLE OPTIONS FIELD
+				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
-		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
+					// IF FOUND NEXT OPTION, PREPROCESS
+					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
 
-		} else if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::LINK_OPTION) ||
-				   areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::PRIORITY_OPTION)){
+						if(hasFieldValueEntered){
 
-			// READ VALUE FROM THE POSITION AT FIELD INDEX
-			for(unsigned int i = fieldPos; i < commandStringTokens.size() - 1; i++){
+							copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.begin() + (i+1), back_inserter(fieldValueVector));
+							
+							if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
 
-				// IF POSITION OF OPTION NEEDING VALUE IS AT THE END, NO WAY IT IS VALID
-				if(fieldPos != commandStringTokens.size() - 1){
-
-					// ITERATE THROUGH AVAILABLE OPTIONS UNTIL WE HIT NEXT AVAILABLE OPTIONS FIELD
-					for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
-
-						// IF FOUND NEXT OPTION, PREPROCESS
-						if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
-
-							if(hasFieldValueEntered){
-
-								copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.begin() + (i+1), back_inserter(fieldValueVector));
-								fieldValue = joinVector(fieldValueVector, " ");
-								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
-								cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
-								processComplete = true;
-								break;
+								string extractedTagValues = joinVector(fieldValueVector, " ");
+								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
+								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValueVector) );
 
 							} else {
 
-								cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
-								processComplete = true;
-								break;
+								if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION) ||
+										areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
 
-							}
+									fieldValue = joinVector(fieldValueVector, " ");
 
-						} else {
+									string dtFieldValue = any_cast<string> (fieldValue);
 
-							// IF VALUE EXTENDS TO END OF ENTERED COMMAND AND NO NEXT OPTION IS FOUND
-							if( (i + 1 == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ){
+									bool isValidDateTime = checkDateTime(dtFieldValue);
 
-								copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));
-								fieldValue = joinVector(fieldValueVector, " ");
-								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
-								processComplete = true;
-								break;
+									if(isValidDateTime){
+										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, dtFieldValue) );
+										break;
+									}
 
-							}
+								} else {
+
+									fieldValue = joinVector(fieldValueVector, " ");
+									cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
+
+								}
+
+							}							
+							
+						}
+
+							cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
+							processComplete = true;
+							break;
+
+					} else {
+
+						// IF VALUE EXTENDS TO END OF ENTERED COMMAND AND NO NEXT OPTION IS FOUND
+						if( (i + 1 == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ){
+
+							copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));
+							
+							if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
+
+								string extractedTagValues = joinVector(fieldValueVector, " ");
+								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
+								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValueVector) );
+
+							} else {
+
+								if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION) ||
+										areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
+
+									fieldValue = joinVector(fieldValueVector, " ");
+
+									string dtFieldValue = any_cast<string> (fieldValue);
+
+									bool isValidDateTime = checkDateTime(dtFieldValue);
+
+									if(isValidDateTime){
+										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, dtFieldValue) );
+										break;
+									}
+
+								} else {
+
+									fieldValue = joinVector(fieldValueVector, " ");
+									cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
+
+								}
+
+							}	
+
+							processComplete = true;
+							break;
 
 						}
 
@@ -333,13 +459,13 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 				}
 
-				if(processComplete){
-					break;
-				}
-
-				hasFieldValueEntered = true;
-
 			}
+
+			if(processComplete){
+				break;
+			}
+
+			hasFieldValueEntered = true;
 
 		}
 
@@ -350,13 +476,29 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 }
 
 // This function converts user command strings into a string vector
-vector<string> Parser::tokenizeCommandString(string userCommand){
+vector<string> Parser::tokenizeCommandString(string userCommand, bool forTagComma){
 
 	vector<string> stringTokens;
 	istringstream iss(userCommand);
-    copy(istream_iterator<string>(iss),
-             istream_iterator<string>(),
-             back_inserter< vector<string> > (stringTokens) );
+
+	if(!forTagComma){
+
+		copy(istream_iterator<string>(iss),
+				 istream_iterator<string>(),
+				 back_inserter< vector<string> > (stringTokens) );
+
+	} else {
+
+		string tagTokens;
+		string result;
+
+		while(getline(iss, tagTokens, ',')) {
+			result = result + tagTokens + " ";
+		}
+
+		return tokenizeCommandString(result, false);
+
+	}
 
 	return stringTokens;
 
