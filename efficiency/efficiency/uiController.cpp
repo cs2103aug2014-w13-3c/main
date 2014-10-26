@@ -50,6 +50,9 @@ void uiController::onCommandInput(string input){
 		else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == DELETE_TASK){
 			displayResultMessage(delete_message);
 		}
+		else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UPDATE_TASK){
+			displayResultMessage(update_message);
+		}
 
 		showOnGUI();
 	}
@@ -71,10 +74,13 @@ void uiController::displayResultMessage(result_message_t message){
 
 	for (auto it = resultMessageStore.begin(); it != resultMessageStore.end(); ++it) {
 		if(*it == add_message){
-			dom.findFirst("#message-box").appendInside("Task added.<br>");
+			dom.findFirst("#message-box").appendInside("Issue added.<br>");
 		}
 		else if(*it == delete_message) {
-			dom.findFirst("#message-box").appendInside("Task deleted.<br>");
+			dom.findFirst("#message-box").appendInside("Issue deleted.<br>");
+		}
+		else if(*it == update_message) {
+			dom.findFirst("#message-box").appendInside("Issue updated.<br>");
 		}
 		else if(*it == invalid_message){
 			dom.findFirst("#message-box").appendInside("Error: Enter valid command.<br>");
@@ -88,6 +94,7 @@ void uiController::showOnGUI(){
 	int iterator = 0;
 
 	string name;
+	string content;
 	ptime start;
 	ptime end;
 
@@ -96,16 +103,26 @@ void uiController::showOnGUI(){
 
 	for(auto i = events.begin(); i != events.end(); ++i){
 		name = i->getName();
+		content = i->getContent();
 		start = i->getStartDate();
 		end = i->getEndDate();
 		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
-			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<br>");
+			dom.findFirst("#task-display").appendInside(QString::fromStdString(content));
+			dom.findFirst("#task-display").appendInside("<hr><br>");
 		}
 		else if(end.is_not_a_date_time()){
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(to_simple_string(start))+" ");
+			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<br>");
+			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(content));
+			dom.findFirst("#deadline-display").appendInside("<hr><br>");
 		}
 		else {
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(name)+"<hr><br>");
+			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(start))+" to ");
+			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(end))+" ");
+			dom.findFirst("#event-display").appendInside(QString::fromStdString(name)+"<br>");
+			dom.findFirst("#event-display").appendInside(QString::fromStdString(content));
+			dom.findFirst("#event-display").appendInside("<hr><br>");
 		}
 	}
 }
