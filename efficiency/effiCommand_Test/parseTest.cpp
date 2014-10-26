@@ -136,6 +136,16 @@ namespace effiCommand_Test
 			
 		}
 
+		TEST_METHOD(dateParser){
+
+			string commandString = "add blahblah -s 2002-01-20";
+			Parser parser;
+			multimap<string, any> test = parser.parseCommand(commandString);
+			ptime expected = ptime(time_from_string("2002-01-20 00:00:00.000"));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+			
+		}
+
 		TEST_METHOD(missingParameters){
 
 			string commandString = "add -p 2 -l G983";
