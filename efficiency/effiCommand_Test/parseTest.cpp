@@ -48,22 +48,40 @@ namespace effiCommand_Test
 			Assert::AreEqual(true, invalid);
 
 			//start/end time good 1 test
+			commandString = "add meeting tomorrow -s 2014-01-01 23:59";
+			test = parser.parseCommand(commandString);
+			invalid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, invalid);
+
+			ptime expected = ptime(time_from_string("2014-01-01 23:59:00.000"));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+
+
+			//start/end time good 2 test
 			commandString = "add meeting tomorrow -s 01-Jan-2014";
 			test = parser.parseCommand(commandString);
 			invalid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, invalid);
 
-			//start/end time good 2 test
-			commandString = "add meeting tomorrow -e 2014-01-01 23:59";
+			expected = ptime(time_from_string("2014-01-01 00:00:00.000"));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+
+			//start/end time good 3 test
+			commandString = "add meeting tomorrow -s 01-Feb-2014 12:00PM";
 			test = parser.parseCommand(commandString);
 			invalid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, invalid);
+
+			expected = ptime(time_from_string("2014-02-01 12:00:00.000"));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
 
 			//start/end time fail test
 			commandString = "add meeting tomorrow -s pizza";
 			test = parser.parseCommand(commandString);
 			invalid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, invalid);
+			int mmSize = test.size();
+			Assert::AreEqual(3, mmSize);
 
 			//update
 			commandString = "update meeting tomorrow";

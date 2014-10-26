@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 
+
 #include "commandTypeEnum.h"
 #include "optionField.h"
 
@@ -39,7 +40,8 @@ private:
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 	multimap<string, any> extractOptionsAndValues(multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair);
-	pair<bool,ptime> checkDateTime(string dtFieldValue);
+	pair<bool, ptime> checkDateTime(string dtFieldValue, bool firstRun);
+	string addSeconds(string time);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand, bool forTagComma);
@@ -52,6 +54,8 @@ private:
 	static string trimRight(const string& s, const string& delimiters = " \f\n\r\t\v" );
 	static string trimLeft(const string& s, const string& delimiters = " \f\n\r\t\v" );
 	static string trim(const string& s, const string& delimiters = " \f\n\r\t\v" );
+
+	bool hasSuffix(const std::string &str, const std::string &suffix);
 
 };
 #endif
