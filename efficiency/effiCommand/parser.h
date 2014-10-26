@@ -39,7 +39,7 @@ private:
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 	multimap<string, any> extractOptionsAndValues(multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, pair<string, bool> currentOptionFieldPair);
-	bool checkDateTime(string dtFieldValue);
+	pair<bool,ptime> checkDateTime(string dtFieldValue);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand, bool forTagComma);

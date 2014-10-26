@@ -52,7 +52,7 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
-bool Parser::checkDateTime(string dtFieldValue){
+pair<bool,ptime> Parser::checkDateTime(string dtFieldValue){
 
 	const locale inputFormats[] = {
 
@@ -120,6 +120,8 @@ bool Parser::checkDateTime(string dtFieldValue){
 
 	const size_t dtFormats = sizeof(inputFormats)/sizeof(inputFormats[0]);
 
+	pair<bool,ptime> result;
+
 	for(size_t i=0; i < dtFormats; ++i){
 
 		istringstream ss(dtFieldValue);
@@ -128,12 +130,16 @@ bool Parser::checkDateTime(string dtFieldValue){
 		ss >> dateTime;
 
 		if(dateTime != not_a_date_time){
-			return true;
+			result.first = true;
+			result.second = dateTime;
+			return result;
 		}
 
 	}
 
-	return false;
+	result.first = false;
+
+	return result;
 
 }
 
@@ -390,10 +396,10 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 									string dtFieldValue = any_cast<string> (fieldValue);
 
-									bool isValidDateTime = checkDateTime(dtFieldValue);
+									pair<bool,ptime> isValidDateTime = checkDateTime(dtFieldValue);
 
-									if(isValidDateTime){
-										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, dtFieldValue) );
+									if(isValidDateTime.first){
+										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, isValidDateTime.second) );
 										break;
 									}
 
@@ -434,10 +440,10 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 									string dtFieldValue = any_cast<string> (fieldValue);
 
-									bool isValidDateTime = checkDateTime(dtFieldValue);
+									pair<bool,ptime> isValidDateTime = checkDateTime(dtFieldValue);
 
-									if(isValidDateTime){
-										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, dtFieldValue) );
+									if(isValidDateTime.first){
+										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, isValidDateTime.second) );
 										break;
 									}
 
