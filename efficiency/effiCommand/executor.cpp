@@ -6,7 +6,6 @@
 using namespace std;
 using CommandTypeEnum::COMMAND_TYPE;
 
-
 template<typename T>
 T get(std::string key, Executor::Command command){
 	return any_cast<T>((*command.find(key)).second);
@@ -24,7 +23,6 @@ Event::UUID Executor::find_task(Executor::Command command){
 Event::UUID Executor::add_task(Executor::Command command){
 	return ctrl->addEvent(get<string>("param",command)).getId();
 }
-
 
 //update_task must be able to work on both add/update commands.
 void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
@@ -48,6 +46,7 @@ void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
 void Executor::executeCommand(Executor::Command command){
 	assert(ctrl!=NULL);
 	assert(get<bool>("valid", command) == true);
+	
 	COMMAND_TYPE cmdtype = get<COMMAND_TYPE>("cmd", command);
 	Event::UUID taskid = 0; //assume nothing can have taskid of 0.
 	switch(cmdtype){

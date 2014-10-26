@@ -37,10 +37,10 @@ namespace EffiData_Test
 			"    \"priority\": \"5\",\n"
 			"    \"tags\": \"\",\n" //Should be [], but boost property tree doesn't support it.
 			"    \"complete\": \"false\",\n"
-			"    \"start\": \"0\",\n"
-			"    \"end\": \"0\",\n"
+			"    \"start\": \"not-a-date-time\",\n"
+			"    \"end\": \"not-a-date-time\",\n"
 			"    \"parent\": \"0\",\n"
-			"    \"content\": \"0\"\n"
+			"    \"content\": \"\"\n"
 			"}\n";
 			std::cout<<e;
 			string result = consoleDump();
@@ -79,10 +79,10 @@ namespace EffiData_Test
 			"        \"nextTag\"\n"
 			"    ],\n"
 			"    \"complete\": \"false\",\n"
-			"    \"start\": \"0\",\n"
-			"    \"end\": \"0\",\n"
+			"    \"start\": \"not-a-date-time\",\n"
+			"    \"end\": \"not-a-date-time\",\n"
 			"    \"parent\": \"0\",\n"
-			"    \"content\": \"0\"\n"
+			"    \"content\": \"\"\n"
 			"}\n";
 			Assert::AreEqual(expected, result);
 		
