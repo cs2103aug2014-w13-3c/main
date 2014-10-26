@@ -7,9 +7,9 @@ using namespace std;
 
 namespace cmdOptionField {
 
-	static const string VALID = "-valid";
-	static const string COMMAND = "-cmd";
-	static const string PARAMETERS = "-param";
+	static const string VALID = "valid";
+	static const string COMMAND = "cmd";
+	static const string PARAMETERS = "param";
 	static const string START_OPTION = "-s";
 	static const string END_OPTION = "-e";
 	static const string PRIORITY_OPTION = "-p";
