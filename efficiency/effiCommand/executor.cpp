@@ -2,9 +2,28 @@
 #include "executor.h"
 #include "Undo.h"
 #include "controller.h"
+#include <boost\assign.hpp>
+#include "optionField.h"
 
 using namespace std;
 using CommandTypeEnum::COMMAND_TYPE;
+using namespace cmdOptionField;
+
+std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> createActions(){
+	std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> actions;
+	actions.insert(make_pair(START_OPTION, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setStartDate(any_cast<ptime>(value)); }));
+	actions.insert(make_pair(END_OPTION, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setEndDate(any_cast<ptime>(value)); }));
+	actions.insert(make_pair(TAG_OPTION, 
+		[](boost::any value, Controller::CEvent& evt){ evt.addTags(any_cast<vector<string>>(value)); }));
+	actions.insert(make_pair(PRIORITY_OPTION, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setPriority(any_cast<int>(value)); }));
+	return actions;
+}
+
+std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> Executor::actions
+	= createActions();
 
 template<typename T>
 T get(std::string key, Executor::Command command){
@@ -29,10 +48,14 @@ void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
 	if(!taskid)
 		taskid = find_task(command);
 	Controller::CEvent& evt = ctrl->getEvent(taskid);
-	//TODO.
-	//for each possible property
-		//check if its available
-			//if so, add it.
+	for(auto it = command.begin(); it!=command.end();++it)
+	{
+		string field = it->first;
+		boost::any value = it->second;
+		auto action = actions.find(field);
+		if(action != actions.end())
+			action->second(value, evt);
+	}
 	evt.exec();
 }
 
