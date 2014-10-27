@@ -69,6 +69,13 @@ string TaskList::toString(){
 	return os.str();
 }
 
+void TaskList::changeId(Event::UUID prev, Event::UUID curr)
+{
+	Event evt = userTaskList.find(prev)->second;
+	userTaskList.erase(prev);
+	userTaskList.insert(make_pair(curr, std::move(evt)));
+}
+
 ostream& operator<<(ostream& os, const TaskList t){
 	for(auto it = t.userTaskList.begin(); it!= t.userTaskList.end(); ++it)
 	{

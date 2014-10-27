@@ -21,6 +21,7 @@ public:
 		//This enforces that all changes are done at once.
 	void updateEvent(Event::UUID id, EventOperator op); 
 	void deleteEvent(Event::UUID id);
+	void changeId(Event::UUID prev, Event::UUID curr);
 	Event getEvent(Event::UUID id);  //Note that this returns a copy.
 	vector<Event> getAllEvents(); //This returns copies too.
 	friend ostream& operator<<(ostream& os, const TaskList t);

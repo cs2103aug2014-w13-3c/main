@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-Controller::CEvent::CEvent(Event::UUID id, TaskList * tl) : uuid(id), cmdlist(), events(tl)
+Controller::CEvent::CEvent(Event::UUID id, TaskList * tl, Controller* ctrl) : uuid(id), cmdlist(), events(tl), controller(ctrl)
 {}
 
 Controller::CEvent::~CEvent()
@@ -135,12 +135,12 @@ Controller::Controller(): events("TESTUSER"), cevents()
 	auto _events = events.getAllEvents();
 	//get data from previous events.
 	for(auto it = _events.begin(); it!= _events.end(); ++it)
-		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events)));
+		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events, this)));
 }
 
 Controller::CEvent& Controller::addEvent(string name){
 	auto id = events.addEvent(name);
-	cevents.insert(make_pair(id, CEvent(id, &events)));
+	cevents.insert(make_pair(id, CEvent(id, &events, this)));
 	return cevents.at(id);
 }
 
@@ -165,4 +165,27 @@ Controller::CEvent& Controller::getEventByName(string name){
 void Controller::deleteEvent(Event::UUID id){
 	events.deleteEvent(id); //TODO: check if event exists. Actually don't bother, just let it throw out.
 	cevents.erase(id);
+}
+
+void Controller::changeId(Event::UUID prev, Event::UUID curr)
+{
+	CEvent evt = cevents.find(prev)->second;
+	cevents.erase(prev);
+	cevents.insert(make_pair(curr, std::move(evt)));
+	events.changeId(prev, curr);
+}
+
+ostream& operator<<(ostream& os, const Controller::CEvent& evt){
+	os<<evt.events->getEvent(evt.uuid);
+	return os;
+}
+
+istream& operator>>(istream& is, Controller::CEvent& evt){
+	auto currid = evt.getId();
+	evt.events->updateEvent(currid, [&is, &evt](Event & _evt){ 
+		is>>_evt;
+		evt.uuid = _evt.getId();
+	});
+	evt.controller->changeId(currid, evt.uuid);
+	return is;
 }
