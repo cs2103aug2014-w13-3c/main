@@ -52,73 +52,69 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
-bool Parser::checkDateTime(string dtFieldValue){
+pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
+
+	vector<string> dtToken = tokenizeCommandString(dtFieldValue, false);
+
+	if(dtToken.size() > 1){
+
+		string time = dtToken[1];
+
+		replace(time.begin(), time.end(), ':', ' ');
+
+		vector<string> timeToken = tokenizeCommandString(time, false);
+
+		int hour = stoi(timeToken[0]);
+		int minute = stoi(timeToken[1]);
+				
+		if ( hasSuffix(timeToken[timeToken.size() - 1],"PM") || 
+			 hasSuffix(timeToken[timeToken.size() - 1],"AM") ){
+
+			if( hasSuffix(timeToken[timeToken.size() - 1],"PM") ){
+				
+				hour = (hour % 12) + 12;
+				timeToken[0] = to_string(hour);
+			}
+
+		}
+
+		char buff[100];
+		sprintf_s(buff, "%02d:%02d:00", hour, minute);
+		time = buff;
+
+		dtToken[1] = time;
+
+	}
+
+	dtFieldValue = joinVector(dtToken, " ");
 
 	const locale inputFormats[] = {
 
-		locale(locale::classic(), new time_input_facet("%b/%d/%Y")),
-		locale(locale::classic(), new time_input_facet("%B/%d/%Y")),
-		locale(locale::classic(), new time_input_facet("%d/%b/%Y")),
-		locale(locale::classic(), new time_input_facet("%d/%B/%Y")),
+		locale(locale::classic(), new time_input_facet("%b/%d/%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%B/%d/%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%d/%b/%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%d/%B/%Y %H:%M:%S")),
 
-		locale(locale::classic(), new time_input_facet("%b-%d-%Y")),
-		locale(locale::classic(), new time_input_facet("%B-%d-%Y")),
-		locale(locale::classic(), new time_input_facet("%d-%b-%Y")),
-		locale(locale::classic(), new time_input_facet("%d-%B-%Y")),
+		locale(locale::classic(), new time_input_facet("%b-%d-%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%B-%d-%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%d-%b-%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%d-%B-%Y %H:%M:%S")),
 
-		locale(locale::classic(), new time_input_facet("%Y/%b/%d")),
-		locale(locale::classic(), new time_input_facet("%Y/%B/%d")),
-		locale(locale::classic(), new time_input_facet("%Y-%B-%d")),
-		locale(locale::classic(), new time_input_facet("%Y-%b-%d")),
+		locale(locale::classic(), new time_input_facet("%Y/%b/%d %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%Y/%B/%d %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%Y-%B-%d %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%Y-%b-%d %H:%M:%S")),
 
-		locale(locale::classic(), new time_input_facet("%d-%m-%Y")),
-		locale(locale::classic(), new time_input_facet("%Y-%m-%d")),
-		locale(locale::classic(), new time_input_facet("%d/%m/%Y")),
-		locale(locale::classic(), new time_input_facet("%Y/%m/%d")),
-
-		locale(locale::classic(), new time_input_facet("%b/%d/%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%B/%d/%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%d/%b/%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%d/%B/%Y %H:%M")),
-
-		locale(locale::classic(), new time_input_facet("%b-%d-%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%B-%d-%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%d-%b-%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%d-%B-%Y %H:%M")),
-
-		locale(locale::classic(), new time_input_facet("%Y/%b/%d %H:%M")),
-		locale(locale::classic(), new time_input_facet("%Y/%B/%d %H:%M")),
-		locale(locale::classic(), new time_input_facet("%Y-%B-%d %H:%M")),
-		locale(locale::classic(), new time_input_facet("%Y-%b-%d %H:%M")),
-
-		locale(locale::classic(), new time_input_facet("%d-%m-%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%Y-%m-%d %H:%M")),
-		locale(locale::classic(), new time_input_facet("%d/%m/%Y %H:%M")),
-		locale(locale::classic(), new time_input_facet("%Y/%m/%d %H:%M")),
-
-		locale(locale::classic(), new time_input_facet("%b/%d/%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%B/%d/%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%d/%b/%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%d/%B/%Y %I:%M")),
-
-		locale(locale::classic(), new time_input_facet("%b-%d-%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%B-%d-%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%d-%b-%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%d-%B-%Y %I:%M")),
-
-		locale(locale::classic(), new time_input_facet("%Y/%b/%d %I:%M")),
-		locale(locale::classic(), new time_input_facet("%Y/%B/%d %I:%M")),
-		locale(locale::classic(), new time_input_facet("%Y-%B-%d %I:%M")),
-		locale(locale::classic(), new time_input_facet("%Y-%b-%d %I:%M")),
-
-		locale(locale::classic(), new time_input_facet("%d-%m-%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%Y-%m-%d %I:%M")),
-		locale(locale::classic(), new time_input_facet("%d/%m/%Y %I:%M")),
-		locale(locale::classic(), new time_input_facet("%Y/%m/%d %I:%M"))
+		locale(locale::classic(), new time_input_facet("%d-%m-%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%Y-%m-%d %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%d/%m/%Y %H:%M:%S")),
+		locale(locale::classic(), new time_input_facet("%Y/%m/%d %H:%M:%S")),
 
 	};
 
 	const size_t dtFormats = sizeof(inputFormats)/sizeof(inputFormats[0]);
+
+	pair<bool,ptime> result;
 
 	for(size_t i=0; i < dtFormats; ++i){
 
@@ -128,12 +124,18 @@ bool Parser::checkDateTime(string dtFieldValue){
 		ss >> dateTime;
 
 		if(dateTime != not_a_date_time){
-			return true;
+
+			result.first = true;
+			result.second = dateTime;
+			return result;
+
 		}
 
 	}
 
-	return false;
+	result.first = false;
+
+	return result;
 
 }
 
@@ -390,10 +392,10 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 									string dtFieldValue = any_cast<string> (fieldValue);
 
-									bool isValidDateTime = checkDateTime(dtFieldValue);
+									pair<bool,ptime> isValidDateTime = checkDateTime(dtFieldValue, true);
 
-									if(isValidDateTime){
-										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, dtFieldValue) );
+									if(isValidDateTime.first){
+										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, isValidDateTime.second) );
 										break;
 									}
 
@@ -434,10 +436,10 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 									string dtFieldValue = any_cast<string> (fieldValue);
 
-									bool isValidDateTime = checkDateTime(dtFieldValue);
+									pair<bool, ptime> isValidDateTime = checkDateTime(dtFieldValue, true);
 
-									if(isValidDateTime){
-										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, dtFieldValue) );
+									if(isValidDateTime.first){
+										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, isValidDateTime.second) );
 										break;
 									}
 
@@ -539,18 +541,15 @@ bool Parser::areEqualStringsIgnoreCase(const string& stringOne, const string& st
 
 }
 
-inline string Parser::trimRight(const string& s, const string& delimiters)
-{
+inline string Parser::trimRight(const string& s, const string& delimiters){
 	return s.substr( 0, s.find_last_not_of( delimiters ) + 1 );
 }
 
-inline string Parser::trimLeft(const string& s, const string& delimiters)
-{
+inline string Parser::trimLeft(const string& s, const string& delimiters){
 	return s.substr( s.find_first_not_of( delimiters ) );
 }
 
-inline string Parser::trim(const string& s, const string& delimiters)
-{
+inline string Parser::trim(const string& s, const string& delimiters){
 
 	if (!s.empty()){
 		return trimLeft(trimRight(s, delimiters), delimiters);		
@@ -558,4 +557,9 @@ inline string Parser::trim(const string& s, const string& delimiters)
 
 	return s;
 
+}
+
+bool Parser::hasSuffix(const std::string &str, const std::string &suffix){
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
