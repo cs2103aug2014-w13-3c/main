@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "efficiency.h"
 
+
 efficiency::efficiency(QWidget *parent)
 	: QMainWindow(parent)
 {
