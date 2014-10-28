@@ -32,6 +32,18 @@ namespace effiCommand_Test
 			
 		}
 
+		TEST_METHOD(duplicateTags){
+
+			//Add
+			string commandString = "add meeting tomorrow -t meeting,meeting,meeting,tomorrow,starbucks";
+			Parser parser;
+			multimap<string, any> test = parser.parseCommand(commandString);
+			vector<string> tags = any_cast< vector<string> > ( test.find("tags")->second );
+			size_t expectedSize = 3;
+			Assert::AreEqual(expectedSize, tags.size());
+
+		}
+
 		TEST_METHOD(basicCommands){
 
 			//Add
@@ -54,7 +66,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(true, invalid);
 
 			ptime expected = ptime(time_from_string("2014-01-01 23:59:00.000"));
-			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("start")->second)), to_iso_string(expected));
 
 
 			//start/end time good 2 test
@@ -64,7 +76,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(true, invalid);
 
 			expected = ptime(time_from_string("2014-01-01 00:00:00.000"));
-			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("start")->second)), to_iso_string(expected));
 
 			//start/end time good 3 test
 			commandString = "add meeting tomorrow -s 01-Feb-2014 12:00PM";
@@ -73,7 +85,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(true, invalid);
 
 			expected = ptime(time_from_string("2014-02-01 12:00:00.000"));
-			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("start")->second)), to_iso_string(expected));
 
 			//start/end time fail test
 			commandString = "add meeting tomorrow -s pizza";
@@ -160,7 +172,7 @@ namespace effiCommand_Test
 			Parser parser;
 			multimap<string, any> test = parser.parseCommand(commandString);
 			ptime expected = ptime(time_from_string("2002-01-20 00:00:00.000"));
-			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("-s")->second)), to_iso_string(expected));
+			Assert::AreEqual(to_iso_string(any_cast<ptime>(test.find("start")->second)), to_iso_string(expected));
 			
 		}
 
@@ -179,8 +191,8 @@ namespace effiCommand_Test
 			string commandString = "add Meeting tomorrow -p 2 -l G983";
 			Parser parser;
 			multimap<string, any> test = parser.parseCommand(commandString);
-			string num = any_cast<string> ( test.find("-p")->second );
-			string ID = any_cast<string> ( test.find("-l")->second );
+			string num = any_cast<string> ( test.find("priority")->second );
+			string ID = any_cast<string> ( test.find("link")->second );
 			string two = "2";
 			string correctID = "G983";
 
@@ -197,8 +209,8 @@ namespace effiCommand_Test
 			string commandString = "add Meeting tomorrow -p 2 6 -l G983";
 			Parser parser;
 			multimap<string, any> test = parser.parseCommand(commandString);
-			string num = any_cast<string> ( test.find("-p")->second );
-			string ID = any_cast<string> ( test.find("-l")->second );
+			string num = any_cast<string> ( test.find("priority")->second );
+			string ID = any_cast<string> ( test.find("link")->second );
 			string two = "2 6";
 			string correctID = "G983";
 
@@ -215,7 +227,7 @@ namespace effiCommand_Test
 			string commandString = "add Meeting tomorrow -p 2 -l";
 			Parser parser;
 			multimap<string, any> test = parser.parseCommand(commandString);
-			string num = any_cast<string> ( test.find("-p")->second );
+			string num = any_cast<string> ( test.find("priority")->second );
 			string two = "2";
 			Assert::AreEqual(two, num);
 
@@ -236,10 +248,10 @@ namespace effiCommand_Test
 			string expect = "Meeting tomorrow";
 			Assert::AreEqual(expect, param);
 
-			int c = test.count("-l");
+			int c = test.count("link");
 			Assert::AreEqual(0, c);
 
-			c = test.count("-p");
+			c = test.count("priority");
 			Assert::AreEqual(0, c);
 
 			bool invalid = any_cast<bool> ( test.find("valid")->second );
