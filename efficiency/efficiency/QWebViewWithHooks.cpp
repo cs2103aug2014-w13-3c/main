@@ -41,8 +41,8 @@ void QWebViewWithHooks::watchButtonPress(string selector, Action callback){
 		buttonWatches[selector] = vector<Action>();
 		//Also create a new button and register it.
 		auto * button = new QButton(selector, this); //lifetime of this object is managed.
-		QObject::connect(button, SIGNAL(onPress(string)),
-			this, SLOT(onButtonPress(string)));
+		QObject::connect(button, SIGNAL(onPress(std::string)),
+			this, SLOT(onButtonPress(std::string)));
 	}
 	auto& watches = buttonWatches[selector];
 	watches.push_back(callback);

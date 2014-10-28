@@ -67,11 +67,11 @@ header, #main-content, footer {
 }
 
 nav, section {
-	top: 50px;
 	display: inline;
 }
 
 nav {
+	top: 50px;
 	text-align: center;
 	position: relative; left: 0;
 }
@@ -86,6 +86,7 @@ nav a {
 nav a:hover {color: #fff; background-color: black;}
 
 section {
+	top: 10px;
 	position: relative;
 	/*border: solid;*/
 	font: 13px Verdana, sans-serif;

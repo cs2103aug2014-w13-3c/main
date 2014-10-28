@@ -30,7 +30,18 @@ protected:
 	Parser parser;
 	unique_ptr<Executor> executor;
 	enum view_type_t {agenda_view, calendar_view};
+	enum button_type_t {task_next, task_prev, deadline_next, deadline_prev, event_next, event_prev};
 	std::vector<result_message_t> resultMessageStore;
+	vector<Controller::CEvent> currentTasksStore;
+	vector<Controller::CEvent> currentDeadlinesStore;
+	vector<Controller::CEvent> currentEventsStore;
+	int maxIssues;
+	int currentEvents;
+	int currentDeadlines;
+	int currentTasks;
+	int eventPage;
+	int deadlinePage;
+	int taskPage;
 	
 	//  Methods
 	// Output to GUI
@@ -41,6 +52,7 @@ protected:
 	void showOnCalendar(/* takes a vector of issues and date range */);
 	// Manipulate GUI
 	void swapView(view_type_t view);
+	void changeButtonDisplay();
 };
 
 /*
