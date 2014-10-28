@@ -32,6 +32,18 @@ namespace effiCommand_Test
 			
 		}
 
+		TEST_METHOD(duplicateTags){
+
+			//Add
+			string commandString = "add meeting tomorrow -t meeting,meeting,meeting,tomorrow,starbucks";
+			Parser parser;
+			multimap<string, any> test = parser.parseCommand(commandString);
+			vector<string> tags = any_cast< vector<string> > ( test.find("tags")->second );
+			size_t expectedSize = 3;
+			Assert::AreEqual(expectedSize, tags.size());
+
+		}
+
 		TEST_METHOD(basicCommands){
 
 			//Add

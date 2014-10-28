@@ -54,6 +54,7 @@ void Parser::loadOptionFieldsChecker(){
 	optionFieldsChecker.push_back(make_tuple("-r", cmdOptionField::REPEAT_RECURSIVE,true));
 
 	optionFieldsChecker.push_back(make_tuple("tag", cmdOptionField::TAG,true));
+	optionFieldsChecker.push_back(make_tuple("tags", cmdOptionField::TAG,true));
 	optionFieldsChecker.push_back(make_tuple("-t", cmdOptionField::TAG,true));
 
 	optionFieldsChecker.push_back(make_tuple("link", cmdOptionField::LINK,true));
@@ -398,6 +399,23 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 								string extractedTagValues = joinVector(fieldValueVector, " ");
 								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
+
+								// reminder: Create a method to check for tag duplicate
+								for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
+
+									for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
+
+										if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
+
+											fieldValueVector.erase( fieldValueVector.begin() + n);
+											n = n - 1;
+
+										}
+
+									}
+
+								}
+
 								// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
 								if(1){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );
@@ -451,6 +469,23 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 								string extractedTagValues = joinVector(fieldValueVector, " ");
 								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
+
+								// reminder: Create a method to check for tag duplicate
+								for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
+
+									for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
+
+										if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
+
+											fieldValueVector.erase( fieldValueVector.begin() + n);
+											n = n - 1;
+
+										}
+
+									}
+
+								}
+
 								// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
 								if(1){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );

@@ -16,7 +16,7 @@ namespace cmdOptionField {
 	const string END = "end";
 	const string PRIORITY = "priority";
 	const string REPEAT_RECURSIVE = "re";
-	const string TAG = "tag";
+	const string TAG = "tags";
 	const string LINK = "link";
 	const string HELP = "help";
 
