@@ -11,13 +11,13 @@ using namespace cmdOptionField;
 
 std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> createActions(){
 	std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> actions;
-	actions.insert(make_pair(START_OPTION, 
+	actions.insert(make_pair(START, 
 		[](boost::any value, Controller::CEvent& evt){ evt.setStartDate(any_cast<ptime>(value)); }));
-	actions.insert(make_pair(END_OPTION, 
+	actions.insert(make_pair(END, 
 		[](boost::any value, Controller::CEvent& evt){ evt.setEndDate(any_cast<ptime>(value)); }));
-	actions.insert(make_pair(TAG_OPTION, 
+	actions.insert(make_pair(TAG, 
 		[](boost::any value, Controller::CEvent& evt){ evt.addTags(any_cast<vector<string>>(value)); }));
-	actions.insert(make_pair(PRIORITY_OPTION, 
+	actions.insert(make_pair(PRIORITY, 
 		[](boost::any value, Controller::CEvent& evt){ evt.setPriority(any_cast<int>(value)); }));
 	return actions;
 }

@@ -40,15 +40,27 @@ void Parser::loadValidCommandKeywords(){
 // stores all available options and be ready to output to multimap
 void Parser::loadOptionFieldsChecker(){
 
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::COMMAND,false));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::PARAMETERS,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::START_OPTION,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::END_OPTION,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::PRIORITY_OPTION,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::RECURSIVE_OPTION,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::TAG_OPTION,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::LINK_OPTION,true));
-	optionFieldsChecker.push_back(make_pair(cmdOptionField::HELP_OPTION,false));
+	optionFieldsChecker.push_back(make_tuple("start", cmdOptionField::START,true));
+	optionFieldsChecker.push_back(make_tuple("-s", cmdOptionField::START,true));
+
+	optionFieldsChecker.push_back(make_tuple("end", cmdOptionField::END,true));
+	optionFieldsChecker.push_back(make_tuple("-e", cmdOptionField::END,true));
+
+	optionFieldsChecker.push_back(make_tuple("priority", cmdOptionField::PRIORITY,true));
+	optionFieldsChecker.push_back(make_tuple("-p", cmdOptionField::PRIORITY,true));
+
+	optionFieldsChecker.push_back(make_tuple("repeat", cmdOptionField::REPEAT_RECURSIVE,true));
+	optionFieldsChecker.push_back(make_tuple("recursive", cmdOptionField::REPEAT_RECURSIVE,true));
+	optionFieldsChecker.push_back(make_tuple("-r", cmdOptionField::REPEAT_RECURSIVE,true));
+
+	optionFieldsChecker.push_back(make_tuple("tag", cmdOptionField::TAG,true));
+	optionFieldsChecker.push_back(make_tuple("-t", cmdOptionField::TAG,true));
+
+	optionFieldsChecker.push_back(make_tuple("link", cmdOptionField::LINK,true));
+	optionFieldsChecker.push_back(make_tuple("-l", cmdOptionField::LINK,true));
+
+	optionFieldsChecker.push_back(make_tuple("help", cmdOptionField::HELP,false));
+	optionFieldsChecker.push_back(make_tuple("-h", cmdOptionField::HELP,false));
 
 }
 
@@ -208,13 +220,13 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
 				// PARAM MISSING
-				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first )){
+				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
 
 					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
 					return cmdParamAndOptMap;
 
 				// OPTIONS MATCH
-				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], optionFieldsChecker[j].first ) ){
+				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ){
 
 					// IF IT IS THE FIRST ONE FOUND
 					if (hasNoOptions){
@@ -229,7 +241,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 					}
 
 					// EXTRACT OPTION VALUE AND TIE THEM UP FOR CHECK
-					cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j]);			
+					cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j] );			
 					return cmdParamAndOptMap;
 
 				}
@@ -311,12 +323,14 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdParamAndOptMap, 
 									 vector<string> commandStringTokens, 
 									 int fieldPos, 
-									 pair<string, bool> currentOptionFieldPair){
+									 tuple<string, string, bool> currentOptionFieldTuple){
 
 	// TAKE CURRENT OPTION
-	string currentOptionField = currentOptionFieldPair.first;
+	string currentOptionField = get<0> (currentOptionFieldTuple);
 
-	bool hasFieldValueFormat = currentOptionFieldPair.second;
+	string mmOptionKey = get<1> (currentOptionFieldTuple);
+
+	bool hasFieldValueFormat = get<2> (currentOptionFieldTuple);
 
 	any fieldValue;
 	vector<string> fieldValueVector;
@@ -328,7 +342,10 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 	// IF THE FOUND OPTION DOESN'T NEED VALUE, SIMPLY RETURN BOOL AS TRUE
 	if(!hasFieldValueFormat){
 
-		cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, true) );
+		// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+		if(1){
+			cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, true) );
+		}
 
 		// READ VALUE FROM THE POSITION AT FIELD INDEX
 		for(unsigned int i = fieldPos; i < commandStringTokens.size() - 1; i++){
@@ -340,7 +357,7 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
 					// IF FOUND NEXT OPTION, RECURSIVELY CALL FOR NEXT PROCESS
-					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
+					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], get<0>(optionFieldsChecker[j]))){
 
 						cmdParamAndOptMap = extractOptionsAndValues(cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
 						processComplete = true;
@@ -371,22 +388,25 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
 					// IF FOUND NEXT OPTION, PREPROCESS
-					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], optionFieldsChecker[j].first)){
+					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], get<0>(optionFieldsChecker[j]))){
 
 						if(hasFieldValueEntered){
 
 							copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.begin() + (i+1), back_inserter(fieldValueVector));
 							
-							if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
+							if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::TAG)){
 
 								string extractedTagValues = joinVector(fieldValueVector, " ");
 								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
-								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValueVector) );
+								// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+								if(1){
+									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );
+								}
 
 							} else {
 
-								if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION) ||
-										areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
+								if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::START) ||
+										areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::END)){
 
 									fieldValue = joinVector(fieldValueVector, " ");
 
@@ -395,14 +415,20 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 									pair<bool,ptime> isValidDateTime = checkDateTime(dtFieldValue, true);
 
 									if(isValidDateTime.first){
-										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, isValidDateTime.second) );
+										// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+										if(1){
+											cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, isValidDateTime.second) );
+										}
 										break;
 									}
 
 								} else {
 
 									fieldValue = joinVector(fieldValueVector, " ");
-									cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
+									// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+									if(1){
+										cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
+									}
 
 								}
 
@@ -421,16 +447,19 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 
 							copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));
 							
-							if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::TAG_OPTION)){
+							if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::TAG)){
 
 								string extractedTagValues = joinVector(fieldValueVector, " ");
 								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
-								cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValueVector) );
+								// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+								if(1){
+									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );
+								}
 
 							} else {
 
-								if (areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::START_OPTION) ||
-										areEqualStringsIgnoreCase(currentOptionField, cmdOptionField::END_OPTION)){
+								if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::START) ||
+										areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::END)){
 
 									fieldValue = joinVector(fieldValueVector, " ");
 
@@ -439,14 +468,20 @@ multimap<string, any> Parser::extractOptionsAndValues(multimap<string, any> cmdP
 									pair<bool, ptime> isValidDateTime = checkDateTime(dtFieldValue, true);
 
 									if(isValidDateTime.first){
-										cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, isValidDateTime.second) );
+										// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+										if(1){
+											cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, isValidDateTime.second) );
+										}
 										break;
 									}
 
 								} else {
 
 									fieldValue = joinVector(fieldValueVector, " ");
-									cmdParamAndOptMap.insert( pair<string,any> (currentOptionField, fieldValue) );
+									// CONTINUE HERE: EXCLUDE OPTIONS NOT IN SOME COMMANDS
+									if(1){
+										cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
+									}
 
 								}
 
