@@ -7,7 +7,7 @@ using namespace boost::gregorian;
 
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
 							controller(std::move(ctrl)),
-							maxIssues(3),
+							maxIssues(2),
 							currentEvents(0),
 							currentDeadlines(0),
 							currentTasks(0),
@@ -184,8 +184,8 @@ void uiController::showOnGUI(){
 			currentTasks++;
 			qDebug()<<QString::fromStdString(to_string(currentTasks));
 			if(taskCount == maxIssues || 
-				eventPage*maxIssues < currentTasks || 
-				(eventPage*maxIssues-2) > currentTasks){
+				taskPage*maxIssues < currentTasks || 
+				(taskPage*maxIssues-1) > currentTasks){
 				continue;
 			}
 			else {
@@ -198,6 +198,15 @@ void uiController::showOnGUI(){
 		}
 		else if(end.is_not_a_date_time()){
 			currentDeadlines++;
+
+			if(deadlineCount == maxIssues || 
+				deadlinePage*maxIssues < currentDeadlines || 
+				(deadlinePage*maxIssues-1) > currentDeadlines){
+				continue;
+			}
+			else {
+				deadlineCount++;
+			}
 
 			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(to_simple_string(start))+" ");
 			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<br>");
@@ -220,7 +229,7 @@ void uiController::showOnGUI(){
 			qDebug()<<QString::fromStdString("eventPage:"+to_string(eventPage));
 			if(eventCount == maxIssues || 
 				eventPage*maxIssues < currentEvents || 
-				(eventPage*maxIssues-2) > currentEvents){
+				(eventPage*maxIssues-1) > currentEvents){
 				continue;
 			}
 			else {
