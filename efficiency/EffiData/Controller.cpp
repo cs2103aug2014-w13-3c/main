@@ -80,52 +80,52 @@ string Controller::CEvent::getContent(){
 
 
 Controller::CEvent& Controller::CEvent::setName(string name){
-	cmdlist.push_back([&name](Event& evt) { evt.changeName(name); } );
+	cmdlist.push_back([name](Event& evt) { evt.changeName(name); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::setPriority(int priority){
-	cmdlist.push_back([&priority](Event& evt) { evt.setPriority(priority); } );
+	cmdlist.push_back([priority](Event& evt) { evt.setPriority(priority); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::addTags(vector<string> tags){
-	cmdlist.push_back([&tags](Event& evt) { evt.addTags(tags); } );
+	cmdlist.push_back([tags](Event& evt) { evt.addTags(tags); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::addTag(string tag){
-	cmdlist.push_back([&tag](Event& evt) { evt.addTag(tag); } );
+	cmdlist.push_back([tag](Event& evt) { evt.addTag(tag); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::removeTag(string tag){
-	cmdlist.push_back([&tag](Event& evt) { evt.removeTag(tag); } );
+	cmdlist.push_back([tag](Event& evt) { evt.removeTag(tag); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::setCompleteStatus(bool status){
-	cmdlist.push_back([&status](Event& evt) { evt.setCompleteStatus(status); } );
+	cmdlist.push_back([status](Event& evt) { evt.setCompleteStatus(status); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::setStartDate(ptime sd){
-	cmdlist.push_back([&sd](Event& evt) { evt.setStartDate(sd); } );
+	cmdlist.push_back([sd](Event& evt) { evt.setStartDate(sd); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::setEndDate(ptime ed){
-	cmdlist.push_back([&ed](Event& evt) { evt.setEndDate(ed); } );
+	cmdlist.push_back([ed](Event& evt) { evt.setEndDate(ed); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::setParent(Event::UUID parent){
-	cmdlist.push_back([&parent](Event& evt) { evt.setParent(parent); } );
+	cmdlist.push_back([parent](Event& evt) { evt.setParent(parent); } );
 	return *this;
 }
 
 Controller::CEvent& Controller::CEvent::setContent(string content){
-	cmdlist.push_back([&content](Event& evt) { evt.setContent(content); } );
+	cmdlist.push_back([content](Event& evt) { evt.setContent(content); } );
 	return *this;
 }
 
