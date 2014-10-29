@@ -1,0 +1,36 @@
+Enter these into the UI in sequence.
+
+add nodate
+delete nodate
+update nodate -c nodate2
+/a nodate
+/d nodate
+/u nodate2 -c nodate3
+
+add task with date -s 2014-10-30
+add task with datetime -s 2014-10-30 15:30
+add task with datetimesec -s 2014-10-30 15:31:22
+
+update task with date -c task with date2
+update task with date2 -s 2014-10-31 15:35
+delete task with date2
+
+/a task with date -s 2014-10-30
+/d task with date
+/u task with date2 -c task with date3
+
+add task with date start 2014-10-30
+
+add event -s 2014-11-21 22:45 -e 2014-11-21 23:59
+update event -e 2014-11-22 00:00
+update event -e 2014-11-22 10:24
+delete event
+ 
+/a event start 2014-11-21 22:45 end 2014-11-21 23:59
+/u event start 2014-11-22 00:00
+/u event end 2014-11-22 10:24
+/d event
+
+add timing start 2014-11-10 12pm end 2014-11-10 5pm
+update timing end 2014-11-10 5.13pm
+update timing end 2014-11-11 12.00am
