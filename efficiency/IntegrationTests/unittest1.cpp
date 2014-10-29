@@ -15,7 +15,7 @@ namespace IntegrationTests
 		TEST_METHOD(Addxecution)
 		{
 			Parser parser;
-			Controller ctrl;
+			Controller ctrl("");
 			Executor executor(&ctrl);
 			auto cmd = parser.parseCommand("add something");
 			executor.executeCommand(cmd);
@@ -25,7 +25,7 @@ namespace IntegrationTests
 		TEST_METHOD(Updatexecution)
 		{
 			Parser parser;
-			Controller ctrl;
+			Controller ctrl("");
 			Executor executor(&ctrl);
 			auto cmd = parser.parseCommand("add something -s 2014-10-30 15:30");
 			//Logger::WriteMessage(to_string(any_cast<bool>(cmd.find("valid")->second)).c_str());

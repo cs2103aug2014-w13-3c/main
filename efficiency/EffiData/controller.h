@@ -61,6 +61,7 @@ protected:
 	map<Event::UUID, CEvent> cevents;
 public:
 	Controller();
+	Controller(std::string user);
 
 	typedef function<void()> unregisterAction;
 	typedef function<void(const vector<const CEvent>)> watchRangeCallback;

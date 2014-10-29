@@ -138,6 +138,14 @@ Controller::Controller(): events("TESTUSER"), cevents()
 		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events, this)));
 }
 
+Controller::Controller(string user): events(user), cevents()
+{
+	auto _events = events.getAllEvents();
+	//get data from previous events.
+	for(auto it = _events.begin(); it!= _events.end(); ++it)
+		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events, this)));
+}
+
 Controller::CEvent& Controller::addEvent(string name){
 	auto id = events.addEvent(name);
 	cevents.insert(make_pair(id, CEvent(id, &events, this)));
