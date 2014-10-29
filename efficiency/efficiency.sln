@@ -16,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "effiCommand_Test", "effiCom
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffiUndo", "EffiUndo\EffiUndo.vcxproj", "{FD49E453-928F-4101-AA56-0636482A9C17}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntegrationTests", "IntegrationTests\IntegrationTests.vcxproj", "{4DF1A486-8771-4833-BE8B-31E52A4218FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -50,6 +52,12 @@ Global
 		{FD49E453-928F-4101-AA56-0636482A9C17}.Debug|Win32.Build.0 = Debug|Win32
 		{FD49E453-928F-4101-AA56-0636482A9C17}.Release|Win32.ActiveCfg = Release|Win32
 		{FD49E453-928F-4101-AA56-0636482A9C17}.Release|Win32.Build.0 = Release|Win32
+		{4DF1A486-8771-4833-BE8B-31E52A4218FC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4DF1A486-8771-4833-BE8B-31E52A4218FC}.Debug|Win32.Build.0 = Debug|Win32
+		{4DF1A486-8771-4833-BE8B-31E52A4218FC}.Debug|Win32.Deploy.0 = Debug|Win32
+		{4DF1A486-8771-4833-BE8B-31E52A4218FC}.Release|Win32.ActiveCfg = Release|Win32
+		{4DF1A486-8771-4833-BE8B-31E52A4218FC}.Release|Win32.Build.0 = Release|Win32
+		{4DF1A486-8771-4833-BE8B-31E52A4218FC}.Release|Win32.Deploy.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
