@@ -40,6 +40,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			deadlinePrevButton.setAttribute("style","display:inline;");
 
 			showOnGUI();
+			changeButtonDisplay();
 		});
 
 		this->webView->watchButtonPress("deadline_back", [this](){
@@ -50,6 +51,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			deadlineNextButton.setAttribute("style","display:inline;");
 
 			showOnGUI();
+			changeButtonDisplay();
 		});
 
 		this->webView->watchButtonPress("event_forward", [this](){
@@ -60,6 +62,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			eventPrevButton.setAttribute("style","display:inline;");
 
 			showOnGUI();
+			changeButtonDisplay();
 		});
 
 		this->webView->watchButtonPress("event_back", [this](){
@@ -70,6 +73,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			eventNextButton.setAttribute("style","display:inline;");
 
 			showOnGUI();
+			changeButtonDisplay();
 		});
 
 		this->webView->watchButtonPress("task_forward", [this](){
@@ -80,6 +84,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			taskPrevButton.setAttribute("style","display:inline;");
 
 			showOnGUI();
+			changeButtonDisplay();
 		});
 
 		this->webView->watchButtonPress("task_back", [this](){
@@ -90,6 +95,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			taskNextButton.setAttribute("style","display:inline;");
 
 			showOnGUI();
+			changeButtonDisplay();
 		});
 	});
 
@@ -244,9 +250,9 @@ void uiController::showOnGUI(){
 		}
 	}
 
-	currentTasks = 0;
+	/*currentTasks = 0;
 	currentDeadlines = 0;
-	currentEvents = 0;
+	currentEvents = 0;*/
 }
 
 void uiController::clearGUI(){
@@ -262,21 +268,33 @@ void uiController::clearGUI(){
 void uiController::changeButtonDisplay(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 
-	if(currentTasks > maxIssues){
-		QWebElement taskNextButton = dom.findFirst("#task_forward");
+	if(taskPage == 1){
 		QWebElement taskPrevButton = dom.findFirst("#task_back");
 		taskPrevButton.setAttribute("style","display:none;");
 	}
 
-	if(currentDeadlines > maxIssues){
-		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
+	if(taskPage*maxIssues > currentTasks && currentTasks >= (taskPage*(maxIssues-1) + 1)){
+		QWebElement taskNextButton = dom.findFirst("#task_forward");
+		taskNextButton.setAttribute("style","display:none;");
+	}
+
+	if(deadlinePage == 1){
 		QWebElement deadlinePrevButton = dom.findFirst("#deadline_back");
 		deadlinePrevButton.setAttribute("style","display:none;");
 	}
 
-	if(currentEvents > maxIssues){
-		QWebElement eventNextButton = dom.findFirst("#event_forward");
+	if(deadlinePage*maxIssues > currentDeadlines && currentDeadlines >= (deadlinePage*(maxIssues-1) + 1)){
+		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
+		deadlineNextButton.setAttribute("style","display:none;");
+	}
+
+	if(eventPage == 1){
 		QWebElement eventPrevButton = dom.findFirst("#event_back");
 		eventPrevButton.setAttribute("style","display:none;");
+	}
+
+	if(eventPage*maxIssues > currentEvents && currentEvents >= (eventPage*(maxIssues-1) + 1)){
+		QWebElement eventNextButton = dom.findFirst("#event_forward");
+		eventNextButton.setAttribute("style","display:none;");
 	}
 }
