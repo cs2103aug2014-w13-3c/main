@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 using namespace std;
-using namespace CommandTypeEnum;
+using namespace commandTypeEnum;
 using namespace boost::posix_time;
 using namespace boost::gregorian;
 

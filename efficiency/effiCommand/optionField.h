@@ -12,11 +12,16 @@ namespace cmdOptionField {
 	const string COMMAND = "cmd";
 	const string PARAMETERS = "param";
 
+	const string FAIL = "fail";
+
 	const string START = "start";
 	const string END = "end";
+	const string CONTENT = "content";
 	const string PRIORITY = "priority";
-	const string REPEAT_RECURSIVE = "re";
-	const string TAG = "tags";
+	const string REPEAT = "repeat";
+	const string RECURSIVE = "recursive";
+	const string TAGS = "tags";
+	const string REMOVETAGS = "removetags";
 	const string LINK = "link";
 	const string HELP = "help";
 
