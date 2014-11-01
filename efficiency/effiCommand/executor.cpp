@@ -21,9 +21,10 @@ std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> Exec
 		[](boost::any value, Controller::CEvent& evt){ evt.addTags(any_cast<vector<string>>(value)); }));
 	actions.insert(make_pair(PRIORITY, 
 		[](boost::any value, Controller::CEvent& evt){ evt.setPriority(any_cast<int>(value)); }));
+	actions.insert(make_pair(CONTENT, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setContent(any_cast<string>(value)); }));
 	return actions;
 }
-
 
 template<typename T>
 T get(std::string key, Executor::Command command){
