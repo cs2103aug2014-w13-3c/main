@@ -196,6 +196,7 @@ void uiController::showOnGUI(){
 
 	string name;
 	string content;
+	vector<string> tags;
 	ptime start;
 	ptime end;
 
@@ -215,6 +216,7 @@ void uiController::showOnGUI(){
 		content = i->getContent();
 		start = i->getStartDate();
 		end = i->getEndDate();
+		tags = i->getTags();
 		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
 			currentTasks++;
 			qDebug()<<QString::fromStdString(to_string(currentTasks));
@@ -228,7 +230,13 @@ void uiController::showOnGUI(){
 			}
 
 			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#task-display").appendInside(QString::fromStdString(content));
+			dom.findFirst("#task-display").appendInside(QString::fromStdString(content)+"<br>");
+			dom.findFirst("#task-display").appendInside("Tags: ");
+
+			for(auto j = tags.begin(); j != tags.end(); ++j){
+				dom.findFirst("#task-display").appendInside(QString::fromStdString(*j)+", ");
+			}
+
 			dom.findFirst("#task-display").appendInside("<hr><br>");
 		}
 		else if(end.is_not_a_date_time()){
@@ -245,7 +253,13 @@ void uiController::showOnGUI(){
 
 			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(to_simple_string(start))+" ");
 			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(content));
+			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(content)+"<br>");
+			dom.findFirst("#deadline-display").appendInside("Tags: ");
+
+			for(auto j = tags.begin(); j != tags.end(); ++j){
+				dom.findFirst("#deadline-display").appendInside(QString::fromStdString(*j)+", ");
+			}
+
 			dom.findFirst("#deadline-display").appendInside("<hr><br>");
 
 			if(deadlineCount == maxIssues){
@@ -274,7 +288,13 @@ void uiController::showOnGUI(){
 			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(start))+" to ");
 			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(end))+" ");
 			dom.findFirst("#event-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(content));
+			dom.findFirst("#event-display").appendInside(QString::fromStdString(content)+"<br>");
+			dom.findFirst("#event-display").appendInside("Tags: ");
+
+			for(auto j = tags.begin(); j != tags.end(); ++j){
+				dom.findFirst("#event-display").appendInside(QString::fromStdString(*j)+", ");
+			}
+
 			dom.findFirst("#event-display").appendInside("<hr><br>");
 		}
 	}
