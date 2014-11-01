@@ -30,6 +30,9 @@
     <ClInclude Include="ExecutionError.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="predParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="executor.cpp">
@@ -39,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExecutionError.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="predParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

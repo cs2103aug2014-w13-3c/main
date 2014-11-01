@@ -29,7 +29,7 @@ public:
 	// and UI controller (to check valid and parse)
 	multimap<string, any> parseCommand(const string commandString);
 
-private:
+public: //temporary change.
 
 	// Attributes
 	vector< std::tuple<string, string, bool> > optionFieldsChecker;
