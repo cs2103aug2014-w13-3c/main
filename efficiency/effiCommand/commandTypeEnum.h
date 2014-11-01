@@ -1,7 +1,7 @@
 #ifndef COMMANDTYPEENUM_H_
 #define COMMANDTYPEENUM_H_
 
-namespace CommandTypeEnum {
+namespace commandTypeEnum {
 
 	// these are the possible command types
 	enum COMMAND_TYPE {

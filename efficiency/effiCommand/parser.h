@@ -33,14 +33,14 @@ private:
 
 	// Attributes
 	vector< std::tuple<string, string, bool> > optionFieldsChecker;
-	vector< pair<string, CommandTypeEnum::COMMAND_TYPE> > validCommandKeywords;
+	vector< pair<string, commandTypeEnum::COMMAND_TYPE> > validCommandKeywords;
 
 	// Functions
 	void loadValidCommandKeywords();
 	void loadOptionFieldsChecker();
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
-	multimap<string, any> extractOptionsAndValues(multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, std::tuple<string, string, bool> currentOptionFieldPair);
+	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, std::tuple<string, string, bool> currentOptionFieldPair);
 	pair<bool, ptime> checkDateTime(string dtFieldValue, bool firstRun);
 	string addSeconds(string time);
 

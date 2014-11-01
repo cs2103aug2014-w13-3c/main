@@ -35,5 +35,6 @@ namespace IntegrationTests
 			Assert::AreEqual(int(ctrl.getAllEvents().size()),1);
 		}
 
+
 	};
 }
