@@ -27,12 +27,18 @@
     <ClInclude Include="optionField.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ExecutionError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="executor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecutionError.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

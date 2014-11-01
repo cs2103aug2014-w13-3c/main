@@ -4,6 +4,7 @@
 #include "controller.h"
 #include <boost\assign.hpp>
 #include "optionField.h"
+#include "ExecutionError.h"
 
 using namespace std;
 using CommandTypeEnum::COMMAND_TYPE;
@@ -41,13 +42,26 @@ Event::UUID Executor::find_task(Executor::Command command){
 }
 
 Event::UUID Executor::add_task(Executor::Command command){
-	return ctrl->addEvent(get<string>("param",command)).getId();
+	try{
+		find_task(command);
+	}
+	catch(...)
+	{
+		return ctrl->addEvent(get<string>("param",command)).getId();
+	}
+	throw executionError(NAME_ALREADY_EXISTS);
 }
 
 //update_task must be able to work on both add/update commands.
 void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
-	if(!taskid)
-		taskid = find_task(command);
+	try{
+		if(!taskid)
+			taskid = find_task(command);
+	}
+	catch(...)
+	{
+		throw executionError(CANNOT_FIND_TARGET);
+	}
 	Controller::CEvent& evt = ctrl->getEvent(taskid);
 	for(auto it = command.begin(); it!=command.end();++it)
 	{
@@ -62,8 +76,14 @@ void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
 
 void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
 {
-	if(!taskid)
-		taskid = find_task(command);
+	try{
+		if(!taskid)
+			taskid = find_task(command);
+	}
+	catch(...)
+	{
+		throw executionError(CANNOT_FIND_TARGET);
+	}
 	ctrl->deleteEvent(taskid);
 }
 
@@ -78,6 +98,8 @@ void Executor::executeCommand(Executor::Command command){
 	string eventDump;
 	switch(cmdtype){
 	case COMMAND_TYPE::UNDO:
+		if(undoStack.size() == 0)
+			throw executionError(NOTHING_TO_UNDO);
 		undoStack.back()();
 		undoStack.pop_back();
 		break;
@@ -86,8 +108,14 @@ void Executor::executeCommand(Executor::Command command){
 		taskid = add_task(command);
 		inverse = [this, taskid](){ ctrl->deleteEvent(taskid); };
 	case COMMAND_TYPE::UPDATE_TASK:
-		if(!taskid)
-			taskid = find_task(command);
+		try{ //TODO: clean copy paste coding.
+			if(!taskid)
+				taskid = find_task(command);
+		}
+		catch(...)
+		{
+			throw executionError(CANNOT_FIND_TARGET);
+		}
 		ss<<ctrl->getEvent(taskid);
 		eventDump = ss.str();
 		inverse = (cmdtype == COMMAND_TYPE::UPDATE_TASK)? 
@@ -100,8 +128,14 @@ void Executor::executeCommand(Executor::Command command){
 		undoStack.push_back(inverse);
 		break;
 	case COMMAND_TYPE::DELETE_TASK:
-		if(!taskid)
-			taskid = find_task(command);
+		try{ //TODO: clean copy paste coding.
+			if(!taskid)
+				taskid = find_task(command);
+		}
+		catch(...)
+		{
+			throw executionError(CANNOT_FIND_TARGET);
+		}
 		ss<<ctrl->getEvent(taskid);
 		eventDump = ss.str();
 		delete_task(command);
