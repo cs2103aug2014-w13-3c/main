@@ -22,7 +22,7 @@ namespace IntegrationTests
 			Assert::AreEqual(int(ctrl.getAllEvents().size()),1);
 		}
 
-		TEST_METHOD(Updatexecution)
+		TEST_METHOD(testAddDate)
 		{
 			Parser parser;
 			Controller ctrl("");
