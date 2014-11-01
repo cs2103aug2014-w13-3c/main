@@ -115,19 +115,35 @@ void uiController::onCommandInput(string input){
 	multimap<string,any> parsedCommand = parser.parseCommand(input);
 
 	if(any_cast<bool>(parsedCommand.find("valid")->second) == true){
-		executor->executeCommand(parsedCommand);
+		try {
+			executor->executeCommand(parsedCommand);
 
-		if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == ADD_TASK){
-			displayResultMessage(add_message);
-		}
-		else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == DELETE_TASK){
-			displayResultMessage(delete_message);
-		}
-		else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UPDATE_TASK){
-			displayResultMessage(update_message);
-		}
+			if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == ADD_TASK){
+				displayResultMessage(add_message);
+			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == DELETE_TASK){
+				displayResultMessage(delete_message);
+			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UPDATE_TASK){
+				displayResultMessage(update_message);
+			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UNDO){
+				displayResultMessage(undo_message);
+			}
 
-		showOnGUI();
+			showOnGUI();
+		}
+		catch(executionError& e){
+			if(e.getErrType() == NOTHING_TO_UNDO){
+				displayResultMessage(undo_error_message);
+			}
+			else if(e.getErrType() == NAME_ALREADY_EXISTS){
+				displayResultMessage(duplicate_message);
+			}
+			else if(e.getErrType() == CANNOT_FIND_TARGET){
+				displayResultMessage(not_found_message);
+			}
+		}
 	}
 	else {
 		displayResultMessage(invalid_message);
@@ -155,8 +171,21 @@ void uiController::displayResultMessage(result_message_t message){
 		else if(*it == update_message) {
 			dom.findFirst("#message-box").appendInside("Issue updated.<br>");
 		}
+		else if(*it == undo_message) {
+			dom.findFirst("#message-box").appendInside("Undid action.<br>");
+		}
 		else if(*it == invalid_message){
 			dom.findFirst("#message-box").appendInside("Error: Enter valid command.<br>");
+		}
+		else if(*it == undo_error_message){
+			dom.findFirst("#message-box").appendInside("Error: Cannot undo.<br>");
+		}
+		else if(*it == duplicate_message){
+			dom.findFirst("#message-box").
+				appendInside("Error: Another issue with the same name already exists.<br>");
+		}
+		else if(*it == not_found_message){
+			dom.findFirst("#message-box").appendInside("Error: Issue not found.<br>");
 		}
 	}
 }
