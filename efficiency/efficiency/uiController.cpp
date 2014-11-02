@@ -192,6 +192,9 @@ void uiController::displayResultMessage(result_message_t message){
 
 void uiController::showOnGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement taskDisplay = dom.findFirst("#task-display");
+	QWebElement deadlineDisplay = dom.findFirst("#deadline-display");
+	QWebElement eventDisplay = dom.findFirst("#event-display");
 	vector<Controller::CEvent> events;
 
 	string name;
@@ -229,15 +232,15 @@ void uiController::showOnGUI(){
 				taskCount++;
 			}
 
-			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#task-display").appendInside(QString::fromStdString(content)+"<br>");
-			dom.findFirst("#task-display").appendInside("Tags: ");
+			taskDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			taskDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			taskDisplay.appendInside("Tags: ");
 
 			for(auto j = tags.begin(); j != tags.end(); ++j){
-				dom.findFirst("#task-display").appendInside(QString::fromStdString(*j)+", ");
+				taskDisplay.appendInside(QString::fromStdString(*j)+", ");
 			}
 
-			dom.findFirst("#task-display").appendInside("<hr><br>");
+			taskDisplay.appendInside("<hr><br>");
 		}
 		else if(end.is_not_a_date_time()){
 			currentDeadlines++;
@@ -251,16 +254,16 @@ void uiController::showOnGUI(){
 				deadlineCount++;
 			}
 
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(to_simple_string(start))+" ");
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(content)+"<br>");
-			dom.findFirst("#deadline-display").appendInside("Tags: ");
+			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" ");
+			deadlineDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			deadlineDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			deadlineDisplay.appendInside("Tags: ");
 
 			for(auto j = tags.begin(); j != tags.end(); ++j){
-				dom.findFirst("#deadline-display").appendInside(QString::fromStdString(*j)+", ");
+				deadlineDisplay.appendInside(QString::fromStdString(*j)+", ");
 			}
 
-			dom.findFirst("#deadline-display").appendInside("<hr><br>");
+			deadlineDisplay.appendInside("<hr><br>");
 
 			if(deadlineCount == maxIssues){
 				continue;
@@ -285,17 +288,17 @@ void uiController::showOnGUI(){
 				eventCount++;
 			}
 
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(start))+" to ");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(end))+" ");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(content)+"<br>");
-			dom.findFirst("#event-display").appendInside("Tags: ");
+			eventDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" to ");
+			eventDisplay.appendInside(QString::fromStdString(to_simple_string(end))+" ");
+			eventDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			eventDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			eventDisplay.appendInside("Tags: ");
 
 			for(auto j = tags.begin(); j != tags.end(); ++j){
-				dom.findFirst("#event-display").appendInside(QString::fromStdString(*j)+", ");
+				eventDisplay.appendInside(QString::fromStdString(*j)+", ");
 			}
 
-			dom.findFirst("#event-display").appendInside("<hr><br>");
+			eventDisplay.appendInside("<hr><br>");
 		}
 	}
 
