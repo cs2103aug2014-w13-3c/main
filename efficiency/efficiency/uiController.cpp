@@ -132,6 +132,7 @@ void uiController::onCommandInput(string input){
 			}
 
 			showOnGUI();
+			changeButtonDisplay();
 		}
 		catch(executionError& e){
 			if(e.getErrType() == NOTHING_TO_UNDO){
@@ -325,7 +326,18 @@ void uiController::changeButtonDisplay(){
 		taskPrevButton.setAttribute("style","display:none;");
 	}
 
-	if(taskPage*maxIssues > currentTasks && currentTasks >= (taskPage*(maxIssues-1) + 1)){
+	if(taskPage > 1){
+		QWebElement taskPrevButton = dom.findFirst("#task_back");
+		taskPrevButton.setAttribute("style","display:inline;");
+	}
+
+	if(currentTasks > maxIssues || taskPage*maxIssues < currentTasks){
+		QWebElement taskNextButton = dom.findFirst("#task_forward");
+		taskNextButton.setAttribute("style","display:inline;");
+	}
+
+	if((taskPage*maxIssues >= currentTasks && currentTasks >= (taskPage*(maxIssues-1) + 1))
+		|| currentTasks <= maxIssues){
 		QWebElement taskNextButton = dom.findFirst("#task_forward");
 		taskNextButton.setAttribute("style","display:none;");
 	}
@@ -335,7 +347,18 @@ void uiController::changeButtonDisplay(){
 		deadlinePrevButton.setAttribute("style","display:none;");
 	}
 
-	if(deadlinePage*maxIssues > currentDeadlines && currentDeadlines >= (deadlinePage*(maxIssues-1) + 1)){
+	if(deadlinePage > 1){
+		QWebElement deadlinePrevButton = dom.findFirst("#deadline_back");
+		deadlinePrevButton.setAttribute("style","display:inline;");
+	}
+
+	if(currentDeadlines > maxIssues || deadlinePage*maxIssues < currentDeadlines){
+		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
+		deadlineNextButton.setAttribute("style","display:inline;");
+	}
+
+	if((deadlinePage*maxIssues >= currentDeadlines && currentDeadlines >= (deadlinePage*(maxIssues-1) + 1))
+		|| currentDeadlines <= maxIssues){
 		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
 		deadlineNextButton.setAttribute("style","display:none;");
 	}
@@ -345,7 +368,18 @@ void uiController::changeButtonDisplay(){
 		eventPrevButton.setAttribute("style","display:none;");
 	}
 
-	if(eventPage*maxIssues > currentEvents && currentEvents >= (eventPage*(maxIssues-1) + 1)){
+	if(eventPage > 1){
+		QWebElement eventPrevButton = dom.findFirst("#event_back");
+		eventPrevButton.setAttribute("style","display:inline;");
+	}
+
+	if(currentEvents > maxIssues || eventPage*maxIssues < currentEvents){
+		QWebElement eventNextButton = dom.findFirst("#event_forward");
+		eventNextButton.setAttribute("style","display:inline;");
+	}
+
+	if((eventPage*maxIssues >= currentEvents && currentEvents >= (eventPage*(maxIssues-1) + 1))
+		|| currentEvents <= maxIssues){
 		QWebElement eventNextButton = dom.findFirst("#event_forward");
 		eventNextButton.setAttribute("style","display:none;");
 	}
