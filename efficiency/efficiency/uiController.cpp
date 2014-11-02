@@ -158,34 +158,34 @@ void uiController::displayResultMessage(result_message_t message){
 	}
 	resultMessageStore.push_back(message);
 
-	QWebElement messageBox = dom.findFirst("#message-box");
-	messageBox.removeAllChildren();
+	QWebElement messageArea = dom.findFirst("#message-area");
+	messageArea.removeAllChildren();
 
 	for (auto it = resultMessageStore.begin(); it != resultMessageStore.end(); ++it) {
 		if(*it == add_message){
-			dom.findFirst("#message-box").appendInside("Issue added.<br>");
+			messageArea.appendInside("Issue added.<br>");
 		}
 		else if(*it == delete_message) {
-			dom.findFirst("#message-box").appendInside("Issue deleted.<br>");
+			messageArea.appendInside("Issue deleted.<br>");
 		}
 		else if(*it == update_message) {
-			dom.findFirst("#message-box").appendInside("Issue updated.<br>");
+			messageArea.appendInside("Issue updated.<br>");
 		}
 		else if(*it == undo_message) {
-			dom.findFirst("#message-box").appendInside("Undid action.<br>");
+			messageArea.appendInside("Undid action.<br>");
 		}
 		else if(*it == invalid_message){
-			dom.findFirst("#message-box").appendInside("Error: Enter valid command.<br>");
+			messageArea.appendInside("Error: Enter valid command.<br>");
 		}
 		else if(*it == undo_error_message){
-			dom.findFirst("#message-box").appendInside("Error: Cannot undo.<br>");
+			messageArea.appendInside("Error: Cannot undo.<br>");
 		}
 		else if(*it == duplicate_message){
-			dom.findFirst("#message-box").
+			messageArea.
 				appendInside("Error: Another issue with the same name already exists.<br>");
 		}
 		else if(*it == not_found_message){
-			dom.findFirst("#message-box").appendInside("Error: Issue not found.<br>");
+			messageArea.appendInside("Error: Issue not found.<br>");
 		}
 	}
 }
