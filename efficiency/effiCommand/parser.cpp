@@ -5,6 +5,9 @@ using namespace std;
 // stores all valid command keywords
 void Parser::loadValidCommandKeywords(){
 
+	validCommandKeywords.push_back(make_pair("view",commandTypeEnum::VIEW));
+	validCommandKeywords.push_back(make_pair("/v",commandTypeEnum::VIEW));
+
 	validCommandKeywords.push_back(make_pair("add",commandTypeEnum::ADD_TASK));
 	validCommandKeywords.push_back(make_pair("/a",commandTypeEnum::ADD_TASK));
 
@@ -350,18 +353,20 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 					} else if ( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ) {
 
+						vector<string> extractParam;
+						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+						string Param = joinVector(extractParam, " ");
+
 						if( (areEqualStringsIgnoreCase("recursive", get<0>(optionFieldsChecker[j]) ) || 
 							  ( areEqualStringsIgnoreCase("-r", get<0>(optionFieldsChecker[j])) ) ) ) {
 
-							vector<string> extractParam;
-							copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
-							string Param = joinVector(extractParam, " ");
 							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
 							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );	
 							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RECURSIVE, true) );
 
 						} else {
 
+							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
 							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );	
 
 						}
@@ -386,51 +391,55 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 		}
 
 	// has only param
-	// case commandTypeEnum::VIEW:
+	case commandTypeEnum::VIEW:
 
-	if(commandStringTokens.size() <= 1){
+		if(commandStringTokens.size() > 2){
 
-		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-		return cmdParamAndOptMap;
+			vector<string> extractParam;
+			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			string Param = joinVector(extractParam, " ");
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+			return cmdParamAndOptMap;
 
-	} else {
+		} else {
 
-		// ITERATE THRU ENTIRE ENTERED COMMAND
-		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
+			// ITERATE THRU ENTIRE ENTERED COMMAND
+			for(unsigned int i = 1; i < commandStringTokens.size(); i++){
 
-			// ITERATE THRU AVAILABLE OPTIONS FIELD
-			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+				// ITERATE THRU AVAILABLE OPTIONS FIELD
+				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
 
-				// PARAM MISSING
-				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
+					// PARAM MISSING
+					if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
 
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-					return cmdParamAndOptMap;
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+						return cmdParamAndOptMap;
 
-				// Skip all the option fields
-				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ){
+					// Skip all the option fields
+					} else if( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ){
 
-					vector<string> extractParam;
-					copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
-					string Param = joinVector(extractParam, " ");
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-					return cmdParamAndOptMap;
+						vector<string> extractParam;
+						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+						string Param = joinVector(extractParam, " ");
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+						return cmdParamAndOptMap;
 				
-				// reach end of command, no options field found, the entire command is a param
-				} else if( (i == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ) {
+					// reach end of command, no options field found, the entire command is a param
+					} else if( (i == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ) {
 
-					vector<string> extractParam;
-					copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-					string Param = joinVector(extractParam, " ");
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-					return cmdParamAndOptMap;
+						vector<string> extractParam;
+						copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+						string Param = joinVector(extractParam, " ");
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+						return cmdParamAndOptMap;
 
+					}
 				}
 			}
 		}
-	}
 
 	// supports logical operations (search and filter)
 	//case commandTypeEnum::SEARCH:

@@ -67,6 +67,32 @@ namespace effiCommand_Test
 			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
+			//view
+			commandString = "view weekly";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			string Param = any_cast<string> ( test.find("param")->second );
+			string correctParam = "weekly";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//complete
+			commandString = "/c G983";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "G983";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
 			//undo
 			commandString = "/z";
 			test = parser.parseCommand(commandString);
@@ -118,13 +144,10 @@ namespace effiCommand_Test
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 			//exit
-			commandString = "/c G983";
+			commandString = "exit";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "G983";
-			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();
 			expectedMMSize = 3;
@@ -180,7 +203,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(0, c);
 
 			mmSize = test.size();
-			expectedMMSize = 2; // not 5, -s is redundant
+			expectedMMSize = 3; // not 5, -s is redundant
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 		}

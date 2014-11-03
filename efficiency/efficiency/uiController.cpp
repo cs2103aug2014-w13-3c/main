@@ -132,6 +132,7 @@ void uiController::onCommandInput(string input){
 			}
 
 			showOnGUI();
+			changeButtonDisplay();
 		}
 		catch(executionError& e){
 			if(e.getErrType() == NOTHING_TO_UNDO){
@@ -158,44 +159,48 @@ void uiController::displayResultMessage(result_message_t message){
 	}
 	resultMessageStore.push_back(message);
 
-	QWebElement messageBox = dom.findFirst("#message-box");
-	messageBox.removeAllChildren();
+	QWebElement messageArea = dom.findFirst("#message-area");
+	messageArea.removeAllChildren();
 
 	for (auto it = resultMessageStore.begin(); it != resultMessageStore.end(); ++it) {
 		if(*it == add_message){
-			dom.findFirst("#message-box").appendInside("Issue added.<br>");
+			messageArea.appendInside("Issue added.<br>");
 		}
 		else if(*it == delete_message) {
-			dom.findFirst("#message-box").appendInside("Issue deleted.<br>");
+			messageArea.appendInside("Issue deleted.<br>");
 		}
 		else if(*it == update_message) {
-			dom.findFirst("#message-box").appendInside("Issue updated.<br>");
+			messageArea.appendInside("Issue updated.<br>");
 		}
 		else if(*it == undo_message) {
-			dom.findFirst("#message-box").appendInside("Undid action.<br>");
+			messageArea.appendInside("Undid action.<br>");
 		}
 		else if(*it == invalid_message){
-			dom.findFirst("#message-box").appendInside("Error: Enter valid command.<br>");
+			messageArea.appendInside("Error: Enter valid command.<br>");
 		}
 		else if(*it == undo_error_message){
-			dom.findFirst("#message-box").appendInside("Error: Cannot undo.<br>");
+			messageArea.appendInside("Error: Cannot undo.<br>");
 		}
 		else if(*it == duplicate_message){
-			dom.findFirst("#message-box").
+			messageArea.
 				appendInside("Error: Another issue with the same name already exists.<br>");
 		}
 		else if(*it == not_found_message){
-			dom.findFirst("#message-box").appendInside("Error: Issue not found.<br>");
+			messageArea.appendInside("Error: Issue not found.<br>");
 		}
 	}
 }
 
 void uiController::showOnGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement taskDisplay = dom.findFirst("#task-display");
+	QWebElement deadlineDisplay = dom.findFirst("#deadline-display");
+	QWebElement eventDisplay = dom.findFirst("#event-display");
 	vector<Controller::CEvent> events;
 
 	string name;
 	string content;
+	vector<string> tags;
 	ptime start;
 	ptime end;
 
@@ -215,6 +220,7 @@ void uiController::showOnGUI(){
 		content = i->getContent();
 		start = i->getStartDate();
 		end = i->getEndDate();
+		tags = i->getTags();
 		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
 			currentTasks++;
 			qDebug()<<QString::fromStdString(to_string(currentTasks));
@@ -227,9 +233,15 @@ void uiController::showOnGUI(){
 				taskCount++;
 			}
 
-			dom.findFirst("#task-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#task-display").appendInside(QString::fromStdString(content));
-			dom.findFirst("#task-display").appendInside("<hr><br>");
+			taskDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			taskDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			taskDisplay.appendInside("Tags: ");
+
+			for(auto j = tags.begin(); j != tags.end(); ++j){
+				taskDisplay.appendInside(QString::fromStdString(*j)+", ");
+			}
+
+			taskDisplay.appendInside("<hr><br>");
 		}
 		else if(end.is_not_a_date_time()){
 			currentDeadlines++;
@@ -243,10 +255,16 @@ void uiController::showOnGUI(){
 				deadlineCount++;
 			}
 
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(to_simple_string(start))+" ");
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#deadline-display").appendInside(QString::fromStdString(content));
-			dom.findFirst("#deadline-display").appendInside("<hr><br>");
+			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" ");
+			deadlineDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			deadlineDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			deadlineDisplay.appendInside("Tags: ");
+
+			for(auto j = tags.begin(); j != tags.end(); ++j){
+				deadlineDisplay.appendInside(QString::fromStdString(*j)+", ");
+			}
+
+			deadlineDisplay.appendInside("<hr><br>");
 
 			if(deadlineCount == maxIssues){
 				continue;
@@ -271,11 +289,17 @@ void uiController::showOnGUI(){
 				eventCount++;
 			}
 
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(start))+" to ");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(to_simple_string(end))+" ");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(name)+"<br>");
-			dom.findFirst("#event-display").appendInside(QString::fromStdString(content));
-			dom.findFirst("#event-display").appendInside("<hr><br>");
+			eventDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" to ");
+			eventDisplay.appendInside(QString::fromStdString(to_simple_string(end))+" ");
+			eventDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			eventDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			eventDisplay.appendInside("Tags: ");
+
+			for(auto j = tags.begin(); j != tags.end(); ++j){
+				eventDisplay.appendInside(QString::fromStdString(*j)+", ");
+			}
+
+			eventDisplay.appendInside("<hr><br>");
 		}
 	}
 
@@ -302,7 +326,18 @@ void uiController::changeButtonDisplay(){
 		taskPrevButton.setAttribute("style","display:none;");
 	}
 
-	if(taskPage*maxIssues > currentTasks && currentTasks >= (taskPage*(maxIssues-1) + 1)){
+	if(taskPage > 1){
+		QWebElement taskPrevButton = dom.findFirst("#task_back");
+		taskPrevButton.setAttribute("style","display:inline;");
+	}
+
+	if(currentTasks > maxIssues || taskPage*maxIssues < currentTasks){
+		QWebElement taskNextButton = dom.findFirst("#task_forward");
+		taskNextButton.setAttribute("style","display:inline;");
+	}
+
+	if((taskPage*maxIssues >= currentTasks && currentTasks >= (taskPage*(maxIssues-1) + 1))
+		|| currentTasks <= maxIssues){
 		QWebElement taskNextButton = dom.findFirst("#task_forward");
 		taskNextButton.setAttribute("style","display:none;");
 	}
@@ -312,7 +347,18 @@ void uiController::changeButtonDisplay(){
 		deadlinePrevButton.setAttribute("style","display:none;");
 	}
 
-	if(deadlinePage*maxIssues > currentDeadlines && currentDeadlines >= (deadlinePage*(maxIssues-1) + 1)){
+	if(deadlinePage > 1){
+		QWebElement deadlinePrevButton = dom.findFirst("#deadline_back");
+		deadlinePrevButton.setAttribute("style","display:inline;");
+	}
+
+	if(currentDeadlines > maxIssues || deadlinePage*maxIssues < currentDeadlines){
+		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
+		deadlineNextButton.setAttribute("style","display:inline;");
+	}
+
+	if((deadlinePage*maxIssues >= currentDeadlines && currentDeadlines >= (deadlinePage*(maxIssues-1) + 1))
+		|| currentDeadlines <= maxIssues){
 		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
 		deadlineNextButton.setAttribute("style","display:none;");
 	}
@@ -322,7 +368,18 @@ void uiController::changeButtonDisplay(){
 		eventPrevButton.setAttribute("style","display:none;");
 	}
 
-	if(eventPage*maxIssues > currentEvents && currentEvents >= (eventPage*(maxIssues-1) + 1)){
+	if(eventPage > 1){
+		QWebElement eventPrevButton = dom.findFirst("#event_back");
+		eventPrevButton.setAttribute("style","display:inline;");
+	}
+
+	if(currentEvents > maxIssues || eventPage*maxIssues < currentEvents){
+		QWebElement eventNextButton = dom.findFirst("#event_forward");
+		eventNextButton.setAttribute("style","display:inline;");
+	}
+
+	if((eventPage*maxIssues >= currentEvents && currentEvents >= (eventPage*(maxIssues-1) + 1))
+		|| currentEvents <= maxIssues){
 		QWebElement eventNextButton = dom.findFirst("#event_forward");
 		eventNextButton.setAttribute("style","display:none;");
 	}
