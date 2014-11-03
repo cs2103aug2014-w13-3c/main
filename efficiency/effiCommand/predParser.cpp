@@ -1,6 +1,8 @@
 #include "predParser.h"
 #include <vector>
+#include <boost/algorithm/string.hpp>
 #include <regex>
+#include <map>
 
 using namespace std;
 
@@ -92,7 +94,7 @@ pair<int, int> findFirstMatchingBrackets(string str){
 	return make_pair(start, -1);
 }
 
-tuple<string, string, string> splitPredicate(string str){
+std::tuple<string, string, string> splitPredicate(string str){
 	str = Parser::trim(str);
 	//find matching right bracket to first left bracket.
 	auto brackets = findFirstMatchingBrackets(str);
@@ -109,7 +111,7 @@ tuple<string, string, string> splitPredicate(string str){
 		regex hasBoolop ("(\\|\\|)|(\\&\\&)");
 		if(regex_match(string(matches[1]), hasBoolop))
 			throw expected("(", 0);
-		return make_tuple(matches[1], matches[2], matches[3]);
+		return make_tuple(string(matches[1]), string(matches[2]), string(matches[3]));
 	} 
 }
 
@@ -131,10 +133,6 @@ boolop parseOp(string str){
 		throw std::exception("impossibru");
 }
 
-pred parseConditional(string str){ //TODO
-	return [](boost::any e)->bool{ return false; }; 
-}
-
 //Guarantee: brackets match
 parseTreeNode* parsePred(string str){
 	str = Parser::trim(str);
@@ -146,7 +144,7 @@ parseTreeNode* parsePred(string str){
 		return parsePred(string(str.begin()+1, str.end()-1));
 	//Format 3: assume that there's a boolop inside.
 	regex hasBoolop ("(\\|\\|)|(\\&\\&)");
-	if(regex_match(str, hasBoolop))
+	if(regex_search(str, hasBoolop))
 	{
 		//matches the || and && operators
 		auto split = splitPredicate(str);
@@ -157,4 +155,176 @@ parseTreeNode* parsePred(string str){
 	}
 	//Otherwise: treat as single conditional.
 	return new parseTreeNode(parseConditional(str));
+}
+
+#include <controller.h>
+//This part needs to know things about the controller.
+
+//Assume [string] operator -> tuple(string, integer, type(string)).
+	//Check the corresponding fields.
+
+//Much copy pasta after here.
+//integer operator.
+pred operator_gt(int compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value > compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+//integer operator.
+pred operator_lt(int compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value < compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+//integer operator.
+pred operator_eq(int compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value == compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+//string operator
+pred operator_eq(string compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "INTEGER")
+			return false;
+		//Do comparison
+		if(boost::iequals(str_value, compvalue))
+			return true;
+		else
+			return false;
+	};
+}
+
+//TODO: test the hell out of it.
+std::tuple<string, string, string> splitConditional(string str)
+{
+	regex extractor("(.*?)(:|!:|>|<|=|>=|<=|~|!~)(.*)");
+	smatch matches;
+	regex_match(str, matches, extractor);
+	regex symbols("(:|!:|>|<|=|>=|<=|~|!~)");
+	if(matches[0].length() == 0)
+		throw expected("operator", 0);
+	string s = string(matches[3]);
+	if(regex_search(string(matches[3]), symbols))
+		throw expected("!operator",matches[1].length()+matches[2].length()); //unexpected
+	if(matches[1].length() == 0)
+		throw expected("field", 0);
+	return make_tuple(Parser::trim(matches[1]), matches[2], Parser::trim(matches[3]));
+}
+
+pred decide_op(string field, string op_str, string comp_str){
+	//todo, MAKE STATIC the tables.
+	map<string, map<string, string>> OpTable;
+	OpTable.insert(make_pair("start",map<string, string>()));
+	OpTable["start"].insert(make_pair("=", "INTEGER"));
+	OpTable["start"].insert(make_pair(">", "INTEGER"));
+	OpTable["start"].insert(make_pair("<", "INTEGER"));
+	OpTable["start"].insert(make_pair(">=", "INTEGER"));
+	OpTable["start"].insert(make_pair("<=", "INTEGER"));
+	OpTable["start"].insert(make_pair("=", "INTEGER"));
+	OpTable["start"].insert(make_pair("~", "INTEGER"));
+	OpTable["start"].insert(make_pair("!~", "INTEGER"));
+	OpTable.insert(make_pair("end",map<string, string>()));
+	OpTable["end"].insert(make_pair("=", "INTEGER"));
+	OpTable["end"].insert(make_pair(">", "INTEGER"));
+	OpTable["end"].insert(make_pair("<", "INTEGER"));
+	OpTable["end"].insert(make_pair(">=", "INTEGER"));
+	OpTable["end"].insert(make_pair("<=", "INTEGER"));
+	OpTable["end"].insert(make_pair("=", "INTEGER"));
+	OpTable["end"].insert(make_pair("~", "INTEGER"));
+	OpTable["end"].insert(make_pair("!~", "INTEGER"));
+	OpTable.insert(make_pair("name",map<string, string>()));
+	OpTable["name"].insert(make_pair(":", "STRING"));
+	OpTable["name"].insert(make_pair("!:", "STRING"));
+	OpTable["name"].insert(make_pair("=", "STRING"));
+	OpTable.insert(make_pair("tag",map<string, string>()));
+	OpTable["tags"].insert(make_pair(":", "STRING"));
+	OpTable["tags"].insert(make_pair("!:", "STRING"));
+	OpTable["tags"].insert(make_pair("=", "STRING"));
+	OpTable.insert(make_pair("content",map<string, string>()));
+	OpTable["content"].insert(make_pair(":", "STRING"));
+	OpTable["content"].insert(make_pair("!:", "STRING"));
+	OpTable["content"].insert(make_pair("=", "STRING"));
+	OpTable.insert(make_pair("priority",map<string, string>()));
+	OpTable["priority"].insert(make_pair("=", "INTEGER"));
+	OpTable["priority"].insert(make_pair(">", "INTEGER"));
+	OpTable["priority"].insert(make_pair("<", "INTEGER"));
+	OpTable["priority"].insert(make_pair(">=", "INTEGER"));
+	OpTable["priority"].insert(make_pair("<=", "INTEGER"));
+	OpTable["priority"].insert(make_pair("=", "INTEGER"));
+	map<string, std::function<pred (boost::any e)>> oplookup;
+	oplookup.insert(make_pair("=_STRING" , 
+		[](boost::any e)->pred{ return operator_eq(any_cast<string>(e)); }));
+	oplookup.insert(make_pair("=_INTEGER" , 
+		[](boost::any e)->pred{ return operator_eq(any_cast<long>(e)); }));
+	oplookup.insert(make_pair(">_INTEGER" , 
+		[](boost::any e)->pred{ return operator_gt(any_cast<long>(e)); }));
+	oplookup.insert(make_pair("<_INTEGER" , 
+		[](boost::any e)->pred{ return operator_lt(any_cast<long>(e)); }));
+	if(OpTable.find(field) == OpTable.end())
+		throw expected("!"+field, 0);
+	auto validOps = OpTable.find(field)->second;
+	if(validOps.find(op_str) == validOps.end())
+		throw expected("!"+op_str, field.length()+1);
+	string optype = validOps.find(op_str)->second;
+	string op = op_str+"_"+optype;
+	if(optype == "STRING")
+		return oplookup[op](comp_str);
+	else
+		return oplookup[op](atol(comp_str.c_str())); //TODO: insert converter for dates.
+}
+
+//<comparator>:= >= || <= || = || :(has) || != || !: (does not have) || ~ (present) || !~ (not present)
+pred parseConditional(string str){
+	to_lower(str);
+	auto split = splitConditional(str);
+	string field = std::get<0>(split);
+	string op_str = std::get<1>(split);
+	string comp_str = std::get<2>(split);
+	pred op = decide_op(field, op_str, comp_str);
+	return [op, field](boost::any &e)->bool{  
+		std::tuple<string, long, string> val = any_cast<Controller::CEvent>(e)[field];
+		return op(boost::any(val));
+	};
 }

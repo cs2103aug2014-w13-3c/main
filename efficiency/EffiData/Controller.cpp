@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+using namespace boost::gregorian;
+
 Controller::CEvent::CEvent(Event::UUID id, TaskList * tl, Controller* ctrl) : uuid(id), cmdlist(), events(tl), controller(ctrl)
 {}
 
@@ -76,6 +78,44 @@ Event::UUID Controller::CEvent::getParent(){
 
 string Controller::CEvent::getContent(){
 	return events->getEvent(uuid).getContent();
+}
+
+long toLong(ptime time)
+{
+	ptime myEpoch(date(1970,Jan,1));
+	time_duration myTimeFromEpoch = time-myEpoch;
+	return myTimeFromEpoch.ticks();
+}
+
+std::tuple<string, long, string> Controller::CEvent::operator[](string field){
+	if(field == "start")
+	{
+		auto date = getStartDate();
+		if(date.is_not_a_date_time())
+			return make_tuple("", 0, "NONE");
+		return make_tuple("", toLong(date), "INTEGER");
+	}
+	if(field == "end")
+	{
+		auto date = getEndDate();
+		if(date.is_not_a_date_time())
+			return make_tuple("", 0, "NONE");
+		return make_tuple("", toLong(date), "INTEGER");
+	}
+	if(field == "name")
+		return make_tuple(getName(), 0, "STRING");
+	if(field == "content")
+		return make_tuple(getContent(), 0, "STRING");
+	if(field == "priority")
+		return make_tuple("", getPriority(), "INTEGER");
+	if(field == "tag"){
+		stringstream ss;
+		auto tags = getTags();
+		for(auto it = tags.begin(); it!=tags.end();++it)
+			ss<<*it<<" ";
+		return make_tuple(ss.str(), getPriority(), "STRING");
+	}
+	throw exception("impossibru");
 }
 
 

@@ -8,6 +8,8 @@
 #include "EventData.h"
 
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/date_time/gregorian/gregorian.hpp"
+
 using namespace boost::posix_time;
 
 class Controller{
@@ -38,6 +40,8 @@ public:
 		ptime getEndDate();
 		Event::UUID getParent();
 		string getContent();
+		//[string] operator -> tuple(string, integer, type(string)
+		std::tuple<string, long, string> operator[](string field);
 	
 		//set properties
 			//The only change is the return value - its for chaining.
@@ -51,6 +55,7 @@ public:
 		CEvent& setEndDate(ptime ed);
 		CEvent& setParent(Event::UUID p);
 		CEvent& setContent(string s);
+		
 		//output overload
 		friend ostream& operator<<(ostream& os, const CEvent& evt);
 		//input overload
@@ -63,9 +68,9 @@ public:
 	Controller();
 	Controller(std::string user);
 
-	typedef function<void()> unregisterAction;
-	typedef function<void(const vector<const CEvent>)> watchRangeCallback;
-	typedef function<bool(const CEvent&)> filter;
+	typedef std::function<void()> unregisterAction;
+	typedef std::function<void(const vector<const CEvent>)> watchRangeCallback;
+	typedef std::function<bool(const CEvent&)> filter;
 
 	//Create, delete events, getById.
 	CEvent& addEvent(string name);

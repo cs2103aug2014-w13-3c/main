@@ -41,7 +41,8 @@ int findBracketMatchFail(string str);
 parseTreeNode* parsePred(string str);
 pred parseConditional(string str);
 boolop parseOp(string str);
-tuple<string, string, string> splitPredicate(string str);
+std::tuple<string, string, string> splitPredicate(string str);
+std::tuple<string, string, string> splitConditional(string str);
 pair<string, string> splitOp(string str);
 
 #endif
