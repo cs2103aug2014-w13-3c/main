@@ -35,7 +35,6 @@ public:
 
 pred parsePredicate(std::string);
 
-
 //helper functions
 int findBracketMatchFail(string str);
 parseTreeNode* parsePred(string str);

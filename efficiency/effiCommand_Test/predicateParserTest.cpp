@@ -76,5 +76,20 @@ namespace predParserTest
 			pred p7 = parsePredicate("((((name=meow))))");
 			Assert::AreEqual(true, p7(boost::any(evt)));
 		}
+
+		TEST_METHOD(parseSatisfactionTest2){
+			//Despite appearances, this is not an integration test. This is just the easiest way to do it.
+			Controller ctrl(""); 
+			auto evt = ctrl.addEvent("meow");
+			evt.addTag("tag1");
+			evt.addTag("much");
+			evt.addTag("frustrate");
+			evt.addTag("such");
+			evt.addTag("wow");
+			evt.exec();
+			pred p = parsePredicate("name=meow&&tags:much&&tags:frustrate");
+			Assert::AreEqual(true, p(boost::any(evt)));
+
+		}
 	};
 }

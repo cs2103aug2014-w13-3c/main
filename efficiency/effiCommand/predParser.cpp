@@ -165,7 +165,7 @@ parseTreeNode* parsePred(string str){
 
 //Much copy pasta after here.
 //integer operator.
-pred operator_gt(int compvalue){
+pred operator_gt(long compvalue){
 	return [compvalue](boost::any e){
 		auto values = any_cast<std::tuple<string, long, string >>(e);
 		string str_value = std::get<0>(values);
@@ -182,8 +182,26 @@ pred operator_gt(int compvalue){
 	};
 }
 
+pred operator_gte(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value >= compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+
 //integer operator.
-pred operator_lt(int compvalue){
+pred operator_lt(long compvalue){
 	return [compvalue](boost::any e){
 		auto values = any_cast<std::tuple<string, long, string >>(e);
 		string str_value = std::get<0>(values);
@@ -200,8 +218,25 @@ pred operator_lt(int compvalue){
 	};
 }
 
+pred operator_lte(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value <= compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
 //integer operator.
-pred operator_eq(int compvalue){
+pred operator_eq(long compvalue){
 	return [compvalue](boost::any e){
 		auto values = any_cast<std::tuple<string, long, string >>(e);
 		string str_value = std::get<0>(values);
@@ -236,6 +271,42 @@ pred operator_eq(string compvalue){
 	};
 }
 
+pred operator_has(string compvalue){
+	compvalue = to_lower_copy(compvalue);
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "INTEGER")
+			return false;
+		//Do comparison
+		if(to_lower_copy(str_value).find(compvalue))
+			return true;
+		else
+			return false;
+	};
+}
+
+pred operator_nothas(string compvalue){
+	compvalue = to_lower_copy(compvalue);
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "INTEGER")
+			return false;
+		//Do comparison
+		if(!to_lower_copy(str_value).find(compvalue))
+			return true;
+		else
+			return false;
+	};
+}
+
 //TODO: test the hell out of it.
 std::tuple<string, string, string> splitConditional(string str)
 {
@@ -253,8 +324,8 @@ std::tuple<string, string, string> splitConditional(string str)
 	return make_tuple(Parser::trim(matches[1]), matches[2], Parser::trim(matches[3]));
 }
 
-pred decide_op(string field, string op_str, string comp_str){
-	//todo, MAKE STATIC the tables.
+const map<string, map<string, string>> makeOpTable()
+{
 	map<string, map<string, string>> OpTable;
 	OpTable.insert(make_pair("start",map<string, string>()));
 	OpTable["start"].insert(make_pair("=", "INTEGER"));
@@ -293,6 +364,11 @@ pred decide_op(string field, string op_str, string comp_str){
 	OpTable["priority"].insert(make_pair(">=", "INTEGER"));
 	OpTable["priority"].insert(make_pair("<=", "INTEGER"));
 	OpTable["priority"].insert(make_pair("=", "INTEGER"));
+	return OpTable;
+}
+
+const map<string, std::function<pred (boost::any e)>> makeOplookup()
+{
 	map<string, std::function<pred (boost::any e)>> oplookup;
 	oplookup.insert(make_pair("=_STRING" , 
 		[](boost::any e)->pred{ return operator_eq(any_cast<string>(e)); }));
@@ -302,6 +378,22 @@ pred decide_op(string field, string op_str, string comp_str){
 		[](boost::any e)->pred{ return operator_gt(any_cast<long>(e)); }));
 	oplookup.insert(make_pair("<_INTEGER" , 
 		[](boost::any e)->pred{ return operator_lt(any_cast<long>(e)); }));
+	oplookup.insert(make_pair("<=_INTEGER" , 
+		[](boost::any e)->pred{ return operator_lte(any_cast<long>(e)); }));
+	oplookup.insert(make_pair(">=_INTEGER" , 
+		[](boost::any e)->pred{ return operator_gte(any_cast<long>(e)); }));
+	oplookup.insert(make_pair(":_STRING" , 
+		[](boost::any e)->pred{ return operator_has(any_cast<string>(e)); }));
+	oplookup.insert(make_pair("!:_STRING" , 
+		[](boost::any e)->pred{ return operator_nothas(any_cast<string>(e)); }));
+	return oplookup;
+}
+
+//Based on the field and op_str, decide the operator to use 
+// and cast comp_str to the appropriate type.
+pred decide_op(string field, string op_str, string comp_str){
+	auto OpTable = makeOpTable();
+	auto oplookup = makeOplookup();
 	if(OpTable.find(field) == OpTable.end())
 		throw expected("!"+field, 0);
 	auto validOps = OpTable.find(field)->second;
@@ -311,8 +403,14 @@ pred decide_op(string field, string op_str, string comp_str){
 	string op = op_str+"_"+optype;
 	if(optype == "STRING")
 		return oplookup[op](comp_str);
+	if(optype == "LONG")
+		return oplookup[op](atol(comp_str.c_str())); 
+	/*if(optype == "PTIME") //TODO: insert converter for dates.
+	{
+
+	}*/
 	else
-		return oplookup[op](atol(comp_str.c_str())); //TODO: insert converter for dates.
+		throw "IMPOSSIBRU";
 }
 
 //<comparator>:= >= || <= || = || :(has) || != || !: (does not have) || ~ (present) || !~ (not present)
