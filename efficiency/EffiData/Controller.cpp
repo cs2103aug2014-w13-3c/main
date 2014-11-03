@@ -108,7 +108,7 @@ std::tuple<string, long, string> Controller::CEvent::operator[](string field){
 		return make_tuple(getContent(), 0, "STRING");
 	if(field == "priority")
 		return make_tuple("", getPriority(), "INTEGER");
-	if(field == "tag"){
+	if(field == "tags"){
 		stringstream ss;
 		auto tags = getTags();
 		for(auto it = tags.begin(); it!=tags.end();++it)
