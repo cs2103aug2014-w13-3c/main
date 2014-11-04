@@ -11,7 +11,7 @@
 typedef std::function<bool(boost::any& e)> pred;
 typedef std::function<pred(pred A, pred B)> boolop;
 
-class expected: std::exception{
+class expected: public std::exception{
 protected:
 	string expect;
 	int location;

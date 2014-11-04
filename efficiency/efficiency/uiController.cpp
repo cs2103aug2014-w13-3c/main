@@ -180,10 +180,11 @@ void uiController::displaySearchResults(vector<Controller::CEvent> events){
 void uiController::displayFilterResults(std::pair<Controller::unregisterAction, string> events){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement messageArea = dom.findFirst("#message-area");
-	messageArea.removeAllChildren();
+	messageArea.appendInside("Filtered issues.<br>");
 
-	messageArea.appendInside("Filter results:<br>");
-	messageArea.appendInside(QString::fromStdString(events.second));
+	clearGUI();
+	showOnGUI();
+	changeButtonDisplay();
 }
 
 void uiController::displayResultMessage(result_message_t message){

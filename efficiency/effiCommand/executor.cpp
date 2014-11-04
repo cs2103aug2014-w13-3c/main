@@ -88,6 +88,19 @@ void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
 	ctrl->deleteEvent(taskid);
 }
 
+void Executor::mark_complete(Event::UUID taskid, bool recursive){
+	if(recursive)
+	{
+		vector<Controller::CEvent> evts = ctrl->getAllEvents();
+		for(auto it = evts.begin(); it!=evts.end();++it)
+			if(it->getParent() == taskid)
+				mark_complete(it->getId() , recursive);
+	}
+	Controller::CEvent& evt = ctrl->getEvent(taskid);
+	evt.setCompleteStatus(true);
+	evt.exec();
+}
+
 void Executor::executeCommand(Executor::Command command){
 	assert(ctrl!=NULL);
 	assert(get<bool>("valid", command) == true);
@@ -97,7 +110,28 @@ void Executor::executeCommand(Executor::Command command){
 	function<void()> inverse;
 	stringstream ss;
 	string eventDump;
+	bool isRecursive;
 	switch(cmdtype){
+	case COMMAND_TYPE::MARK_COMPLETE:
+		try{ //TODO: clean copy paste coding.
+			taskid = find_task(command);
+		}
+		catch(...)
+		{
+			throw executionError(CANNOT_FIND_TARGET);
+		}
+		ss<<ctrl->getEvent(taskid);
+		eventDump = ss.str();
+		inverse = [this, taskid, eventDump]() { 
+			stringstream ss;
+			ss.str(eventDump);
+			ss>>ctrl->getEvent(taskid); 
+		};
+		isRecursive = command.find(RECURSIVE)!=command.end()  && 
+			get<COMMAND_TYPE>(RECURSIVE, command);
+		mark_complete(taskid, isRecursive);
+		undoStack.push_back(inverse);
+		break;
 	case COMMAND_TYPE::UNDO:
 		if(undoStack.size() == 0)
 			throw executionError(NOTHING_TO_UNDO);
@@ -155,10 +189,10 @@ void Executor::executeCommand(Executor::Command command){
 
 
 std::pair<Controller::unregisterAction, string> Executor::addFilter(Command cmd){
-	auto pred = get<std::function<bool(boost::any)>>(PREDICATE, cmd);
+	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);
 	string filterstring = get<string>(PARSE_STRING, cmd);
 	return make_pair(ctrl->addFilter([pred](Controller::CEvent e)->bool{
-		return pred(e);
+		return pred(boost::any(e));
 	}), filterstring);
 }
 vector<Controller::CEvent> Executor::search(Command cmd){

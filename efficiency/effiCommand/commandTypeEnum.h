@@ -10,6 +10,5 @@ namespace commandTypeEnum {
 		SEARCH, FILTER, 
 		UNDO, SETTINGS, MINIMIZE, HELP, LOGOUT, EXIT
 	};
-
 };
 #endif

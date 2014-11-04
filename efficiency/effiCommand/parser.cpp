@@ -494,7 +494,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 				cmdmap.insert(make_pair(cmdOptionField::PREDICATE, parsePredicate(joined.str())));
 				cmdmap.insert(make_pair(cmdOptionField::PARSE_STRING, joined.str()));
 				return cmdmap;
-			}catch(std::exception &e)
+			}catch(expected& e)
 			{
 				multimap<string,any> cmdmap;
 				cmdmap.insert( pair<string, any>(cmdOptionField::VALID, false) );
