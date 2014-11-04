@@ -3,8 +3,10 @@
 #include <boost/algorithm/string.hpp>
 #include <regex>
 #include <map>
+#include "boost/date_time/gregorian/gregorian.hpp"
 
 using namespace std;
+using namespace boost::gregorian;
 
 expected::expected(string s, int position): expect(s), location(position)
 {}
@@ -405,10 +407,19 @@ pred decide_op(string field, string op_str, string comp_str){
 		return oplookup[op](comp_str);
 	if(optype == "LONG")
 		return oplookup[op](atol(comp_str.c_str())); 
-	/*if(optype == "PTIME") //TODO: insert converter for dates.
+	if(optype == "PTIME") //TODO: insert converter for dates.
 	{
-		//parse the time.
-	}*/
+		try{//copy pasted from Controller.cpp.
+			ptime t = Parser::parseDate(comp_str);
+			ptime myEpoch(date(1970,Jan,1));
+			time_duration myTimeFromEpoch = t-myEpoch;
+			return oplookup[op](myTimeFromEpoch.ticks());
+		}
+		catch(...)
+		{
+			throw expected("formated date time", field.length() + op_str.length() + 1);
+		}
+	}
 	else
 		throw "IMPOSSIBRU";
 }

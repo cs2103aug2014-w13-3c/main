@@ -59,7 +59,7 @@ public: //temporary change.
 	bool hasSuffix(const std::string &str, const std::string &suffix);
 
 	static const locale inputFormats[];
-	ptime parseDate(string s);
+	static ptime parseDate(string s);
 
 };
 #endif
