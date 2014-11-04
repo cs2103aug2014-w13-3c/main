@@ -49,8 +49,11 @@ const locale Parser::inputFormats[] = {
 // stores all valid command keywords
 void Parser::loadValidCommandKeywords(){
 
-	validCommandKeywords.push_back(make_pair("view",commandTypeEnum::VIEW));
-	validCommandKeywords.push_back(make_pair("/v",commandTypeEnum::VIEW));
+	//validCommandKeywords.push_back(make_pair("view",commandTypeEnum::VIEW));
+	//validCommandKeywords.push_back(make_pair("/v",commandTypeEnum::VIEW));
+
+	validCommandKeywords.push_back(make_pair("scroll",commandTypeEnum::SCROLL));
+	validCommandKeywords.push_back(make_pair("/sc",commandTypeEnum::SCROLL));
 
 	validCommandKeywords.push_back(make_pair("add",commandTypeEnum::ADD_TASK));
 	validCommandKeywords.push_back(make_pair("/a",commandTypeEnum::ADD_TASK));
@@ -126,6 +129,28 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
+void Parser::loadViewToScroll(){
+
+	viewToScroll.push_back("all");
+	viewToScroll.push_back("task");
+	viewToScroll.push_back("event");
+	viewToScroll.push_back("deadline");
+	viewToScroll.push_back("tasks");
+	viewToScroll.push_back("events");
+	viewToScroll.push_back("deadlines");
+
+}
+
+void Parser::loadscrollDirection(){
+
+	scrollDirection.push_back("next");
+	scrollDirection.push_back("previous");
+	scrollDirection.push_back("prev");
+	scrollDirection.push_back("n");
+	scrollDirection.push_back("p");
+
+}
+
 pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 	vector<string> dtToken = tokenizeCommandString(dtFieldValue, false);
@@ -171,10 +196,8 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 			hour = stoi(hourString);
 
-			if( hasSuffix(timeToken[timeToken.size() - 1],"PM") ){
-				
+			if( hasSuffix(timeToken[timeToken.size() - 1],"PM") ){				
 				hour = (hour % 12) + 12;
-
 			}
 
 			timeToken[0] = to_string(hour);
@@ -228,17 +251,11 @@ string Parser::addPaddingZeros(string s){
 	vector<string> dateToken = tokenizeCommandString(s, false);
 
 	if(dateToken.size() == 3){
-
 		for(int i = 0; i < dateToken.size(); i++){
-
 			if( dateToken[i].length() == 1 ){
-
 				dateToken[i] = "0" + dateToken[i];
-
 			}
-
 		}
-
 	}
 
 	s = joinVector(dateToken, "-");
@@ -252,6 +269,8 @@ Parser::Parser(){
 
 	loadValidCommandKeywords();
 	loadOptionFieldsChecker();
+	loadViewToScroll();
+	loadscrollDirection();
 
 }
 
@@ -430,9 +449,60 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 		}
 
 	// has only param
-	case commandTypeEnum::VIEW:
+	//case commandTypeEnum::VIEW:
 
-		if(commandStringTokens.size() > 2){
+	//	if(commandStringTokens.size() > 2){
+
+	//		vector<string> extractParam;
+	//		copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+	//		string Param = joinVector(extractParam, " ");
+	//		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+	//		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+	//		return cmdParamAndOptMap;
+
+	//	} else {
+
+	//		// ITERATE THRU ENTIRE ENTERED COMMAND
+	//		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
+
+	//			// ITERATE THRU AVAILABLE OPTIONS FIELD
+	//			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+
+	//				// PARAM MISSING
+	//				if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
+
+	//					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+	//					return cmdParamAndOptMap;
+
+	//				// Skip all the option fields
+	//				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ){
+
+	//					vector<string> extractParam;
+	//					copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+	//					string Param = joinVector(extractParam, " ");
+	//					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+	//					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+	//					return cmdParamAndOptMap;
+	//			
+	//				// reach end of command, no options field found, the entire command is a param
+	//				} else if( (i == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ) {
+
+	//					vector<string> extractParam;
+	//					copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+	//					string Param = joinVector(extractParam, " ");
+	//					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+	//					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+	//					return cmdParamAndOptMap;
+
+	//				}
+	//			}
+	//		}
+	//	}
+
+	// has only param
+	case commandTypeEnum::SCROLL:
+
+		if(commandStringTokens.size() != 3){
 
 			vector<string> extractParam;
 			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
@@ -443,41 +513,36 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		} else {
 
-			// ITERATE THRU ENTIRE ENTERED COMMAND
-			for(unsigned int i = 1; i < commandStringTokens.size(); i++){
+			vector<string> extractParam;
+			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			string Param = joinVector(extractParam, " ");
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
 
-				// ITERATE THRU AVAILABLE OPTIONS FIELD
-				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+			for(unsigned int i = 0; i < viewToScroll.size(); i++) {
 
-					// PARAM MISSING
-					if(i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
-
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-						return cmdParamAndOptMap;
-
-					// Skip all the option fields
-					} else if( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ){
-
-						vector<string> extractParam;
-						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
-						string Param = joinVector(extractParam, " ");
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-						return cmdParamAndOptMap;
-				
-					// reach end of command, no options field found, the entire command is a param
-					} else if( (i == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ) {
-
-						vector<string> extractParam;
-						copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-						string Param = joinVector(extractParam, " ");
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-						return cmdParamAndOptMap;
-
-					}
+				if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScroll[i]) ) {
+					break;
+				} else if ( i == viewToScroll.size() - 1 ) {
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+					return cmdParamAndOptMap;
 				}
+
 			}
+
+			for(unsigned int i = 0; i < scrollDirection.size(); i++) {
+
+				if( areEqualStringsIgnoreCase(commandStringTokens[2], scrollDirection[i]) ) {
+					break;
+				} else if ( i == scrollDirection.size() - 1 ) {
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+					return cmdParamAndOptMap;
+				}
+
+			}
+
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+			return cmdParamAndOptMap;
+
 		}
 
 	// supports logical operations (search and filter)

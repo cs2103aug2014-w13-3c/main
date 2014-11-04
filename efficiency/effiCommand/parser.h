@@ -29,15 +29,22 @@ public:
 	// and UI controller (to check valid and parse)
 	multimap<string, any> parseCommand(const string commandString);
 
-public: //temporary change.
+	static ptime parseDate(string s);
+	static string trim(const string& s, const string& delimiters = " \f\n\r\t\v" );
+
+private:
 
 	// Attributes
 	vector< std::tuple<string, string, bool> > optionFieldsChecker;
 	vector< pair<string, commandTypeEnum::COMMAND_TYPE> > validCommandKeywords;
+	vector< string > viewToScroll;
+	vector< string > scrollDirection;
 
 	// Functions
 	void loadValidCommandKeywords();
 	void loadOptionFieldsChecker();
+	void loadViewToScroll();
+	void loadscrollDirection();
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, std::tuple<string, string, bool> currentOptionFieldPair);
@@ -54,12 +61,10 @@ public: //temporary change.
 	// trim strings
 	static string trimRight(const string& s, const string& delimiters = " \f\n\r\t\v" );
 	static string trimLeft(const string& s, const string& delimiters = " \f\n\r\t\v" );
-	static string trim(const string& s, const string& delimiters = " \f\n\r\t\v" );
 
 	bool hasSuffix(string str, string suffix);
 
 	static const locale inputFormats[];
-	static ptime parseDate(string s);
 	static string addPaddingZeros(string s);
 
 };

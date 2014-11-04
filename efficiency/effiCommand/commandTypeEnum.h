@@ -5,7 +5,7 @@ namespace commandTypeEnum {
 
 	// these are the possible command types
 	enum COMMAND_TYPE {
-		VIEW, MARK_COMPLETE,
+		VIEW, SCROLL, MARK_COMPLETE,
 		ADD_TASK, UPDATE_TASK, DELETE_TASK,  
 		SEARCH, FILTER, 
 		UNDO, SETTINGS, MINIMIZE, HELP, LOGOUT, EXIT

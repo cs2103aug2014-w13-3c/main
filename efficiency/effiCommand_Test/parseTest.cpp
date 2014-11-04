@@ -68,7 +68,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 			//view
-			commandString = "view weekly";
+			/*commandString = "view weekly";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
@@ -78,15 +78,28 @@ namespace effiCommand_Test
 
 			mmSize = test.size();
 			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);
+			Assert::AreEqual(expectedMMSize, mmSize);*/
 
 			//complete
 			commandString = "/c G983";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
+			string Param = any_cast<string> ( test.find("param")->second );
+			string correctParam = "G983";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//scroll
+			commandString = "scroll deadlines next";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
 			Param = any_cast<string> ( test.find("param")->second );
-			correctParam = "G983";
+			correctParam = "deadlines next";
 			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();
@@ -204,6 +217,53 @@ namespace effiCommand_Test
 
 			mmSize = test.size();
 			expectedMMSize = 3; // not 5, -s is redundant
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+		}
+
+		TEST_METHOD(invalidScrollParam){
+
+			Parser parser;
+			int mmSize;
+			int expectedMMSize;
+
+			//test one: invalid task type
+			string commandString = "scroll floating next";
+			multimap<string, any> test = parser.parseCommand(commandString);
+			bool valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(false, valid);
+			string Param = any_cast<string> ( test.find("param")->second );
+			string correctParam = "floating next";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//test two: invalid scroll direction
+			commandString = "scroll deadlines backwards";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(false, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "deadlines backwards";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//test three: both are invalid
+			commandString = "scroll anyhow type";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(false, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "anyhow type";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 		}
