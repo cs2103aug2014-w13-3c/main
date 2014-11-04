@@ -171,6 +171,12 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 			hour = stoi(hourString);
 
+			if( hasSuffix(timeToken[timeToken.size() - 1],"PM") ){
+				
+				hour = (hour % 12) + 12;
+
+			}
+
 			timeToken[0] = to_string(hour);
 
 		}
@@ -182,6 +188,8 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 		dtToken[1] = time;
 
 	}
+
+	dtToken[0] = addPaddingZeros(dtToken[0]);
 
 	dtFieldValue = joinVector(dtToken, " ");
 	try{
@@ -195,6 +203,9 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 }
 
 ptime Parser::parseDate(string s){
+
+	s = addPaddingZeros(s);
+
 	const size_t dtFormats = sizeof(inputFormats)/sizeof(inputFormats[0]);
 	for(size_t i=0; i < dtFormats; i++){
 		istringstream ss(s);
@@ -206,6 +217,34 @@ ptime Parser::parseDate(string s){
 			return dateTime;
 	}
 	throw "Cannot parse";
+
+}
+
+string Parser::addPaddingZeros(string s){
+
+	replace(s.begin(), s.end(), '/', ' ');
+	replace(s.begin(), s.end(), '-', ' ');
+
+	vector<string> dateToken = tokenizeCommandString(s, false);
+
+	if(dateToken.size() == 3){
+
+		for(int i = 0; i < dateToken.size(); i++){
+
+			if( dateToken[i].length() == 1 ){
+
+				dateToken[i] = "0" + dateToken[i];
+
+			}
+
+		}
+
+	}
+
+	s = joinVector(dateToken, "-");
+
+	return s;
+
 }
 
 // Constructor
@@ -824,7 +863,11 @@ inline string Parser::trim(const string& s, const string& delimiters){
 
 }
 
-bool Parser::hasSuffix(const std::string &str, const std::string &suffix){
+bool Parser::hasSuffix(string str, string suffix){
+
+	transform(str.begin(), str.end(), str.begin(), ::tolower);
+	transform(suffix.begin(), suffix.end(), suffix.begin(), ::tolower);
+
     return str.size() >= suffix.size() &&
            str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
