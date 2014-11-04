@@ -56,10 +56,11 @@ public: //temporary change.
 	static string trimLeft(const string& s, const string& delimiters = " \f\n\r\t\v" );
 	static string trim(const string& s, const string& delimiters = " \f\n\r\t\v" );
 
-	bool hasSuffix(const std::string &str, const std::string &suffix);
+	bool hasSuffix(string str, string suffix);
 
 	static const locale inputFormats[];
 	static ptime parseDate(string s);
+	static string addPaddingZeros(string s);
 
 };
 #endif

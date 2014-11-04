@@ -208,24 +208,25 @@ namespace effiCommand_Test
 
 		}
 
-		TEST_METHOD(SensibleDateTimes1)
+		TEST_METHOD(SensibleDateTimesWithoutPaddingZeroes)
 		{
 			Parser parser;
 			string cmd = "add something -s 4/11/2014 -e 5/11/2014";
 			multimap<string, any> test = parser.parseCommand(cmd);
 			Assert::IsTrue(any_cast<bool> ( test.find("valid")->second ));
-			ptime t = any_cast<ptime> ( test.find("start")->second );
-			Assert::IsFalse(t.is_not_a_date_time());
-		}
+			ptime st = any_cast<ptime> ( test.find("start")->second );
+			Assert::IsFalse(st.is_not_a_date_time());
+			ptime et = any_cast<ptime> ( test.find("end")->second );
+			Assert::IsFalse(et.is_not_a_date_time());
 
-		TEST_METHOD(SensibleDateTimes2)
-		{
-			Parser parser;
-			string cmd = "add something -s 4-11-2014 -e 5-11-2014";
-			multimap<string, any> test = parser.parseCommand(cmd);
+			cmd = "add something -s 4/11/2014 6:30pm -e 5/11/2014 7:30pm";
+			test = parser.parseCommand(cmd);
 			Assert::IsTrue(any_cast<bool> ( test.find("valid")->second ));
-			ptime t = any_cast<ptime> ( test.find("start")->second );
-			Assert::IsFalse(t.is_not_a_date_time());
+			st = any_cast<ptime> ( test.find("start")->second );
+			Assert::IsFalse(st.is_not_a_date_time());
+			et = any_cast<ptime> ( test.find("end")->second );
+			Assert::IsFalse(et.is_not_a_date_time());
+
 		}
 
 		TEST_METHOD(basicStartEndFieldsTest){
