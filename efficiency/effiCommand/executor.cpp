@@ -191,9 +191,11 @@ void Executor::executeCommand(Executor::Command command){
 std::pair<Controller::unregisterAction, string> Executor::addFilter(Command cmd){
 	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);
 	string filterstring = get<string>(PARSE_STRING, cmd);
-	return make_pair(ctrl->addFilter([pred](Controller::CEvent e)->bool{
+	auto undo = ctrl->addFilter([pred](Controller::CEvent e)->bool{
 		return pred(boost::any(e));
-	}), filterstring);
+	});
+	undoStack.push_back(undo);
+	return make_pair(undo, filterstring);
 }
 vector<Controller::CEvent> Executor::search(Command cmd){
 	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);
