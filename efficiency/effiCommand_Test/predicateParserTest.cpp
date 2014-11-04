@@ -3,6 +3,7 @@
 
 #include "predParser.h"
 #include "controller.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -53,6 +54,13 @@ namespace predParserTest
 			Assert::AreEqual(string("some shit"),std::get<2>(result));
 		}
 
+		TEST_METHOD(splitConditional3){
+			auto result = splitConditional("name!: some shit");
+			Assert::AreEqual(string("name"),std::get<0>(result));
+			Assert::AreEqual(string("!:"),std::get<1>(result));
+			Assert::AreEqual(string("some shit"),std::get<2>(result));
+		}
+
 		TEST_METHOD(splitConditionalFail1){
 			Assert::ExpectException<expected>([](){splitConditional("name: some ~shit");});
 		}
@@ -89,7 +97,20 @@ namespace predParserTest
 			evt.exec();
 			pred p = parsePredicate("name=meow&&tags:much&&tags:frustrate");
 			Assert::AreEqual(true, p(boost::any(evt)));
+		}
 
+		TEST_METHOD(parseSatisfactionTest3){
+			Controller ctrl("");
+			auto evt = ctrl.addEvent("woof");
+			string date1 = "2014-10-21 23:59:00.000";
+			string date2 = "2014-10-22 23:59:00.000";
+			ptime t1 = ptime(time_from_string(date1));
+			ptime t2 = ptime(time_from_string(date2));
+			evt.setStartDate(t1);
+			evt.setEndDate(t2);
+			evt.exec();
+			pred p = parsePredicate("name=woof&&start="+date1+"&&end="+date2);
+			Assert::AreEqual(true, p(boost::any(evt)));
 		}
 	};
 }

@@ -319,8 +319,8 @@ std::tuple<string, string, string> splitConditional(string str)
 	if(matches[0].length() == 0)
 		throw expected("operator", 0);
 	string s = string(matches[3]);
-	if(regex_search(string(matches[3]), symbols))
-		throw expected("!operator",matches[1].length()+matches[2].length()); //unexpected
+	/*if(regex_search(string(matches[3]), symbols))
+		throw expected("!operator",matches[1].length()+matches[2].length());*/ //unexpected
 	if(matches[1].length() == 0)
 		throw expected("field", 0);
 	return make_tuple(Parser::trim(matches[1]), matches[2], Parser::trim(matches[3]));
@@ -417,7 +417,7 @@ pred decide_op(string field, string op_str, string comp_str){
 		}
 		catch(...)
 		{
-			throw expected("formated date time", field.length() + op_str.length() + 1);
+			throw expected("formatted date time", field.length() + op_str.length() + 1);
 		}
 	}
 	else
