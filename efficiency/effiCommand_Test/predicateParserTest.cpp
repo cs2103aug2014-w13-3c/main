@@ -61,9 +61,10 @@ namespace predParserTest
 			Assert::AreEqual(string("some shit"),std::get<2>(result));
 		}
 
-		TEST_METHOD(splitConditionalFail1){
+		//Removed since dates need to include some of the forbidden symbols.
+		/*TEST_METHOD(splitConditionalFail1){
 			Assert::ExpectException<expected>([](){splitConditional("name: some ~shit");});
-		}
+		}*/
 
 		TEST_METHOD(predParseNameSatisfactionTest){
 			//Despite appearances, this is not an integration test. This is just the easiest way to do it.

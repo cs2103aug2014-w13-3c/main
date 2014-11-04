@@ -284,7 +284,7 @@ pred operator_has(string compvalue){
 		if(type == "NONE" || type == "INTEGER")
 			return false;
 		//Do comparison
-		if(to_lower_copy(str_value).find(compvalue))
+		if(to_lower_copy(str_value).find(compvalue)!=-1)
 			return true;
 		else
 			return false;
@@ -302,7 +302,7 @@ pred operator_nothas(string compvalue){
 		if(type == "NONE" || type == "INTEGER")
 			return false;
 		//Do comparison
-		if(!to_lower_copy(str_value).find(compvalue))
+		if(!to_lower_copy(str_value).find(compvalue)!=-1)
 			return true;
 		else
 			return false;
@@ -330,28 +330,28 @@ const map<string, map<string, string>> makeOpTable()
 {
 	map<string, map<string, string>> OpTable;
 	OpTable.insert(make_pair("start",map<string, string>()));
-	OpTable["start"].insert(make_pair("=", "INTEGER"));
-	OpTable["start"].insert(make_pair(">", "INTEGER"));
-	OpTable["start"].insert(make_pair("<", "INTEGER"));
-	OpTable["start"].insert(make_pair(">=", "INTEGER"));
-	OpTable["start"].insert(make_pair("<=", "INTEGER"));
-	OpTable["start"].insert(make_pair("=", "INTEGER"));
-	OpTable["start"].insert(make_pair("~", "INTEGER"));
-	OpTable["start"].insert(make_pair("!~", "INTEGER"));
+	OpTable["start"].insert(make_pair("=", "PTIME"));
+	OpTable["start"].insert(make_pair(">", "PTIME"));
+	OpTable["start"].insert(make_pair("<", "PTIME"));
+	OpTable["start"].insert(make_pair(">=", "PTIME"));
+	OpTable["start"].insert(make_pair("<=", "PTIME"));
+	OpTable["start"].insert(make_pair("=", "PTIME"));
+	OpTable["start"].insert(make_pair("~", "PTIME"));
+	OpTable["start"].insert(make_pair("!~", "PTIME"));
 	OpTable.insert(make_pair("end",map<string, string>()));
-	OpTable["end"].insert(make_pair("=", "INTEGER"));
-	OpTable["end"].insert(make_pair(">", "INTEGER"));
-	OpTable["end"].insert(make_pair("<", "INTEGER"));
-	OpTable["end"].insert(make_pair(">=", "INTEGER"));
-	OpTable["end"].insert(make_pair("<=", "INTEGER"));
-	OpTable["end"].insert(make_pair("=", "INTEGER"));
-	OpTable["end"].insert(make_pair("~", "INTEGER"));
-	OpTable["end"].insert(make_pair("!~", "INTEGER"));
+	OpTable["end"].insert(make_pair("=", "PTIME"));
+	OpTable["end"].insert(make_pair(">", "PTIME"));
+	OpTable["end"].insert(make_pair("<", "PTIME"));
+	OpTable["end"].insert(make_pair(">=", "PTIME"));
+	OpTable["end"].insert(make_pair("<=", "PTIME"));
+	OpTable["end"].insert(make_pair("=", "PTIME"));
+	OpTable["end"].insert(make_pair("~", "PTIME"));
+	OpTable["end"].insert(make_pair("!~", "PTIME"));
 	OpTable.insert(make_pair("name",map<string, string>()));
 	OpTable["name"].insert(make_pair(":", "STRING"));
 	OpTable["name"].insert(make_pair("!:", "STRING"));
 	OpTable["name"].insert(make_pair("=", "STRING"));
-	OpTable.insert(make_pair("tag",map<string, string>()));
+	OpTable.insert(make_pair("tags",map<string, string>()));
 	OpTable["tags"].insert(make_pair(":", "STRING"));
 	OpTable["tags"].insert(make_pair("!:", "STRING"));
 	OpTable["tags"].insert(make_pair("=", "STRING"));
@@ -405,17 +405,19 @@ pred decide_op(string field, string op_str, string comp_str){
 	string op = op_str+"_"+optype;
 	if(optype == "STRING")
 		return oplookup[op](comp_str);
-	if(optype == "LONG")
+	if(optype == "INTEGER")
 		return oplookup[op](atol(comp_str.c_str())); 
-	if(optype == "PTIME") //TODO: insert converter for dates.
+	if(optype == "PTIME")
 	{
 		try{//copy pasted from Controller.cpp.
 			ptime t = Parser::parseDate(comp_str);
 			ptime myEpoch(date(1970,Jan,1));
 			time_duration myTimeFromEpoch = t-myEpoch;
-			return oplookup[op](myTimeFromEpoch.ticks());
+			auto op = oplookup[op_str+"_INTEGER"];
+			long ticks= myTimeFromEpoch.ticks();
+			return op(ticks);
 		}
-		catch(...)
+		catch(std::exception &e)
 		{
 			throw expected("formatted date time", field.length() + op_str.length() + 1);
 		}
