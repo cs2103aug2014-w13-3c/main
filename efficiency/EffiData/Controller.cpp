@@ -170,7 +170,7 @@ Controller::CEvent& Controller::CEvent::setContent(string content){
 }
 
 //Actual controller stuff.
-Controller::Controller(): events("TESTUSER"), cevents()
+Controller::Controller(): events("TESTUSER"), cevents(), filterid(0)
 {
 	auto _events = events.getAllEvents();
 	//get data from previous events.
@@ -236,4 +236,12 @@ istream& operator>>(istream& is, Controller::CEvent& evt){
 	});
 	evt.controller->changeId(currid, evt.uuid);
 	return is;
+}
+
+Controller::unregisterAction Controller::addFilter(filter f){
+	auto id = filterid++;
+	filters[id] = f;
+	return [this, id](){
+		this->filters.erase(id);
+	};
 }

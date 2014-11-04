@@ -14,6 +14,10 @@ using namespace boost::posix_time;
 
 class Controller{
 public:
+	class CEvent;
+	typedef std::function<void()> unregisterAction;
+	typedef std::function<void(const vector<const CEvent>)> watchRangeCallback;
+	typedef std::function<bool(const CEvent&)> filter;
 	class CEvent{
 	public:
 		typedef std::function<void(Event& evt)> command;
@@ -64,13 +68,11 @@ public:
 protected:
 	TaskList events;
 	map<Event::UUID, CEvent> cevents;
+	map<int, filter> filters;
+	int filterid;
 public:
 	Controller();
 	Controller(std::string user);
-
-	typedef std::function<void()> unregisterAction;
-	typedef std::function<void(const vector<const CEvent>)> watchRangeCallback;
-	typedef std::function<bool(const CEvent&)> filter;
 
 	//Create, delete events, getById.
 	CEvent& addEvent(string name);
@@ -86,7 +88,7 @@ public:
 	unregisterAction watchFrom(ptime start, watchRangeCallback cb);
 	unregisterAction watchTill(ptime end, watchRangeCallback cb);
 	//filters
-	unregisterAction addFilter(filter f);	
+	unregisterAction addFilter(filter f);
 };
 
 #endif

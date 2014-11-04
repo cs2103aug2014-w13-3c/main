@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "predParser.h"
 
 using namespace std;
 
@@ -435,8 +436,27 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 		}
 
 	// supports logical operations (search and filter)
-	//case commandTypeEnum::SEARCH:
-	//case commandTypeEnum::FILTER:
+	case commandTypeEnum::SEARCH:
+	case commandTypeEnum::FILTER:
+		{
+			try{
+				stringstream joined;
+				for(int i = 1; i<commandStringTokens.size();i++)
+					joined<<commandStringTokens[i]<<" ";
+				multimap<string,any> cmdmap;
+				cmdmap.insert(make_pair(cmdOptionField::VALID, true) );
+				cmdmap.insert(make_pair(cmdOptionField::COMMAND, cmdType) );
+				cmdmap.insert(make_pair(cmdOptionField::PREDICATE, parsePred(joined.str())));
+				cmdmap.insert(make_pair(cmdOptionField::PARSE_STRING, joined.str()));
+				return cmdmap;
+			}catch(std::exception &e)
+			{
+				multimap<string,any> cmdmap;
+				cmdmap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+				cmdmap.insert( pair<string, any>(cmdOptionField::COMMAND, cmdType) );
+				return cmdmap;
+			}
+		}
 
 	// has no param and options
 	case commandTypeEnum::UNDO:

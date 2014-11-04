@@ -25,6 +25,8 @@ public:
 		// NOTE TO SELF: TO BE CALLED BY UI CONTROLLER
 	//Throws: CannotFindTarget('targetstring')
 	void executeCommand(Command processedCommand);
+	std::pair<Controller::unregisterAction, string> addFilter(Command processedCommand);
+	vector<Controller::CEvent> search(Command processedCommand);
 
 protected:
 	Controller * ctrl;

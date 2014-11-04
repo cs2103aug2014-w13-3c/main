@@ -152,3 +152,23 @@ void Executor::executeCommand(Executor::Command command){
 		assert(false); //Unimplemented.
 	}
 }
+
+
+std::pair<Controller::unregisterAction, string> Executor::addFilter(Command cmd){
+	auto pred = get<std::function<bool(boost::any)>>(PREDICATE, cmd);
+	string filterstring = get<string>(PARSE_STRING, cmd);
+	return make_pair(ctrl->addFilter([pred](Controller::CEvent e)->bool{
+		return pred(e);
+	}), filterstring);
+}
+vector<Controller::CEvent> Executor::search(Command cmd){
+	auto pred = get<std::function<bool(boost::any)>>(PREDICATE, cmd);
+	auto evts = ctrl->getAllEvents();
+	vector<Controller::CEvent> newevts;
+	for(auto it = evts.begin(); it!=evts.end();++it)
+	{
+		if(pred(*it))
+			newevts.push_back(*it);
+	}
+	return newevts;
+}

@@ -24,6 +24,8 @@ namespace cmdOptionField {
 	const string REMOVETAGS = "removetags";
 	const string LINK = "link";
 	const string HELP = "help";
+	const string PREDICATE = "predicate";
+	const string PARSE_STRING = "parse_string";
 
 };
 
