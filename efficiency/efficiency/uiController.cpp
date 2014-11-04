@@ -141,6 +141,9 @@ void uiController::onCommandInput(string input){
 				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UNDO){
 					displayResultMessage(undo_message);
 				}
+				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == MARK_COMPLETE){
+					displayResultMessage(mark_complete_message);
+				}
 
 				showOnGUI();
 				changeButtonDisplay();
@@ -206,6 +209,9 @@ void uiController::displayResultMessage(result_message_t message){
 		else if(*it == undo_message) {
 			messageArea.appendInside("Undid action.<br>");
 		}
+		else if(*it == mark_complete_message) {
+			messageArea.appendInside("Marked issue as completed.<br>");
+		}
 		else if(*it == invalid_message){
 			messageArea.appendInside("Error: Enter valid command.<br>");
 		}
@@ -234,6 +240,8 @@ void uiController::showOnGUI(){
 	vector<string> tags;
 	ptime start;
 	ptime end;
+	bool isComplete;
+	string isCompleteString;
 
 	int eventCount = 0;
 	int deadlineCount = 0;
@@ -252,6 +260,15 @@ void uiController::showOnGUI(){
 		start = i->getStartDate();
 		end = i->getEndDate();
 		tags = i->getTags();
+
+		isComplete = i->getCompleteStatus();
+		if(isComplete == true){
+			isCompleteString = "Yes";
+		}
+		else {
+			isCompleteString = "No";
+		}
+
 		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
 			currentTasks++;
 			qDebug()<<QString::fromStdString(to_string(currentTasks));
@@ -265,6 +282,7 @@ void uiController::showOnGUI(){
 			}
 
 			taskDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			taskDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
 			taskDisplay.appendInside(QString::fromStdString(content)+"<br>");
 			taskDisplay.appendInside("Tags: ");
 
@@ -288,6 +306,7 @@ void uiController::showOnGUI(){
 
 			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" ");
 			deadlineDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			deadlineDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
 			deadlineDisplay.appendInside(QString::fromStdString(content)+"<br>");
 			deadlineDisplay.appendInside("Tags: ");
 
@@ -323,6 +342,7 @@ void uiController::showOnGUI(){
 			eventDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" to ");
 			eventDisplay.appendInside(QString::fromStdString(to_simple_string(end))+" ");
 			eventDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			eventDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
 			eventDisplay.appendInside(QString::fromStdString(content)+"<br>");
 			eventDisplay.appendInside("Tags: ");
 
