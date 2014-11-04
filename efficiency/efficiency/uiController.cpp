@@ -111,28 +111,40 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 void uiController::onCommandInput(string input){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	qDebug()<<QString::fromStdString(input); // check output
+	std::pair<Controller::unregisterAction, string> filterResults;
+	vector<Controller::CEvent> searchResults;
 
 	multimap<string,any> parsedCommand = parser.parseCommand(input);
 
 	if(any_cast<bool>(parsedCommand.find("valid")->second) == true){
 		try {
-			executor->executeCommand(parsedCommand);
+			if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == SEARCH){
+				searchResults = executor->search(parsedCommand);
+				displaySearchResults(searchResults);
+			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == FILTER){
+				filterResults = executor->addFilter(parsedCommand);
+				displayFilterResults(filterResults);
+			}
+			else {
+				executor->executeCommand(parsedCommand);
 
-			if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == ADD_TASK){
-				displayResultMessage(add_message);
-			}
-			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == DELETE_TASK){
-				displayResultMessage(delete_message);
-			}
-			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UPDATE_TASK){
-				displayResultMessage(update_message);
-			}
-			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UNDO){
-				displayResultMessage(undo_message);
-			}
+				if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == ADD_TASK){
+					displayResultMessage(add_message);
+				}
+				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == DELETE_TASK){
+					displayResultMessage(delete_message);
+				}
+				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UPDATE_TASK){
+					displayResultMessage(update_message);
+				}
+				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == UNDO){
+					displayResultMessage(undo_message);
+				}
 
-			showOnGUI();
-			changeButtonDisplay();
+				showOnGUI();
+				changeButtonDisplay();
+			}
 		}
 		catch(executionError& e){
 			if(e.getErrType() == NOTHING_TO_UNDO){
@@ -151,16 +163,35 @@ void uiController::onCommandInput(string input){
 	}
 }
 
+void uiController::displaySearchResults(vector<Controller::CEvent> events){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement messageArea = dom.findFirst("#message-area");
+	messageArea.removeAllChildren();
+
+	messageArea.appendInside("Search results:<br>");
+	for (auto it = events.begin(); it != events.end(); ++it) {
+		messageArea.appendInside(QString::fromStdString(it->getName())+"<br>");
+	}
+}
+
+void uiController::displayFilterResults(std::pair<Controller::unregisterAction, string> events){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement messageArea = dom.findFirst("#message-area");
+	messageArea.removeAllChildren();
+
+	messageArea.appendInside("Filter results:<br>");
+	messageArea.appendInside(QString::fromStdString(events.second));
+}
+
 void uiController::displayResultMessage(result_message_t message){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement messageArea = dom.findFirst("#message-area");
+	messageArea.removeAllChildren();
 
 	if(resultMessageStore.size() >= 5){
 		resultMessageStore.erase(resultMessageStore.begin(),resultMessageStore.begin()+1);
 	}
 	resultMessageStore.push_back(message);
-
-	QWebElement messageArea = dom.findFirst("#message-area");
-	messageArea.removeAllChildren();
 
 	for (auto it = resultMessageStore.begin(); it != resultMessageStore.end(); ++it) {
 		if(*it == add_message){
