@@ -35,6 +35,7 @@ protected:
 	Event::UUID add_task(Executor::Command command);
 	void delete_task(Executor::Command command, Event::UUID taskid);
 	void update_task(Executor::Command command, Event::UUID taskid);
+	void mark_complete(Event::UUID taskid, bool recursive);
 	std::map<std::string, std::function<void(boost::any, Controller::CEvent& evt)>> actions; 
 	std::map<std::string, std::function<void(boost::any, Controller::CEvent& evt)>> createActions();
 };
