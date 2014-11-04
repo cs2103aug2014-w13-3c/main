@@ -199,7 +199,19 @@ Controller::CEvent& Controller::getEvent(Event::UUID id){
 vector<Controller::CEvent> Controller::getAllEvents(){
 	vector<Controller::CEvent> t;
 	for(auto it = cevents.begin(); it!=cevents.end();++it)
-		t.push_back((*it).second);
+	{
+		bool satisfied = true;
+		for(auto filter = filters.begin();filter!=filters.end();++filter)
+		{
+			if(!(filter->second)(it->second))
+			{
+				satisfied = false;
+				break;
+			}
+		}
+		if(satisfied)
+			t.push_back((*it).second);
+	}
 	return t;
 }
 
