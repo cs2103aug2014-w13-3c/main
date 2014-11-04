@@ -294,7 +294,13 @@ void uiController::showOnGUI(){
 			taskDisplay.appendInside("<hr><br>");
 		}
 		else if(end.is_not_a_date_time()){
+			qDebug()<<QString::fromStdString("a deadline!!");
 			currentDeadlines++;
+
+			qDebug()<<QString::fromStdString("deadlinecount "+to_string(deadlineCount));
+			qDebug()<<QString::fromStdString("maxIssues "+to_string(maxIssues));
+			qDebug()<<QString::fromStdString("deadlinePage "+to_string(deadlinePage));
+			qDebug()<<QString::fromStdString("currentDeadlines "+to_string(currentDeadlines));
 
 			if(deadlineCount == maxIssues || 
 				deadlinePage*maxIssues < currentDeadlines || 
@@ -304,6 +310,7 @@ void uiController::showOnGUI(){
 			else {
 				deadlineCount++;
 			}
+			qDebug()<<QString::fromStdString("a deadline2!!");
 
 			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" <br>");
 			deadlineDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
@@ -316,14 +323,6 @@ void uiController::showOnGUI(){
 			}
 
 			deadlineDisplay.appendInside("<hr><br>");
-
-			if(deadlineCount == maxIssues){
-				continue;
-			}
-			else {
-
-				deadlineCount++;
-			}
 		}
 		else {
 			currentEvents++;
