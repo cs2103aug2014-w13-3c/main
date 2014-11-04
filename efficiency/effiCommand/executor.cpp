@@ -162,12 +162,12 @@ std::pair<Controller::unregisterAction, string> Executor::addFilter(Command cmd)
 	}), filterstring);
 }
 vector<Controller::CEvent> Executor::search(Command cmd){
-	auto pred = get<std::function<bool(boost::any)>>(PREDICATE, cmd);
+	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);
 	auto evts = ctrl->getAllEvents();
 	vector<Controller::CEvent> newevts;
 	for(auto it = evts.begin(); it!=evts.end();++it)
 	{
-		if(pred(*it))
+		if(pred(boost::any(*it)))
 			newevts.push_back(*it);
 	}
 	return newevts;

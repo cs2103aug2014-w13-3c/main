@@ -78,6 +78,12 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("help",commandTypeEnum::HELP));
 	validCommandKeywords.push_back(make_pair("/?",commandTypeEnum::HELP));
 
+	validCommandKeywords.push_back(make_pair("search",commandTypeEnum::SEARCH));
+	validCommandKeywords.push_back(make_pair("/s",commandTypeEnum::SEARCH));
+
+	validCommandKeywords.push_back(make_pair("filter",commandTypeEnum::FILTER));
+	validCommandKeywords.push_back(make_pair("/f",commandTypeEnum::FILTER));
+
 	validCommandKeywords.push_back(make_pair("logout",commandTypeEnum::LOGOUT));
 
 	validCommandKeywords.push_back(make_pair("exit",commandTypeEnum::EXIT));
@@ -446,7 +452,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 				multimap<string,any> cmdmap;
 				cmdmap.insert(make_pair(cmdOptionField::VALID, true) );
 				cmdmap.insert(make_pair(cmdOptionField::COMMAND, cmdType) );
-				cmdmap.insert(make_pair(cmdOptionField::PREDICATE, parsePred(joined.str())));
+				cmdmap.insert(make_pair(cmdOptionField::PREDICATE, parsePredicate(joined.str())));
 				cmdmap.insert(make_pair(cmdOptionField::PARSE_STRING, joined.str()));
 				return cmdmap;
 			}catch(std::exception &e)
