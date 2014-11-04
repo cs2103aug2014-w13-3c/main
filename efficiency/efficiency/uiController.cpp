@@ -282,9 +282,9 @@ void uiController::showOnGUI(){
 				taskCount++;
 			}
 
-			taskDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			taskDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
 			taskDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
-			taskDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			taskDisplay.appendInside("Description: "+QString::fromStdString(content)+"<br>");
 			taskDisplay.appendInside("Tags: ");
 
 			for(auto j = tags.begin(); j != tags.end(); ++j){
@@ -305,10 +305,10 @@ void uiController::showOnGUI(){
 				deadlineCount++;
 			}
 
-			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" ");
-			deadlineDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" <br>");
+			deadlineDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
 			deadlineDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
-			deadlineDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			deadlineDisplay.appendInside("Description: "+QString::fromStdString(content)+"<br>");
 			deadlineDisplay.appendInside("Tags: ");
 
 			for(auto j = tags.begin(); j != tags.end(); ++j){
@@ -341,10 +341,10 @@ void uiController::showOnGUI(){
 			}
 
 			eventDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" to ");
-			eventDisplay.appendInside(QString::fromStdString(to_simple_string(end))+" ");
-			eventDisplay.appendInside(QString::fromStdString(name)+"<br>");
+			eventDisplay.appendInside(QString::fromStdString(to_simple_string(end))+" <br>");
+			eventDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
 			eventDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
-			eventDisplay.appendInside(QString::fromStdString(content)+"<br>");
+			eventDisplay.appendInside("Description: "+QString::fromStdString(content)+"<br>");
 			eventDisplay.appendInside("Tags: ");
 
 			for(auto j = tags.begin(); j != tags.end(); ++j){
