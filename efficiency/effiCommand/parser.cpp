@@ -2,6 +2,49 @@
 
 using namespace std;
 
+const locale Parser::inputFormats[] = {
+	locale(locale::classic(), new time_input_facet("%b/%d/%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%B/%d/%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%d/%b/%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%d/%B/%Y %H:%M:%S")),
+
+	locale(locale::classic(), new time_input_facet("%b-%d-%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%B-%d-%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%d-%b-%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%d-%B-%Y %H:%M:%S")),
+
+	locale(locale::classic(), new time_input_facet("%Y/%b/%d %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%Y/%B/%d %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%Y-%B-%d %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%Y-%b-%d %H:%M:%S")),
+
+	locale(locale::classic(), new time_input_facet("%d-%m-%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%Y-%m-%d %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%d/%m/%Y %H:%M:%S")),
+	locale(locale::classic(), new time_input_facet("%Y/%m/%d %H:%M:%S")),
+
+	locale(locale::classic(), new time_input_facet("%b/%d/%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%B/%d/%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%d/%b/%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%d/%B/%Y %H.%M.%S")),
+
+	locale(locale::classic(), new time_input_facet("%b-%d-%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%B-%d-%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%d-%b-%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%d-%B-%Y %H.%M.%S")),
+
+	locale(locale::classic(), new time_input_facet("%Y/%b/%d %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%Y/%B/%d %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%Y-%B-%d %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%Y-%b-%d %H.%M.%S")),
+
+	locale(locale::classic(), new time_input_facet("%d-%m-%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%Y-%m-%d %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%d/%m/%Y %H.%M.%S")),
+	locale(locale::classic(), new time_input_facet("%Y/%m/%d %H.%M.%S")),
+
+};
+
 // stores all valid command keywords
 void Parser::loadValidCommandKeywords(){
 
@@ -134,78 +177,28 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 	}
 
 	dtFieldValue = joinVector(dtToken, " ");
+	try{
+		auto date = parseDate(dtFieldValue);
+		return make_pair(true, date);
+	}catch(...){
+		pair<bool,ptime> result;
+		result.first = false;
+		return result;
+	}
+}
 
-	const locale inputFormats[] = {
-
-
-
-		locale(locale::classic(), new time_input_facet("%b/%d/%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%B/%d/%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%d/%b/%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%d/%B/%Y %H:%M:%S")),
-
-		locale(locale::classic(), new time_input_facet("%b-%d-%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%B-%d-%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%d-%b-%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%d-%B-%Y %H:%M:%S")),
-
-		locale(locale::classic(), new time_input_facet("%Y/%b/%d %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%Y/%B/%d %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%Y-%B-%d %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%Y-%b-%d %H:%M:%S")),
-
-		locale(locale::classic(), new time_input_facet("%d-%m-%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%Y-%m-%d %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%d/%m/%Y %H:%M:%S")),
-		locale(locale::classic(), new time_input_facet("%Y/%m/%d %H:%M:%S")),
-
-		locale(locale::classic(), new time_input_facet("%b/%d/%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%B/%d/%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%d/%b/%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%d/%B/%Y %H.%M.%S")),
-
-		locale(locale::classic(), new time_input_facet("%b-%d-%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%B-%d-%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%d-%b-%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%d-%B-%Y %H.%M.%S")),
-
-		locale(locale::classic(), new time_input_facet("%Y/%b/%d %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%Y/%B/%d %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%Y-%B-%d %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%Y-%b-%d %H.%M.%S")),
-
-		locale(locale::classic(), new time_input_facet("%d-%m-%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%Y-%m-%d %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%d/%m/%Y %H.%M.%S")),
-		locale(locale::classic(), new time_input_facet("%Y/%m/%d %H.%M.%S")),
-
-	};
-
+ptime Parser::parseDate(string s){
 	const size_t dtFormats = sizeof(inputFormats)/sizeof(inputFormats[0]);
-
-	pair<bool,ptime> result;
-
-	for(size_t i=0; i < dtFormats; ++i){
-
-		istringstream ss(dtFieldValue);
+	for(size_t i=0; i < dtFormats; i++){
+		istringstream ss(s);
 		ss.imbue(inputFormats[i]);
 		ptime dateTime;
 		ss >> dateTime;
 
-		if(dateTime != not_a_date_time){
-
-			result.first = true;
-			result.second = dateTime;
-			return result;
-
-		}
-
+		if(dateTime != not_a_date_time)
+			return dateTime;
 	}
-
-	result.first = false;
-
-	return result;
-
+	throw "Cannot parse";
 }
 
 // Constructor

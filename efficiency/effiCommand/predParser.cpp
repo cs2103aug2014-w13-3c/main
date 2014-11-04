@@ -407,7 +407,7 @@ pred decide_op(string field, string op_str, string comp_str){
 		return oplookup[op](atol(comp_str.c_str())); 
 	/*if(optype == "PTIME") //TODO: insert converter for dates.
 	{
-
+		//parse the time.
 	}*/
 	else
 		throw "IMPOSSIBRU";
