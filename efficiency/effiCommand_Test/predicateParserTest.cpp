@@ -65,7 +65,7 @@ namespace predParserTest
 			Assert::ExpectException<expected>([](){splitConditional("name: some ~shit");});
 		}
 
-		TEST_METHOD(parseSatisfactionTest){
+		TEST_METHOD(predParseNameSatisfactionTest){
 			//Despite appearances, this is not an integration test. This is just the easiest way to do it.
 			Controller ctrl(""); 
 			auto evt = ctrl.addEvent("meow");
@@ -85,7 +85,7 @@ namespace predParserTest
 			Assert::AreEqual(true, p7(boost::any(evt)));
 		}
 
-		TEST_METHOD(parseSatisfactionTest2){
+		TEST_METHOD(predParseTagSatisfactionTest){
 			//Despite appearances, this is not an integration test. This is just the easiest way to do it.
 			Controller ctrl(""); 
 			auto evt = ctrl.addEvent("meow");
@@ -99,7 +99,7 @@ namespace predParserTest
 			Assert::AreEqual(true, p(boost::any(evt)));
 		}
 
-		TEST_METHOD(parseSatisfactionTest3){
+		TEST_METHOD(predParseDateSatisfactionTest){
 			Controller ctrl("");
 			auto evt = ctrl.addEvent("woof");
 			string date1 = "2014-10-21 23:59:00.000";
@@ -111,6 +111,33 @@ namespace predParserTest
 			evt.exec();
 			pred p = parsePredicate("name=woof&&start="+date1+"&&end="+date2);
 			Assert::AreEqual(true, p(boost::any(evt)));
+		}
+
+		TEST_METHOD(predParseContentSatisfactionTest){
+			Controller ctrl("");
+			auto evt = ctrl.addEvent("woof");
+			evt.setContent("test");
+			evt.exec();
+			pred p = parsePredicate("name=woof&&content:test");
+			Assert::AreEqual(true, p(boost::any(evt)));
+			pred p2 = parsePredicate("name=woof&&content!:stuff");
+			Assert::AreEqual(true, p2(boost::any(evt)));
+		}
+
+		TEST_METHOD(predParseSpacesTest){
+			Controller ctrl("");
+			auto evt = ctrl.addEvent("woof");
+			evt.setContent("test");
+			evt.addTag("tag1");
+			evt.addTag("much");
+			evt.addTag("frustrate");
+			evt.addTag("such");
+			evt.addTag("wow");
+			evt.exec();
+			pred p = parsePredicate("name = woof");
+			Assert::AreEqual(true, p(boost::any(evt)));
+			pred p2 = parsePredicate("name = woof && tags: much");
+			Assert::AreEqual(true, p2(boost::any(evt)));
 		}
 	};
 }
