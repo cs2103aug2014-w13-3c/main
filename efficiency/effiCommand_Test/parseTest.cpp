@@ -208,11 +208,39 @@ namespace effiCommand_Test
 
 		}
 
+		TEST_METHOD(SensibleDateTimes1)
+		{
+			Parser parser;
+			string cmd = "add something -s 4/11/2014 -e 5/11/2014";
+			multimap<string, any> test = parser.parseCommand(cmd);
+			Assert::IsTrue(any_cast<bool> ( test.find("valid")->second ));
+			ptime t = any_cast<ptime> ( test.find("start")->second );
+			Assert::IsFalse(t.is_not_a_date_time());
+		}
+
+		TEST_METHOD(SensibleDateTimes2)
+		{
+			Parser parser;
+			string cmd = "add something -s 4-11-2014 -e 5-11-2014";
+			multimap<string, any> test = parser.parseCommand(cmd);
+			Assert::IsTrue(any_cast<bool> ( test.find("valid")->second ));
+			ptime t = any_cast<ptime> ( test.find("start")->second );
+			Assert::IsFalse(t.is_not_a_date_time());
+		}
+
 		TEST_METHOD(basicStartEndFieldsTest){
 
 			Parser parser;
 			int mmSize;
 			int expectedMMSize;
+
+			//start/end time good 0 test
+			string commandString0 = "add meeting next week -s 2014-01-01";
+			multimap<string, any> test0 = parser.parseCommand(commandString0);
+			bool valid0 = any_cast<bool> ( test0.find("valid")->second );
+			ptime t = any_cast<ptime> ( test0.find("start")->second );
+			Assert::AreEqual(true, valid0);
+			Assert::IsFalse(t.is_not_a_date_time());
 
 			//start/end time good 1 test
 			string commandString = "add meeting next week -s 2014-01-01 23:59";
