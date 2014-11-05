@@ -343,9 +343,9 @@ void uiController::showOnGUI(){
 	{
 		if(!(issue.getStartDate().is_not_a_date_time() || issue.getEndDate().is_not_a_date_time()))
 			events.push_back(issue);
-		if(issue.getStartDate().is_not_a_date_time() && issue.getStartDate().is_not_a_date_time())
+		if(issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
 			tasks.push_back(issue);
-		if(!issue.getStartDate().is_not_a_date_time() && issue.getStartDate().is_not_a_date_time())
+		if(!issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
 			deadlines.push_back(issue);
 	}
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
