@@ -319,7 +319,7 @@ void drawTable(vector<Controller::CEvent> issues, QWebElement target){
 		//name
 		addfield(tr, issue->getName());
 		//tags
-		addfield(tr, ""); //TODO.
+		addfield(tr, formatTags(issue->getTags()));
 		//description
 		addfield(tr, issue->getContent()); 
 		target.appendInside(tr);
@@ -329,15 +329,35 @@ void drawTable(vector<Controller::CEvent> issues, QWebElement target){
 void uiController::showOnGUI(){
 	clearGUI();
 	//draw table with Issues.
-	auto events = controller->getAllEvents();
+	auto allIssues = controller->getAllEvents();
+	vector<Controller::CEvent> events;
+	vector<Controller::CEvent> tasks;
+	vector<Controller::CEvent> deadlines;
+	for(auto issue: allIssues)
+	{
+		if(!(issue.getStartDate().is_not_a_date_time() || issue.getEndDate().is_not_a_date_time()))
+			events.push_back(issue);
+		if(issue.getStartDate().is_not_a_date_time() && issue.getStartDate().is_not_a_date_time())
+			tasks.push_back(issue);
+		if(!issue.getStartDate().is_not_a_date_time() && issue.getStartDate().is_not_a_date_time())
+			deadlines.push_back(issue);
+	}
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	auto issuetarget = dom.findFirst("#issue-display-target");
-	drawTable(events, issuetarget);
+	auto eventstarget = dom.findFirst("#Events-display-target");
+	drawTable(events, eventstarget);
+	auto taskstarget = dom.findFirst("#Tasks-display-target");
+	drawTable(tasks, taskstarget);
+	auto deadlinestarget = dom.findFirst("#Deadlines-display-target");
+	drawTable(deadlines, deadlinestarget);
 }
 
 void uiController::clearGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	auto issuetarget = dom.findFirst("#issue-display-target");
+	auto issuetarget = dom.findFirst("#Events-display-target");
+	issuetarget.removeAllChildren();
+	issuetarget = dom.findFirst("#Deadlines-display-target");
+	issuetarget.removeAllChildren();
+	issuetarget = dom.findFirst("#Tasks-display-target");
 	issuetarget.removeAllChildren();
 }
 
