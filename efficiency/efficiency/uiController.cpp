@@ -32,7 +32,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		changeButtonDisplay();
 
 		//()<<QString::fromStdString("button pressed");
-		this->webView->watchButtonPress("deadline_forward", [this](){
+		/*this->webView->watchButtonPress("deadline_forward", [this](){
 			deadlinePage++;
 
 			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
@@ -96,7 +96,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 
 			showOnGUI();
 			changeButtonDisplay();
-		});
+		});*/
 	});
 
 	webView->watch("#command-box",
@@ -229,6 +229,72 @@ void uiController::displayResultMessage(result_message_t message){
 	}
 }
 
+string formatDate(ptime t){
+	if(t.is_not_a_date_time())
+		return "-";
+	stringstream ss;
+	boost::posix_time::time_facet* facet = new boost::posix_time::time_facet();
+	facet->format("%d-%b %H:%M");
+	ss.imbue(std::locale(std::locale::classic(), facet));
+	ss << t;
+	return ss.str();
+}
+
+string formatTags(vector<string> tags){
+	stringstream ss;
+	for(auto tag: tags)
+		ss<<tag<<" ";
+	return ss.str();
+}
+
+void drawTable(vector<Controller::CEvent> issues, QWebElement target){
+	auto addfield = [](QWebElement &e, string field){ 
+		e.appendInside(QString::fromStdString("<td>"+field+"</td>"));
+	};
+	auto addQfield = [](QWebElement &e, QString field){ 
+		e.appendInside("<td>"+field+"</td>");
+	};
+	const QChar notcomplete(0x2610);
+	const QChar complete(0x2611);
+	for(auto issue = issues.begin(); issue!=issues.end(); ++issue)
+	{
+		qDebug()<<QString::fromStdString(issue->getName());	
+		target.appendInside("<tr></tr>");
+		auto tr = target.lastChild();
+		//is complete?
+		addQfield(tr, issue->getCompleteStatus()?complete: notcomplete); 
+		//ID
+		addfield(tr, to_string(issue->getId()));
+		//start
+		addfield(tr, formatDate(issue->getStartDate())); 
+		//end
+		addfield(tr, formatDate(issue->getEndDate()));
+		//name
+		addfield(tr, issue->getName());
+		//tags
+		addfield(tr, ""); //TODO.
+		//description
+		addfield(tr, issue->getContent()); 
+		target.appendInside(tr);
+	}
+}
+
+void uiController::showOnGUI(){
+	clearGUI();
+	//draw table with Issues.
+	auto events = controller->getAllEvents();
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	auto issuetarget = dom.findFirst("#issue-display-target");
+	drawTable(events, issuetarget);
+}
+
+void uiController::clearGUI(){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	auto issuetarget = dom.findFirst("#issue-display-target");
+	issuetarget.removeAllChildren();
+}
+
+/*
 void uiController::showOnGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement taskDisplay = dom.findFirst("#task-display");
@@ -354,11 +420,9 @@ void uiController::showOnGUI(){
 		}
 	}
 
-	/*currentTasks = 0;
-	currentDeadlines = 0;
-	currentEvents = 0;*/
-}
+}*/
 
+/*
 void uiController::clearGUI(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement issueDisplay = dom.findFirst("#event-display");
@@ -367,7 +431,9 @@ void uiController::clearGUI(){
 	issueDisplay.removeAllChildren();
 	issueDisplay = dom.findFirst("#task-display");
 	issueDisplay.removeAllChildren();
-}
+}*/
+
+
 
 void uiController::changeButtonDisplay(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
