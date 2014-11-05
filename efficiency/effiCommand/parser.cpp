@@ -120,8 +120,8 @@ void Parser::loadOptionFieldsChecker(){
 	optionFieldsChecker.push_back(make_tuple("tags", cmdOptionField::TAGS,true));
 	optionFieldsChecker.push_back(make_tuple("-t", cmdOptionField::TAGS,true));
 
-	optionFieldsChecker.push_back(make_tuple("rename", cmdOptionField::RENAME,true));
-	optionFieldsChecker.push_back(make_tuple("-n", cmdOptionField::RENAME,true));
+	optionFieldsChecker.push_back(make_tuple("name", cmdOptionField::NAME,true));
+	optionFieldsChecker.push_back(make_tuple("-n", cmdOptionField::NAME,true));
 
 	optionFieldsChecker.push_back(make_tuple("removetag", cmdOptionField::REMOVETAGS,true));
 	optionFieldsChecker.push_back(make_tuple("removetags", cmdOptionField::REMOVETAGS,true));
@@ -716,11 +716,11 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
 								}
 
-							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::RENAME)) {
+							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::NAME)) {
 
 								if(cmdType == commandTypeEnum::UPDATE_TASK){
 									fieldValue = joinVector(fieldValueVector, " ");
-									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RENAME, fieldValue) );
+									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::NAME, fieldValue) );
 								}
 
 							} else {
@@ -807,11 +807,11 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
 								}
 
-							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::RENAME)) {
+							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::NAME)) {
 
 								if(cmdType == commandTypeEnum::UPDATE_TASK){
 									fieldValue = joinVector(fieldValueVector, " ");
-									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RENAME, fieldValue) );
+									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::NAME, fieldValue) );
 								}
 
 							} else {
