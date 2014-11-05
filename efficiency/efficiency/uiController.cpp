@@ -5,6 +5,8 @@ using namespace commandTypeEnum;
 using namespace boost::posix_time;
 using namespace boost::gregorian;
 
+void  drawTable(vector<Controller::CEvent> issues, QWebElement target);
+
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
 							controller(std::move(ctrl)),
 							maxIssues(2),
@@ -221,13 +223,11 @@ void uiController::onCommandInput(string input){
 
 void uiController::displaySearchResults(vector<Controller::CEvent> events){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	QWebElement messageArea = dom.findFirst("#message-area");
-	messageArea.removeAllChildren();
-
-	messageArea.appendInside("Search results:<br>");
-	for (auto it = events.begin(); it != events.end(); ++it) {
-		messageArea.appendInside(QString::fromStdString(it->getName())+"<br>");
-	}
+	QWebElement searchResultsTarget = dom.findFirst("#Search-display-target");
+	searchResultsTarget.removeAllChildren();
+	drawTable(events, searchResultsTarget);
+	QWebElement searchResultsWindow = dom.findFirst("#searchResultsWindow");
+	searchResultsWindow.addClass("display");
 }
 
 void uiController::displayFilterResults(std::pair<Controller::unregisterAction, string> events){

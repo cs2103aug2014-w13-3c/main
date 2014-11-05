@@ -5,6 +5,12 @@
 
   <title>Effi</title>
   <link rel="stylesheet" href="style.css" type="text/css">
+  <script>
+	function modalClose(){
+		var t= document.getElementById("searchResultsWindow");
+		t.className = "modal";
+	}
+  </script>
 </head>
 
 <body>
@@ -115,6 +121,67 @@
 			</div>
 			</p>
 		  </section>
+		</div>
+		<!--<div id="searchpopup">
+			<h3>Search results</h3>
+			<table>
+			  <col width="12">
+			  <col width="50">
+			  <col width="80">
+			  <col width="80">
+			  <col width="200">
+			  <col width="150">
+			  <col width="200">
+			  <col width="200">
+			  <tr>
+				<th></th>
+				<th>ID</th>
+				<th>Start</th>
+				<th>End</th>
+				<th>Name</th>
+				<th>Tags</th>
+				<th>Description</th>
+			  </tr>
+			  <tbody id="Events-display-target">
+			  </tbody>
+			</table>
+		</div>-->
+		<!--http://codepen.io/maccadb7/pen/nbHEg-->
+		<!--a href="#modal-one" class="btn btn-big">Modal!</a-->
+			<!--I have no idea how this works, so its an intellectual curiosity-->
+		<div id="searchResultsWindow" class="modal" id="modal-one" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-header">
+			  <h2>Search results</h2>
+			  <a href="#close" onclick = "modalClose()" class="btn-close" aria-hidden="true">×</a> <!--CHANGED TO "#close"-->
+			</div>
+			<div class="modal-body">
+				<table>
+				  <col width="12">
+				  <col width="50">
+				  <col width="80">
+				  <col width="80">
+				  <col width="200">
+				  <col width="150">
+				  <col width="200">
+				  <col width="200">
+				  <tr>
+					<th></th>
+					<th>ID</th>
+					<th>Start</th>
+					<th>End</th>
+					<th>Name</th>
+					<th>Tags</th>
+					<th>Description</th>
+				  </tr>
+				  <tbody id="Search-display-target">
+				  </tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+			</div>
+			</div>
+		  </div>
 		</div>
   </div>
   <footer>
