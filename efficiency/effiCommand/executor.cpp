@@ -90,16 +90,16 @@ void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
 	ctrl->deleteEvent(taskid);
 }
 
-void Executor::mark_complete(Event::UUID taskid, bool recursive){
+void Executor::mark_complete(Event::UUID taskid, bool recursive, bool setting){
 	if(recursive)
 	{
 		vector<Controller::CEvent> evts = ctrl->getAllEvents();
 		for(auto it = evts.begin(); it!=evts.end();++it)
 			if(it->getParent() == taskid)
-				mark_complete(it->getId() , recursive);
+				mark_complete(it->getId() , recursive, setting);
 	}
 	Controller::CEvent& evt = ctrl->getEvent(taskid);
-	evt.setCompleteStatus(true);
+	evt.setCompleteStatus(setting);
 	evt.exec();
 }
 
@@ -115,6 +115,7 @@ void Executor::executeCommand(Executor::Command command){
 	bool isRecursive;
 	switch(cmdtype){
 	case COMMAND_TYPE::MARK_COMPLETE:
+	case COMMAND_TYPE::MARK_INCOMPLETE:
 		try{ //TODO: clean copy paste coding.
 			taskid = find_task(command);
 		}
@@ -131,7 +132,10 @@ void Executor::executeCommand(Executor::Command command){
 		};
 		isRecursive = command.find(RECURSIVE)!=command.end()  && 
 			get<COMMAND_TYPE>(RECURSIVE, command);
-		mark_complete(taskid, isRecursive);
+		if(cmdtype == COMMAND_TYPE::MARK_COMPLETE)
+			mark_complete(taskid, isRecursive, true);
+		else
+			mark_complete(taskid, isRecursive, false);
 		undoStack.push_back(inverse);
 		break;
 	case COMMAND_TYPE::UNDO:
