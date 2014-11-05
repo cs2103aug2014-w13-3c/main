@@ -68,6 +68,9 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("completed",commandTypeEnum::MARK_COMPLETE));
 	validCommandKeywords.push_back(make_pair("/c",commandTypeEnum::MARK_COMPLETE));
 
+	validCommandKeywords.push_back(make_pair("incomplete",commandTypeEnum::MARK_INCOMPLETE));
+	validCommandKeywords.push_back(make_pair("/i",commandTypeEnum::MARK_INCOMPLETE));
+
 	validCommandKeywords.push_back(make_pair("undo",commandTypeEnum::UNDO));
 	validCommandKeywords.push_back(make_pair("/z",commandTypeEnum::UNDO));
 
@@ -116,6 +119,9 @@ void Parser::loadOptionFieldsChecker(){
 	optionFieldsChecker.push_back(make_tuple("tag", cmdOptionField::TAGS,true));
 	optionFieldsChecker.push_back(make_tuple("tags", cmdOptionField::TAGS,true));
 	optionFieldsChecker.push_back(make_tuple("-t", cmdOptionField::TAGS,true));
+
+	optionFieldsChecker.push_back(make_tuple("rename", cmdOptionField::RENAME,true));
+	optionFieldsChecker.push_back(make_tuple("-n", cmdOptionField::RENAME,true));
 
 	optionFieldsChecker.push_back(make_tuple("removetag", cmdOptionField::REMOVETAGS,true));
 	optionFieldsChecker.push_back(make_tuple("removetags", cmdOptionField::REMOVETAGS,true));
@@ -387,6 +393,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 	// has only param and a recursive option
 	case commandTypeEnum::MARK_COMPLETE:	
+	case commandTypeEnum::MARK_INCOMPLETE:	
 
 		if(commandStringTokens.size() <= 1){
 
@@ -709,8 +716,14 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
 								}
 
-							} else {
+							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::RENAME)) {
 
+								if(cmdType == commandTypeEnum::UPDATE_TASK){
+									fieldValue = joinVector(fieldValueVector, " ");
+									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RENAME, fieldValue) );
+								}
+
+							} else {
 
 								if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::REPEAT) ||
 									areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::RECURSIVE)) {
@@ -792,6 +805,13 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 								if(cmdType != commandTypeEnum::DELETE_TASK){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
+								}
+
+							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::RENAME)) {
+
+								if(cmdType == commandTypeEnum::UPDATE_TASK){
+									fieldValue = joinVector(fieldValueVector, " ");
+									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RENAME, fieldValue) );
 								}
 
 							} else {

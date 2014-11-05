@@ -22,6 +22,7 @@ namespace cmdOptionField {
 	const string RECURSIVE = "recursive";
 	const string TAGS = "tags";
 	const string REMOVETAGS = "removetags";
+	const string RENAME = "rename";
 	const string LINK = "link";
 	const string HELP = "help";
 	const string PREDICATE = "predicate";
