@@ -146,8 +146,6 @@ void Parser::loadscrollDirection(){
 	scrollDirection.push_back("next");
 	scrollDirection.push_back("previous");
 	scrollDirection.push_back("prev");
-	scrollDirection.push_back("n");
-	scrollDirection.push_back("p");
 
 }
 
