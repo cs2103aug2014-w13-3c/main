@@ -17,6 +17,8 @@ std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> Exec
 		[](boost::any value, Controller::CEvent& evt){ evt.setStartDate(any_cast<ptime>(value)); }));
 	actions.insert(make_pair(END, 
 		[](boost::any value, Controller::CEvent& evt){ evt.setEndDate(any_cast<ptime>(value)); }));
+	actions.insert(make_pair(NAME, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setName(any_cast<string>(value)); }));
 	actions.insert(make_pair(TAGS, 
 		[](boost::any value, Controller::CEvent& evt){ evt.addTags(any_cast<vector<string>>(value)); }));
 	actions.insert(make_pair(PRIORITY, 

@@ -93,6 +93,19 @@ namespace effiCommand_Test
 			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
+			//incomplete
+			commandString = "/i G983";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "G983";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
 			//scroll
 			commandString = "scroll deadlines next";
 			test = parser.parseCommand(commandString);
@@ -459,7 +472,7 @@ namespace effiCommand_Test
 
 		}
 
-		TEST_METHOD(completeWithUnusedOption){
+		TEST_METHOD(completeAndIncompleteWithUnusedOption){
 
 			Parser parser;
 			int mmSize;
@@ -478,9 +491,22 @@ namespace effiCommand_Test
 			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
+			//Incomplete with unused option
+			commandString = "/i G983 -p 3 -s 2014-01-01";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(false, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "G983";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
 		}
 
-		TEST_METHOD(completeWithRecursive){
+		TEST_METHOD(completeAndIncompleteWithRecursive){
 
 			Parser parser;
 			int mmSize;
@@ -501,6 +527,25 @@ namespace effiCommand_Test
 			bool isRecursive = true;
 			Assert::AreEqual(isRecursive, recursive);
 			
+			mmSize = test.size();
+			expectedMMSize = 4;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//Incomplete with unused option
+			commandString = "/i G983 -r this is redundant string";
+			test = parser.parseCommand(commandString);
+
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "G983";
+			Assert::AreEqual(correctParam, Param);
+
+			recursive = any_cast<bool> ( test.find("recursive")->second );
+			isRecursive = true;
+			Assert::AreEqual(isRecursive, recursive);
+
 			mmSize = test.size();
 			expectedMMSize = 4;
 			Assert::AreEqual(expectedMMSize, mmSize);
