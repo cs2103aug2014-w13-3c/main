@@ -61,7 +61,7 @@ namespace effiCommand_Test
 			commandString = "/d meeting tomorrow -s 01-Feb-2014";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
+			Assert::AreEqual(false, valid);
 
 			mmSize = test.size();
 			expectedMMSize = 3;
@@ -562,7 +562,7 @@ namespace effiCommand_Test
 			string commandString = "/d Test -p 3 -s 2014-01-01";
 			multimap<string, any> test = parser.parseCommand(commandString);
 			bool valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
+			Assert::AreEqual(false, valid);
 			string Param = any_cast<string> ( test.find("param")->second );
 			string correctParam = "Test";
 			Assert::AreEqual(correctParam, Param);
