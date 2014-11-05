@@ -67,6 +67,10 @@ header, #main-content, footer {
 	margin-top: 30px;
 }
 
+#main-content {
+	overflow: scroll;
+}
+
 #display {
 	width: 75%;
 	margin: 10px;
@@ -125,7 +129,7 @@ code, pre {
 /* Footer */
 footer {
 	bottom: 0;
-	position: absolute;
+	position: relative;
 }
 
 #command-content {
