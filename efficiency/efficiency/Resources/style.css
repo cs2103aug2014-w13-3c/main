@@ -68,7 +68,8 @@ header, #main-content, footer {
 }
 
 #main-content {
-	overflow: scroll;
+	overflow: hidden;
+	margin-bottom: 80px;
 }
 
 #display {
@@ -128,8 +129,8 @@ code, pre {
 
 /* Footer */
 footer {
-	bottom: 0;
-	position: relative;
+	bottom: 0px;
+	position: fixed;
 }
 
 #command-content {
