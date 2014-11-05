@@ -157,9 +157,15 @@ void uiController::onCommandInput(string input){
 	qDebug()<<QString::fromStdString(input); // check output
 	std::pair<Controller::unregisterAction, string> filterResults;
 	vector<Controller::CEvent> searchResults;
-
-	multimap<string,any> parsedCommand = parser.parseCommand(input);
-
+	multimap<string,any> parsedCommand;
+	try{
+		parsedCommand = parser.parseCommand(input);
+	}
+	catch(...)
+	{
+		displayResultMessage(invalid_message);
+		return;
+	}
 	if(any_cast<bool>(parsedCommand.find("valid")->second) == true){
 		commandHistory.push_back(input);
 		commandIndex = commandHistory.size();
