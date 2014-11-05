@@ -58,6 +58,17 @@ protected:
 	// Manipulate GUI
 	void swapView(view_type_t view);
 	void changeButtonDisplay();
+
+	//Command box related
+	vector<string> commandHistory;
+	int commandIndex;
+	string commandTmp;
+	
+	string getCommandBox();
+	void setCommandBox(string s);
+	void clearCommandBox();
+	void commandHistoryNext();
+	void commandHistoryPrev();
 };
 
 /*

@@ -14,7 +14,8 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 							taskPage(1),
 							deadlinePage(1),
 							eventPage(1),
-							parser(){
+							parser(),
+							commandIndex(0){
 	executor = unique_ptr<Executor>(new Executor(controller.get()));
 	
 	// Add the date to the display on load
@@ -105,8 +106,51 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 				if((key->key() == Qt::Key_Enter) || (key->key() == Qt::Key_Return)){
 					onCommandInput(s); 
 				}
+				else if (key->key() == Qt::Key_Up)
+				{
+					commandHistoryPrev();
+				} else if (key->key() == Qt::Key_Down)
+				{
+					commandHistoryNext();
+				}
 			});
 }
+
+string uiController::getCommandBox(){
+	auto element = webView->page()->mainFrame()->documentElement().findFirst("#command-box");
+	return element.evaluateJavaScript("this.value").toString().toStdString();
+}
+
+
+void uiController::setCommandBox(string str){
+	auto element = webView->page()->mainFrame()->documentElement().findFirst("#command-box");
+	element.evaluateJavaScript(QString::fromStdString("this.value=\'"+str+"\'"));
+}
+void uiController::commandHistoryNext()
+{
+	if(commandIndex == commandHistory.size())
+		return;
+	commandIndex++;
+	if(commandIndex == commandHistory.size()) //restore current command
+		setCommandBox(commandTmp);
+	else
+		setCommandBox(commandHistory[commandIndex]);
+}
+
+void uiController::commandHistoryPrev()
+{
+	if(commandIndex == 0 || commandHistory.size() == 0)
+		return;
+	commandIndex--;
+	if(commandIndex == commandHistory.size()) //temporarily store current command.
+		commandTmp = getCommandBox();
+	setCommandBox(commandHistory[commandIndex]);
+}
+
+void uiController::clearCommandBox(){
+	setCommandBox("");
+}
+
 
 void uiController::onCommandInput(string input){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
@@ -117,6 +161,9 @@ void uiController::onCommandInput(string input){
 	multimap<string,any> parsedCommand = parser.parseCommand(input);
 
 	if(any_cast<bool>(parsedCommand.find("valid")->second) == true){
+		commandHistory.push_back(input);
+		commandIndex = commandHistory.size();
+		clearCommandBox();
 		try {
 			if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == SEARCH){
 				searchResults = executor->search(parsedCommand);

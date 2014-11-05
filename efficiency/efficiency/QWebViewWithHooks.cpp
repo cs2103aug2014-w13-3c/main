@@ -62,7 +62,9 @@ void QWebViewWithHooks::keyReleaseEvent(QKeyEvent * ev)
 		auto uuid = get<3>(*it);
 		auto element = this->page()->mainFrame()->findFirstElement(selector);
 		auto currentValue = getter(element).toStdString();
-		if(currentValue != watchValues[uuid] || (ev->key() == Qt::Key_Enter) || (ev->key() == Qt::Key_Return))
+		if(currentValue != watchValues[uuid] || (ev->key() == Qt::Key_Enter) || (ev->key() == Qt::Key_Return)
+			|| (ev->key() == Qt::Key_Up) 
+			|| (ev->key() == Qt::Key_Down) )
 		{
 			watchValues[uuid] = currentValue;
 			callback(currentValue, ev);
