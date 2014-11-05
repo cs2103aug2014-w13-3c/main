@@ -47,7 +47,12 @@ private:
 	void loadscrollDirection();
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
-	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, multimap<string, any> cmdParamAndOptMap, vector<string> commandStringTokens, int fieldPos, std::tuple<string, string, bool> currentOptionFieldPair);
+	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, 
+												  multimap<string, any> cmdParamAndOptMap, 
+												  vector<string> commandStringTokens, 
+												  int fieldPos, 
+												  std::tuple<string, string, bool> currentOptionFieldPair,
+												  bool validUntilNow);
 	pair<bool, ptime> checkDateTime(string dtFieldValue, bool firstRun);
 	string addSeconds(string time);
 

@@ -112,9 +112,9 @@ void Parser::loadOptionFieldsChecker(){
 	optionFieldsChecker.push_back(make_tuple("-p", cmdOptionField::PRIORITY,true));
 
 	optionFieldsChecker.push_back(make_tuple("repeat", cmdOptionField::REPEAT,true));
-	optionFieldsChecker.push_back(make_tuple("recursive", cmdOptionField::RECURSIVE,false));
+	optionFieldsChecker.push_back(make_tuple("recursive", cmdOptionField::RECURSIVE,true));
 	optionFieldsChecker.push_back(make_tuple("-r", cmdOptionField::REPEAT,true));
-	optionFieldsChecker.push_back(make_tuple("-r", cmdOptionField::RECURSIVE,false));
+	optionFieldsChecker.push_back(make_tuple("-r", cmdOptionField::RECURSIVE,true));
 
 	optionFieldsChecker.push_back(make_tuple("tag", cmdOptionField::TAGS,true));
 	optionFieldsChecker.push_back(make_tuple("tags", cmdOptionField::TAGS,true));
@@ -174,9 +174,14 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 		if(timeToken.size() >= 2 && timeToken.size() <= 3){
 
-			hour = stoi(timeToken[0]);
-
-			minute = stoi(timeToken[1]);
+			try{
+				hour = stoi(timeToken[0]);
+				minute = stoi(timeToken[1]);
+			} catch(...) {
+				pair<bool,ptime> result;
+				result.first = false;
+				return result;
+			}
 
 			if(timeToken.size() == 3){
 				second = stoi(timeToken[2]);;
@@ -198,7 +203,13 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 			string hourString = timeToken[0].substr(0, timeToken[0].rfind("AM"));
 			hourString = timeToken[0].substr(0, timeToken[0].rfind("PM"));
 
-			hour = stoi(hourString);
+			try{
+				hour = stoi(hourString);
+			} catch (...){
+				pair<bool,ptime> result;
+				result.first = false;
+				return result;
+			}
 
 			if( hasSuffix(timeToken[timeToken.size() - 1],"PM") ){				
 				hour = (hour % 12) + 12;
@@ -347,7 +358,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 				// OPTIONS MATCH
 				} else if( areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) ) ){
 
-					// IF IT IS THE FIRST ONE FOUND
+					// IF command has no options
 					if (hasNoOptions){
 
 						hasNoOptions = false;
@@ -355,12 +366,14 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
 						string Param = joinVector(extractParam, " ");
 						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
 
 					}
 
 					// EXTRACT OPTION VALUE AND TIE THEM UP FOR CHECK
-					cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j] );			
+					cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j], true);	
+					if(cmdParamAndOptMap.count("valid") == 0){
+						cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
+					}
 					return cmdParamAndOptMap;
 
 				}
@@ -601,7 +614,8 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 									 multimap<string, any> cmdParamAndOptMap, 
 									 vector<string> commandStringTokens, 
 									 int fieldPos, 
-									 tuple<string, string, bool> currentOptionFieldTuple){
+									 tuple<string, string, bool> currentOptionFieldTuple,
+									 bool validUntilNow){
 
 	// TAKE CURRENT OPTION
 	string currentOptionField = get<0> (currentOptionFieldTuple);
@@ -633,11 +647,11 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 					// IF FOUND NEXT OPTION, RECURSIVELY CALL FOR NEXT PROCESS
 					if(areEqualStringsIgnoreCase(commandStringTokens[i+1], get<0>(optionFieldsChecker[j]))){
-
-						cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
+						if(validUntilNow){
+							cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j], true);
+						}
 						processComplete = true;
 						break;
-
 					}
 
 				}
@@ -677,22 +691,19 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 								// reminder: Create a method to check for tag duplicate
 								for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
-
 									for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
-
 										if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
-
 											fieldValueVector.erase( fieldValueVector.begin() + n);
 											n = n - 1;
-
 										}
-
 									}
-
 								}
 
 								if(cmdType != commandTypeEnum::DELETE_TASK){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );
+								} else {
+									cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+									validUntilNow = false;
 								}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::START) ||
@@ -706,6 +717,9 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 								if(isValidDateTime.first && cmdType != commandTypeEnum::DELETE_TASK){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, isValidDateTime.second) );
+								} else {
+									cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+									validUntilNow = false;
 								}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::PRIORITY)){
@@ -714,6 +728,9 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 								if(cmdType != commandTypeEnum::DELETE_TASK){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
+								} else {
+									cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+									validUntilNow = false;
 								}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::NAME)) {
@@ -721,6 +738,9 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 								if(cmdType == commandTypeEnum::UPDATE_TASK){
 									fieldValue = joinVector(fieldValueVector, " ");
 									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::NAME, fieldValue) );
+								} else {
+									cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+									validUntilNow = false;
 								}
 
 							} else {
@@ -741,15 +761,19 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 									if(cmdType != commandTypeEnum::DELETE_TASK){
 										cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
-									}
-									
+									} else {
+										cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+										if(validUntilNow){
+											cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j], true);
+										}
+									}								
 								}
-
-							}						
-							
+							}												
 						}
 
-						cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j]);
+						if(validUntilNow){
+							cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i + 1, optionFieldsChecker[j], true);
+						}
 						processComplete = true;
 						break;
 
@@ -758,46 +782,46 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 						// IF VALUE EXTENDS TO END OF ENTERED COMMAND AND NO NEXT OPTION IS FOUND
 						if( (i + 1 == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1) ){
 
-							copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));
-							
+							copy(commandStringTokens.begin() + fieldPos + 1, commandStringTokens.end(), back_inserter(fieldValueVector));						
+
 							if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::TAGS) ||
 								areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::REMOVETAGS)){
 
-								string extractedTagValues = joinVector(fieldValueVector, " ");
-								fieldValueVector = tokenizeCommandString(extractedTagValues, true);
+									string extractedTagValues = joinVector(fieldValueVector, " ");
+									fieldValueVector = tokenizeCommandString(extractedTagValues, true);
 
-								// reminder: Create a method to check for tag duplicate
-								for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
-
-									for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
-
-										if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
-
-											fieldValueVector.erase( fieldValueVector.begin() + n);
-											n = n - 1;
-
+									// reminder: Create a method to check for tag duplicate
+									for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
+										for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
+											if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
+												fieldValueVector.erase( fieldValueVector.begin() + n);
+												n = n - 1;
+											}
 										}
-
 									}
 
-								}
-
-								if(cmdType != commandTypeEnum::DELETE_TASK){
-									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );
-								}
+									if(cmdType != commandTypeEnum::DELETE_TASK){
+										cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValueVector) );
+									} else {
+										cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+										validUntilNow = false;
+									}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::START) ||
-										areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::END)){
+								areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::END)){
 
-								fieldValue = joinVector(fieldValueVector, " ");
+									fieldValue = joinVector(fieldValueVector, " ");
 
-								string dtFieldValue = any_cast<string> (fieldValue);
+									string dtFieldValue = any_cast<string> (fieldValue);
 
-								pair<bool,ptime> isValidDateTime = checkDateTime(dtFieldValue, true);
+									pair<bool,ptime> isValidDateTime = checkDateTime(dtFieldValue, true);
 
-								if(isValidDateTime.first && cmdType != commandTypeEnum::DELETE_TASK){
-									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, isValidDateTime.second) );
-								}
+									if(isValidDateTime.first && cmdType != commandTypeEnum::DELETE_TASK){
+										cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, isValidDateTime.second) );
+									} else {
+										cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+										validUntilNow = false;
+									}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::PRIORITY)){
 
@@ -805,6 +829,9 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 								if(cmdType != commandTypeEnum::DELETE_TASK){
 									cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
+								} else {
+									cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+									validUntilNow = false;
 								}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::NAME)) {
@@ -812,20 +839,22 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 								if(cmdType == commandTypeEnum::UPDATE_TASK){
 									fieldValue = joinVector(fieldValueVector, " ");
 									cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::NAME, fieldValue) );
+								} else {
+									cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+									validUntilNow = false;
 								}
 
 							} else {
 
-
 								if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::REPEAT) ||
 									areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::RECURSIVE)) {
 
-									if((cmdType == commandTypeEnum::DELETE_TASK)){
-										cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RECURSIVE, true) );
-									} else {
-										fieldValue = joinVector(fieldValueVector, " ");
-										cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::REPEAT, fieldValue) );
-									}
+										if((cmdType == commandTypeEnum::DELETE_TASK)){
+											cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RECURSIVE, true) );
+										} else {
+											fieldValue = joinVector(fieldValueVector, " ");
+											cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::REPEAT, fieldValue) );
+										}
 
 								} else {
 
@@ -833,12 +862,12 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 									if(cmdType != commandTypeEnum::DELETE_TASK){
 										cmdParamAndOptMap.insert( pair<string,any> (mmOptionKey, fieldValue) );
+									} else {
+										cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
 									}
-									
 								}
-
-							}	
-
+							}							
+							
 							processComplete = true;
 							break;
 
