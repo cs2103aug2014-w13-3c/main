@@ -61,6 +61,7 @@ protected:
 	void showOnGUISorted(sort_type_t type, issue_type_t issue);
 	void sortByString(string s1, string s2, int j, vector<Controller::CEvent> &issues);
 	void sortByNum(int n1, int n2, int j, vector<Controller::CEvent> &issues);
+	void sortByDate(ptime d1, ptime d2, int j, vector<Controller::CEvent> &issues);
 	void showOnAgenda(/* takes a vector of issues and date range */);
 	void showOnCalendar(/* takes a vector of issues and date range */);
 	// Manipulate GUI

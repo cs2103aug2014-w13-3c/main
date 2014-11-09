@@ -35,37 +35,36 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		changeButtonDisplay();
 
 		this->webView->watchButtonPress("task_id", [this](){
-			clearTasks();
 			showOnGUISorted(id, task_type);
 		});
 
 		this->webView->watchButtonPress("task_name", [this](){
-			clearTasks();
 			showOnGUISorted(name, task_type);
 		});
 
 		this->webView->watchButtonPress("task_start", [this](){
-			clearTasks();
 			showOnGUISorted(start_date, task_type);
 		});
 
 		this->webView->watchButtonPress("task_end", [this](){
-			clearTasks();
 			showOnGUISorted(end_date, task_type);
 		});
 
 		this->webView->watchButtonPress("task_tags", [this](){
-			clearTasks();
 			showOnGUISorted(tags, task_type);
 		});
-
 		
 		this->webView->watchButtonPress("task_description", [this](){
-			clearTasks();
 			showOnGUISorted(description, task_type);
 		});
 
+		this->webView->watchButtonPress("deadline_start", [this](){
+			showOnGUISorted(start_date, deadline_type);
+		});
 
+		this->webView->watchButtonPress("event_start", [this](){
+			showOnGUISorted(start_date, event_type);
+		});
 		//()<<QString::fromStdString("button pressed");
 		/*this->webView->watchButtonPress("deadline_forward", [this](){
 			deadlinePage++;
@@ -380,6 +379,16 @@ void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
 				string name2 = filteredIssues[j+1].getName();
 				sortByString(name1, name2, j, filteredIssues);
 			}
+			else if(type == start_date){
+				ptime date1 = filteredIssues[j].getStartDate();
+				ptime date2 = filteredIssues[j+1].getStartDate();
+				sortByDate(date1, date2, j, filteredIssues);
+			}
+			else if(type == end_date){
+				ptime date1 = filteredIssues[j].getEndDate();
+				ptime date2 = filteredIssues[j+1].getEndDate();
+				sortByDate(date1, date2, j, filteredIssues);
+			}
 			else if(type == description){
 				string content1 = filteredIssues[j].getContent();
 				string content2 = filteredIssues[j+1].getContent();
@@ -405,6 +414,15 @@ void uiController::sortByString(string s1, string s2, int j,
 void uiController::sortByNum(int n1, int n2, int j,
 							 vector<Controller::CEvent> &filteredIssues){
 	if(n1 > n2){
+		auto temp = filteredIssues[j];
+		filteredIssues[j] = filteredIssues[j+1];
+		filteredIssues[j+1] = temp;
+	}
+}
+
+void uiController::sortByDate(ptime d1, ptime d2, int j,
+					vector<Controller::CEvent> &filteredIssues){
+	if(d1 > d2){
 		auto temp = filteredIssues[j];
 		filteredIssues[j] = filteredIssues[j+1];
 		filteredIssues[j+1] = temp;
