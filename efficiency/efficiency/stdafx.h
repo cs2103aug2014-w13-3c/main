@@ -10,4 +10,3 @@
 
 #include "uiController.h"
 #include "ExecutionError.h"
-#include "easylogging++.h"
