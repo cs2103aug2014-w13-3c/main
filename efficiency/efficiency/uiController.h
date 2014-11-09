@@ -34,6 +34,8 @@ protected:
 	unique_ptr<Executor> executor;
 	enum view_type_t {agenda_view, calendar_view};
 	enum button_type_t {task_next, task_prev, deadline_next, deadline_prev, event_next, event_prev};
+	enum sort_type_t {id, name, start_date, end_date, task, description};
+	enum issue_type_t {event_type, deadline_type, task_type};
 	std::vector<result_message_t> resultMessageStore;
 	vector<Controller::CEvent> currentTasksStore;
 	vector<Controller::CEvent> currentDeadlinesStore;
@@ -52,7 +54,11 @@ protected:
 	void displaySearchResults(vector<Controller::CEvent> events);
 	void displayFilterResults(std::pair<Controller::unregisterAction, string> filterResults);
 	void clearGUI();
-	void showOnGUI(/* takes a vector of issues and date range */);
+	void clearEvents();
+	void clearDeadlines();
+	void clearTasks();
+	void showOnGUI();
+	void showOnGUISorted(sort_type_t type, issue_type_t issue);
 	void showOnAgenda(/* takes a vector of issues and date range */);
 	void showOnCalendar(/* takes a vector of issues and date range */);
 	// Manipulate GUI

@@ -78,6 +78,28 @@ header, #main-content, footer {
 	float: right;
 }
 
+button {
+	width: 100%;
+}
+
+.table-header {
+	/*border-left:solid; 
+	border-right: solid; 
+	border-top: solid;*/
+	padding:10px 25px 10px 25px;
+	border-top:1px solid #fafafa;
+	border-bottom:1px solid #e0e0e0;
+
+	background: #ededed;
+	background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#ebebeb));
+	background: -moz-linear-gradient(top,  #ededed,  #ebebeb);
+}
+
+.hover:hover {
+	background-color: #5C6166;
+	color: white;
+}
+
 nav, section {
 	display: inline;
 }
@@ -105,22 +127,6 @@ section{
 }
 section p {
 	margin: 0 1em 1em;
-}
-section h3 {
-
-}
-
-section a:link {
-	color: grey;
-}
-section a:visited {
-
-}
-section a:link:hover {
-
-}
-section a:visited:hover {
-
 }
 
 code, pre {

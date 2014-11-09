@@ -34,6 +34,11 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		showOnGUI();
 		changeButtonDisplay();
 
+		this->webView->watchButtonPress("task_name", [this](){
+			clearTasks();
+			showOnGUISorted(name, task_type);
+		});
+
 		//()<<QString::fromStdString("button pressed");
 		/*this->webView->watchButtonPress("deadline_forward", [this](){
 			deadlinePage++;
@@ -357,13 +362,82 @@ void uiController::showOnGUI(){
 	drawTable(deadlines, deadlinestarget);
 }
 
+void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement target;
+	if(issue_type == event_type){
+		target = dom.findFirst("#Events-display-target");
+		clearEvents();
+	}
+	else if(issue_type == deadline_type){
+		target = dom.findFirst("#Deadlines-display-target");
+		clearDeadlines();
+	}
+	else {
+		target = dom.findFirst("#Tasks-display-target");
+		clearTasks();
+	}
+
+	vector<Controller::CEvent> allIssues = controller->getAllEvents();
+	vector<Controller::CEvent> filteredIssues;
+	// Populate the issue list
+	for(auto issue: allIssues){
+		if(issue_type == event_type){
+			if(!(issue.getStartDate().is_not_a_date_time() || issue.getEndDate().is_not_a_date_time()))
+				filteredIssues.push_back(issue);
+		}
+		else if(issue_type == deadline_type){
+			if(!issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
+				filteredIssues.push_back(issue);
+		}
+		else {
+			if(issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
+				filteredIssues.push_back(issue);
+		}
+	}
+
+	// Sort the issue list
+	for(int i = 0; i < filteredIssues.size(); i++){
+		for(int j = 0; j < (filteredIssues.size()-1); j++){
+			if(type == name){
+				string name1 = filteredIssues[j].getName();
+				string name2 = filteredIssues[j+1].getName();
+				transform(name1.begin(), name1.end(), name1.begin(), ::tolower);
+				transform(name2.begin(), name2.end(), name2.begin(), ::tolower);
+				if(name1 > name2){
+					auto temp = filteredIssues[j];
+					filteredIssues[j] = filteredIssues[j+1];
+					filteredIssues[j+1] = temp;
+				}
+			}
+		}
+	}
+
+	drawTable(filteredIssues, target);
+}
+
 void uiController::clearGUI(){
+	clearEvents();
+	clearDeadlines();
+	clearTasks();
+}
+
+void uiController::clearEvents(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	auto issuetarget = dom.findFirst("#Events-display-target");
 	issuetarget.removeAllChildren();
-	issuetarget = dom.findFirst("#Deadlines-display-target");
+}
+
+void uiController::clearDeadlines(){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	auto issuetarget = dom.findFirst("#Deadlines-display-target");
 	issuetarget.removeAllChildren();
-	issuetarget = dom.findFirst("#Tasks-display-target");
+}
+
+
+void uiController::clearTasks(){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	auto issuetarget = dom.findFirst("#Tasks-display-target");
 	issuetarget.removeAllChildren();
 }
 
