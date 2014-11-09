@@ -34,6 +34,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		showOnGUI();
 		changeButtonDisplay();
 
+		// Tasks
 		this->webView->watchButtonPress("task_id", [this](){
 			showOnGUISorted(id, task_type);
 		});
@@ -58,12 +59,54 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			showOnGUISorted(description, task_type);
 		});
 
+		// Deadlines
+		this->webView->watchButtonPress("deadline_id", [this](){
+			showOnGUISorted(id, deadline_type);
+		});
+
+		this->webView->watchButtonPress("deadline_name", [this](){
+			showOnGUISorted(name, deadline_type);
+		});
+
 		this->webView->watchButtonPress("deadline_start", [this](){
 			showOnGUISorted(start_date, deadline_type);
 		});
 
+		this->webView->watchButtonPress("deadline_end", [this](){
+			showOnGUISorted(end_date, deadline_type);
+		});
+
+		this->webView->watchButtonPress("deadline_tags", [this](){
+			showOnGUISorted(tags, deadline_type);
+		});
+
+		this->webView->watchButtonPress("deadline_description", [this](){
+			showOnGUISorted(description, deadline_type);
+		});
+
+		// Events
+		this->webView->watchButtonPress("event_id", [this](){
+			showOnGUISorted(id, event_type);
+		});
+
+		this->webView->watchButtonPress("event_name", [this](){
+			showOnGUISorted(name, event_type);
+		});
+
 		this->webView->watchButtonPress("event_start", [this](){
 			showOnGUISorted(start_date, event_type);
+		});
+
+		this->webView->watchButtonPress("event_end", [this](){
+			showOnGUISorted(end_date, event_type);
+		});
+
+		this->webView->watchButtonPress("event_tags", [this](){
+			showOnGUISorted(tags, event_type);
+		});
+
+		this->webView->watchButtonPress("event_description", [this](){
+			showOnGUISorted(description, event_type);
 		});
 		//()<<QString::fromStdString("button pressed");
 		/*this->webView->watchButtonPress("deadline_forward", [this](){
@@ -389,6 +432,11 @@ void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
 				ptime date2 = filteredIssues[j+1].getEndDate();
 				sortByDate(date1, date2, j, filteredIssues);
 			}
+			else if(type == tags){
+				vector<string> tags1 = filteredIssues[j].getTags();
+				vector<string> tags2 = filteredIssues[j+1].getTags();
+				sortByTag(tags1, tags2, j, filteredIssues);
+			}
 			else if(type == description){
 				string content1 = filteredIssues[j].getContent();
 				string content2 = filteredIssues[j+1].getContent();
@@ -405,28 +453,39 @@ void uiController::sortByString(string s1, string s2, int j,
 	transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
 	transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
 	if(s1 > s2){
-		auto temp = filteredIssues[j];
-		filteredIssues[j] = filteredIssues[j+1];
-		filteredIssues[j+1] = temp;
+		swapIssues(j, filteredIssues);
 	}
 }
 
 void uiController::sortByNum(int n1, int n2, int j,
 							 vector<Controller::CEvent> &filteredIssues){
 	if(n1 > n2){
-		auto temp = filteredIssues[j];
-		filteredIssues[j] = filteredIssues[j+1];
-		filteredIssues[j+1] = temp;
+		swapIssues(j, filteredIssues);
 	}
 }
 
 void uiController::sortByDate(ptime d1, ptime d2, int j,
 					vector<Controller::CEvent> &filteredIssues){
 	if(d1 > d2){
-		auto temp = filteredIssues[j];
-		filteredIssues[j] = filteredIssues[j+1];
-		filteredIssues[j+1] = temp;
+		swapIssues(j, filteredIssues);
 	}
+}
+
+void uiController::sortByTag(vector<string> tags1, vector<string> tags2, int j,
+							 vector<Controller::CEvent> &filteredIssues){
+	if(tags1.empty()){
+		return;
+	}
+	else if((!tags1.empty() && tags2.empty())
+			|| tags1[0] > tags2[0]){
+		swapIssues(j, filteredIssues);
+	}
+}
+
+void uiController::swapIssues(int j, vector<Controller::CEvent> &issues){
+		auto temp = issues[j];
+		issues[j] = issues[j+1];
+		issues[j+1] = temp;
 }
 
 void uiController::clearGUI(){
