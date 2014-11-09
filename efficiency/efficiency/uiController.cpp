@@ -34,10 +34,37 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		showOnGUI();
 		changeButtonDisplay();
 
+		this->webView->watchButtonPress("task_id", [this](){
+			clearTasks();
+			showOnGUISorted(id, task_type);
+		});
+
 		this->webView->watchButtonPress("task_name", [this](){
 			clearTasks();
 			showOnGUISorted(name, task_type);
 		});
+
+		this->webView->watchButtonPress("task_start", [this](){
+			clearTasks();
+			showOnGUISorted(start_date, task_type);
+		});
+
+		this->webView->watchButtonPress("task_end", [this](){
+			clearTasks();
+			showOnGUISorted(end_date, task_type);
+		});
+
+		this->webView->watchButtonPress("task_tags", [this](){
+			clearTasks();
+			showOnGUISorted(tags, task_type);
+		});
+
+		
+		this->webView->watchButtonPress("task_description", [this](){
+			clearTasks();
+			showOnGUISorted(description, task_type);
+		});
+
 
 		//()<<QString::fromStdString("button pressed");
 		/*this->webView->watchButtonPress("deadline_forward", [this](){
@@ -49,62 +76,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 
 			showOnGUI();
 			changeButtonDisplay();
-		});
-
-		this->webView->watchButtonPress("deadline_back", [this](){
-			deadlinePage--;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
-			deadlineNextButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
-		});
-
-		this->webView->watchButtonPress("event_forward", [this](){
-			eventPage++;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement eventPrevButton = dom.findFirst("#event_back");
-			eventPrevButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
-		});
-
-		this->webView->watchButtonPress("event_back", [this](){
-			eventPage--;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement eventNextButton = dom.findFirst("#event_forward");
-			eventNextButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
-		});
-
-		this->webView->watchButtonPress("task_forward", [this](){
-			taskPage++;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement taskPrevButton = dom.findFirst("#task_back");
-			taskPrevButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
-		});
-
-		this->webView->watchButtonPress("task_back", [this](){
-			taskPage--;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement taskNextButton = dom.findFirst("#task_forward");
-			taskNextButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
-		});*/
+		*/
 	});
 
 	webView->watch("#command-box",
@@ -157,7 +129,6 @@ void uiController::commandHistoryPrev()
 void uiController::clearCommandBox(){
 	setCommandBox("");
 }
-
 
 void uiController::onCommandInput(string input){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
@@ -399,21 +370,45 @@ void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
 	// Sort the issue list
 	for(int i = 0; i < filteredIssues.size(); i++){
 		for(int j = 0; j < (filteredIssues.size()-1); j++){
-			if(type == name){
+			if(type == id){
+				int id1 = filteredIssues[j].getId();
+				int id2 = filteredIssues[j+1].getId();
+				sortByNum(id1, id2, j, filteredIssues);
+			}
+			else if(type == name){
 				string name1 = filteredIssues[j].getName();
 				string name2 = filteredIssues[j+1].getName();
-				transform(name1.begin(), name1.end(), name1.begin(), ::tolower);
-				transform(name2.begin(), name2.end(), name2.begin(), ::tolower);
-				if(name1 > name2){
-					auto temp = filteredIssues[j];
-					filteredIssues[j] = filteredIssues[j+1];
-					filteredIssues[j+1] = temp;
-				}
+				sortByString(name1, name2, j, filteredIssues);
+			}
+			else if(type == description){
+				string content1 = filteredIssues[j].getContent();
+				string content2 = filteredIssues[j+1].getContent();
+				sortByString(content1, content2, j, filteredIssues);
 			}
 		}
 	}
 
 	drawTable(filteredIssues, target);
+}
+
+void uiController::sortByString(string s1, string s2, int j, 
+								vector<Controller::CEvent> &filteredIssues){
+	transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+	transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
+	if(s1 > s2){
+		auto temp = filteredIssues[j];
+		filteredIssues[j] = filteredIssues[j+1];
+		filteredIssues[j+1] = temp;
+	}
+}
+
+void uiController::sortByNum(int n1, int n2, int j,
+							 vector<Controller::CEvent> &filteredIssues){
+	if(n1 > n2){
+		auto temp = filteredIssues[j];
+		filteredIssues[j] = filteredIssues[j+1];
+		filteredIssues[j+1] = temp;
+	}
 }
 
 void uiController::clearGUI(){
