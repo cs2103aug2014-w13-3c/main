@@ -90,6 +90,9 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("filter",commandTypeEnum::FILTER));
 	validCommandKeywords.push_back(make_pair("/f",commandTypeEnum::FILTER));
 
+	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
+	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
+
 	validCommandKeywords.push_back(make_pair("logout",commandTypeEnum::LOGOUT));
 
 	validCommandKeywords.push_back(make_pair("exit",commandTypeEnum::EXIT));
@@ -135,23 +138,38 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
-void Parser::loadViewToScroll(){
+void Parser::loadViewToScrollAndSort(){
 
-	viewToScroll.push_back("all");
-	viewToScroll.push_back("task");
-	viewToScroll.push_back("event");
-	viewToScroll.push_back("deadline");
-	viewToScroll.push_back("tasks");
-	viewToScroll.push_back("events");
-	viewToScroll.push_back("deadlines");
+	viewToScrollAndSort.push_back("all");
+	viewToScrollAndSort.push_back("task");
+	viewToScrollAndSort.push_back("event");
+	viewToScrollAndSort.push_back("deadline");
+	viewToScrollAndSort.push_back("tasks");
+	viewToScrollAndSort.push_back("events");
+	viewToScrollAndSort.push_back("deadlines");
 
 }
 
-void Parser::loadscrollDirection(){
+void Parser::loadScrollDirection(){
 
 	scrollDirection.push_back("next");
 	scrollDirection.push_back("previous");
 	scrollDirection.push_back("prev");
+
+}
+
+void Parser::loadSortByType(){
+
+	sortByType.push_back("ID");
+	sortByType.push_back("IDs");
+	sortByType.push_back("name");
+	sortByType.push_back("names");
+	sortByType.push_back("start");
+	sortByType.push_back("end");
+	sortByType.push_back("tag");
+	sortByType.push_back("tags");
+	sortByType.push_back("content");
+	sortByType.push_back("contents");
 
 }
 
@@ -284,8 +302,8 @@ Parser::Parser(){
 
 	loadValidCommandKeywords();
 	loadOptionFieldsChecker();
-	loadViewToScroll();
-	loadscrollDirection();
+	loadViewToScrollAndSort();
+	loadScrollDirection();
 
 }
 
@@ -536,11 +554,11 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 			string Param = joinVector(extractParam, " ");
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
 
-			for(unsigned int i = 0; i < viewToScroll.size(); i++) {
+			for(unsigned int i = 0; i < viewToScrollAndSort.size(); i++) {
 
-				if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScroll[i]) ) {
+				if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScrollAndSort[i]) ) {
 					break;
-				} else if ( i == viewToScroll.size() - 1 ) {
+				} else if ( i == viewToScrollAndSort.size() - 1 ) {
 					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
 					return cmdParamAndOptMap;
 				}
@@ -552,6 +570,51 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 				if( areEqualStringsIgnoreCase(commandStringTokens[2], scrollDirection[i]) ) {
 					break;
 				} else if ( i == scrollDirection.size() - 1 ) {
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+					return cmdParamAndOptMap;
+				}
+
+			}
+
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+			return cmdParamAndOptMap;
+
+		}
+
+	case commandTypeEnum::SORT:
+
+		if(commandStringTokens.size() != 3){
+
+			vector<string> extractParam;
+			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			string Param = joinVector(extractParam, " ");
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+			return cmdParamAndOptMap;
+
+		} else {
+
+			vector<string> extractParam;
+			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+			string Param = joinVector(extractParam, " ");
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+
+			for(unsigned int i = 0; i < viewToScrollAndSort.size(); i++) {
+
+				if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScrollAndSort[i]) ) {
+					break;
+				} else if ( i == viewToScrollAndSort.size() - 1 ) {
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+					return cmdParamAndOptMap;
+				}
+
+			}
+
+			for(unsigned int i = 0; i < sortByType.size(); i++) {
+
+				if( areEqualStringsIgnoreCase(commandStringTokens[2], sortByType[i]) ) {
+					break;
+				} else if ( i == sortByType.size() - 1 ) {
 					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
 					return cmdParamAndOptMap;
 				}

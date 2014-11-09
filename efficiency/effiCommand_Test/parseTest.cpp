@@ -67,26 +67,51 @@ namespace effiCommand_Test
 			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
-			//view
-			/*commandString = "view weekly";
+			//search and filter
+			commandString = "search name:G983";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "weekly";
+			string Param = any_cast<string> ( test.find("parse_string")->second );
+			string correctParam = "name:G983 ";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 4;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			commandString = "filter name:G983";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			Param = any_cast<string> ( test.find("parse_string")->second );
+			correctParam = "name:G983 ";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 4;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//sort
+			commandString = "sort all name";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "all name";
 			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();
 			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);*/
+			Assert::AreEqual(expectedMMSize, mmSize);
 
 			//complete
 			commandString = "/c G983";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "G983";
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "G983";
 			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();

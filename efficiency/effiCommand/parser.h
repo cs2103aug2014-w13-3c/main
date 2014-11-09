@@ -37,14 +37,16 @@ private:
 	// Attributes
 	vector< std::tuple<string, string, bool> > optionFieldsChecker;
 	vector< pair<string, commandTypeEnum::COMMAND_TYPE> > validCommandKeywords;
-	vector< string > viewToScroll;
+	vector< string > viewToScrollAndSort;
 	vector< string > scrollDirection;
+	vector< string > sortByType;
 
 	// Functions
 	void loadValidCommandKeywords();
 	void loadOptionFieldsChecker();
-	void loadViewToScroll();
-	void loadscrollDirection();
+	void loadViewToScrollAndSort();
+	void loadScrollDirection();
+	void loadSortByType();
 
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, 
