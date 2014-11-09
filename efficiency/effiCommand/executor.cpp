@@ -44,7 +44,7 @@ Event::UUID Executor::find_task(Executor::Command command){
 	regex format("#(\\d+)");
 	std::smatch results;
 	std::regex_search (param, results, format);
-	if(results.prefix() == "" && results.suffix() == "") //try trimming later.
+	if(results.ready() && results.prefix() == "" && results.suffix() == "") //try trimming later.
 		return ctrl->getEvent(atoi(string(results[1]).c_str())).getId(); //ensure that it exists.
 	else
 		return ctrl->getEventByName(param).getId();
