@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//@author A0098802X
 // lists of all the key available for the multimap to be output for executor
 // and uiController to be processed are here
 namespace cmdOptionField {

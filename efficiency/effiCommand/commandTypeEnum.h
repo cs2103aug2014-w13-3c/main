@@ -1,6 +1,7 @@
 #ifndef COMMANDTYPEENUM_H_
 #define COMMANDTYPEENUM_H_
 
+//@author A0098802X
 namespace commandTypeEnum {
 	// these are the possible command types
 	enum COMMAND_TYPE {

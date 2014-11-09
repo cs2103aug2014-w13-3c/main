@@ -3,6 +3,7 @@
 
 using namespace std;
 
+//@author A0098802X
 const locale Parser::inputFormats[] = {
 	locale(locale::classic(), new time_input_facet("%b/%d/%Y %H:%M:%S")),
 	locale(locale::classic(), new time_input_facet("%B/%d/%Y %H:%M:%S")),
@@ -46,6 +47,7 @@ const locale Parser::inputFormats[] = {
 
 };
 
+//@author A0098802X
 // stores all valid command keywords
 void Parser::loadValidCommandKeywords(){
 
@@ -82,6 +84,7 @@ void Parser::loadValidCommandKeywords(){
 
 }
 
+//@author A0098802X
 // stores all available options and be ready to output to multimap
 void Parser::loadOptionFieldsChecker(){
 
@@ -121,6 +124,7 @@ void Parser::loadOptionFieldsChecker(){
 
 }
 
+//@author A0098802X
 void Parser::loadViewToScrollAndSort(){
 
 	viewToScrollAndSort.push_back("all");
@@ -133,6 +137,7 @@ void Parser::loadViewToScrollAndSort(){
 
 }
 
+//@author A0098802X
 void Parser::loadScrollDirection(){
 
 	scrollDirection.push_back("next");
@@ -141,6 +146,7 @@ void Parser::loadScrollDirection(){
 
 }
 
+//@author A0098802X
 void Parser::loadSortByType(){
 
 	sortByType.push_back("ID");
@@ -156,6 +162,7 @@ void Parser::loadSortByType(){
 
 }
 
+//@author A0098802X
 pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 	vector<string> dtToken = tokenizeCommandString(dtFieldValue, false);
@@ -247,30 +254,32 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 	}
 }
 
+//@author A0098802X
 bool Parser::isEnteredDateAndTime(vector<string> &dtToken){
 	return dtToken.size() > 1;
 }
 
-
+//@author A0098802X
 bool Parser::isLongTimeFormat(vector<string> &timeToken){
 	return timeToken.size() >= 2 && timeToken.size() <= 3;
 }
 
-
+//@author A0098802X
 bool Parser::isShortFormTimeFormat(vector<string> &timeToken){
 	return timeToken.size() == 1;
 }
 
-
+//@author A0098802X
 bool Parser::isExistSecond(vector<string> &timeToken){
 	return timeToken.size() == 3;
 }
 
+//@author A0098802X
 bool Parser::isPM(vector<string> &timeToken){
 	return hasSuffix(timeToken[timeToken.size() - 1],"PM");
 }
 
-
+//@author A0098802X
 ptime Parser::parseDate(string s){
 
 	s = addPaddingZeros(s);
@@ -289,6 +298,7 @@ ptime Parser::parseDate(string s){
 
 }
 
+//@author A0098802X
 string Parser::addPaddingZeros(string s){
 
 	replace(s.begin(), s.end(), '/', ' ');
@@ -310,6 +320,7 @@ string Parser::addPaddingZeros(string s){
 
 }
 
+//@author A0098802X
 // Constructor
 Parser::Parser(){
 
@@ -320,11 +331,13 @@ Parser::Parser(){
 
 }
 
+//@author A0098802X
 // Destructor
 Parser::~Parser(){
 
 }
 
+//@author A0098802X
 // API to parse command
 multimap<string, any> Parser::parseCommand(const string commandString){
 
@@ -337,10 +350,12 @@ multimap<string, any> Parser::parseCommand(const string commandString){
 
 }
 
+//@author A0098802X
 bool Parser::isEmptyCommand(const string commandString){
 	return trim(commandString) == "";
 }
 
+//@author A0098802X
 // Check the entire command syntax
 multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTokens){
 
@@ -630,28 +645,34 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 }
 
+//@author A0098802X
 bool Parser::isInvalidCommandKeyword(unsigned int i){
 	return i == validCommandKeywords.size() - 1;
 }
 
+//@author A0098802X
 bool Parser::isMissingCommandParameters(unsigned int i, unsigned int j, vector<string> commandStringTokens){
 	return i == 1 && areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) );
 }
 
+//@author A0098802X
 bool Parser::isRecursiveField(unsigned int j){
 	return (areEqualStringsIgnoreCase("recursive", get<0>(optionFieldsChecker[j]) ) || 
 		( areEqualStringsIgnoreCase("-r", get<0>(optionFieldsChecker[j])) ) );
 }
 
+//@author A0098802X
 bool Parser::isNotFoundOptionField(unsigned int i, unsigned int j, vector<string> &commandStringTokens){
 	return (i == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1);
 }
 
+//@author A0098802X
 bool Parser::isInsufficientParameters(vector<string> &commandStringTokens)
 {
 	return commandStringTokens.size() != 3;
 }
 
+//@author A0098802X
 multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType,
 									 multimap<string, any> cmdParamAndOptMap, 
 									 vector<string> commandStringTokens, 
@@ -943,6 +964,7 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 
 }
 
+//@author A0098802X
 void Parser::checkForDuplicateTags(vector<string> &fieldValueVector){
 	for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
 		for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
@@ -954,7 +976,7 @@ void Parser::checkForDuplicateTags(vector<string> &fieldValueVector){
 	}
 }
 
-// This function converts user command strings into a string vector
+//@author A0098802X
 vector<string> Parser::tokenizeCommandString(string userCommand, bool forTagComma){
 
 	vector<string> stringTokens;
@@ -983,6 +1005,7 @@ vector<string> Parser::tokenizeCommandString(string userCommand, bool forTagComm
 
 }
 
+//@author A0098802X
 string Parser::joinVector(const vector<string>& commandVector, const string& token){
 
   ostringstream result;
@@ -998,6 +1021,7 @@ string Parser::joinVector(const vector<string>& commandVector, const string& tok
 
 }
 
+//@author A0098802X
 bool Parser::areEqualStringsIgnoreCase(const string& stringOne, const string& stringTwo) {
 
     if (stringOne.size() != stringTwo.size()) {
@@ -1018,14 +1042,17 @@ bool Parser::areEqualStringsIgnoreCase(const string& stringOne, const string& st
 
 }
 
+//@author A0098802X
 inline string Parser::trimRight(const string& s, const string& delimiters){
 	return s.substr( 0, s.find_last_not_of( delimiters ) + 1 );
 }
 
+//@author A0098802X
 inline string Parser::trimLeft(const string& s, const string& delimiters){
 	return s.substr( s.find_first_not_of( delimiters ) );
 }
 
+//@author A0098802X
 inline string Parser::trim(const string& s, const string& delimiters){
 
 	if (!s.empty()){
@@ -1036,6 +1063,7 @@ inline string Parser::trim(const string& s, const string& delimiters){
 
 }
 
+//@author A0098802X
 bool Parser::hasSuffix(string str, string suffix){
 
 	transform(str.begin(), str.end(), str.begin(), ::tolower);
