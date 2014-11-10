@@ -2,7 +2,6 @@
 #include "executor.h"
 #include "Undo.h"
 #include "controller.h"
-#include <boost\assign.hpp>
 #include "optionField.h"
 #include "ExecutionError.h"
 #include <regex>
@@ -34,35 +33,59 @@ T get(std::string key, Executor::Command command){
 	return any_cast<T>((*command.find(key)).second);
 }
 
-Executor::Executor(Controller* ptr): ctrl(ptr), undoStack()
-{
-	actions = createActions();
-}
+Executor::Executor(Controller* ptr): ctrl(ptr), undoStack(), actions(createActions())
+{}
 
 Event::UUID Executor::find_task(Executor::Command command){
 	string param = get<string>("param",command);
-	regex format("#(\\d+)");
+	regex extract_id("#(\\d+)");
 	std::smatch results;
-	std::regex_search (param, results, format);
-	if(results.ready() && results.prefix() == "" && results.suffix() == "") //try trimming later.
+	std::regex_search (param, results, extract_id);
+	if(results.ready() && results.prefix() == "" && results.suffix() == "") //Assume trimmed by parser.
 		return ctrl->getEvent(atoi(string(results[1]).c_str())).getId(); //ensure that it exists.
 	else
 		return ctrl->getEventByName(param).getId();
 }
 
-Event::UUID Executor::add_task(Executor::Command command){
+std::pair<Event::UUID, Executor::InverseFunction> Executor::add_task(Executor::Command command){
 	try{
 		find_task(command);
 	}
 	catch(...)
 	{
-		return ctrl->addEvent(get<string>("param",command)).getId();
+		auto id = ctrl->addEvent(get<string>("param",command)).getId();
+		auto inverse = [this, id](){ ctrl->deleteEvent(id); };
+		return make_pair(id, inverse);
 	}
 	throw executionError(NAME_ALREADY_EXISTS);
 }
 
+Executor::InverseFunction Executor::makeUpdateInverse(Controller::CEvent &evt){
+	stringstream ss;
+	ss<<evt;
+	Event::UUID taskid = evt.getId();
+	auto eventDump = ss.str();
+	return [this, taskid, eventDump]() { 
+				stringstream ss;
+				ss.str(eventDump);
+				ss>>ctrl->getEvent(taskid); 
+		};
+}
+
+Executor::InverseFunction Executor::makeDeleteInverse(Controller::CEvent &evt){
+	stringstream ss;
+	ss<<evt;
+	auto eventDump = ss.str();
+	return [this, eventDump](){
+			stringstream ss;
+			ss.str(eventDump);
+			ss>>(ctrl->addEvent("placeholder"));
+		};
+}
+
+
 //update_task must be able to work on both add/update commands.
-void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
+Executor::InverseFunction Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
 	try{
 		if(!taskid)
 			taskid = find_task(command);
@@ -71,6 +94,8 @@ void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
 	{
 		throw executionError(CANNOT_FIND_TARGET);
 	}
+	auto inverse = makeUpdateInverse(ctrl->getEvent(taskid));
+		
 	Controller::CEvent& evt = ctrl->getEvent(taskid);
 	for(auto it = command.begin(); it!=command.end();++it)
 	{
@@ -81,9 +106,10 @@ void Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
 			action->second(value, evt);
 	}
 	evt.exec();
+	return inverse;
 }
 
-void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
+Executor::InverseFunction Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
 {
 	try{
 		if(!taskid)
@@ -93,20 +119,37 @@ void Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
 	{
 		throw executionError(CANNOT_FIND_TARGET);
 	}
+	auto inverse = makeDeleteInverse(ctrl->getEvent(taskid));
 	ctrl->deleteEvent(taskid);
+	return inverse;
 }
 
-void Executor::mark_complete(Event::UUID taskid, bool recursive, bool setting){
+Executor::InverseFunction Executor::mark_complete(Executor::Command command)
+{
+	Event::UUID taskid = find_task(command);
+	bool isRecursive = command.find(RECURSIVE)!=command.end()  && 
+				get<COMMAND_TYPE>(RECURSIVE, command);
+	bool setting = get<COMMAND_TYPE>("cmd", command) == COMMAND_TYPE::MARK_COMPLETE;
+	return mark_complete(taskid, isRecursive, setting);
+}
+Executor::InverseFunction Executor::mark_complete(Event::UUID taskid, bool recursive, bool setting){
+	auto thisInverse = makeUpdateInverse(ctrl->getEvent(taskid));
+	vector<InverseFunction> childInverses;
 	if(recursive)
 	{
 		vector<Controller::CEvent> evts = ctrl->getAllEvents();
 		for(auto it = evts.begin(); it!=evts.end();++it)
 			if(it->getParent() == taskid)
-				mark_complete(it->getId() , recursive, setting);
+				childInverses.push_back(mark_complete(it->getId() , recursive, setting));
 	}
 	Controller::CEvent& evt = ctrl->getEvent(taskid);
 	evt.setCompleteStatus(setting);
 	evt.exec();
+	return [childInverses, thisInverse]() { 
+		for(InverseFunction child: childInverses)
+			child();
+		thisInverse();
+	};
 }
 
 void Executor::executeCommand(Executor::Command command){
@@ -116,32 +159,10 @@ void Executor::executeCommand(Executor::Command command){
 	COMMAND_TYPE cmdtype = get<COMMAND_TYPE>("cmd", command);
 	Event::UUID taskid = 0; //assume nothing can have taskid of 0.
 	function<void()> inverse;
-	stringstream ss;
-	string eventDump;
-	bool isRecursive;
 	switch(cmdtype){
 	case COMMAND_TYPE::MARK_COMPLETE:
 	case COMMAND_TYPE::MARK_INCOMPLETE:
-		try{ //TODO: clean copy paste coding.
-			taskid = find_task(command);
-		}
-		catch(...)
-		{
-			throw executionError(CANNOT_FIND_TARGET);
-		}
-		ss<<ctrl->getEvent(taskid);
-		eventDump = ss.str();
-		inverse = [this, taskid, eventDump]() { 
-			stringstream ss;
-			ss.str(eventDump);
-			ss>>ctrl->getEvent(taskid); 
-		};
-		isRecursive = command.find(RECURSIVE)!=command.end()  && 
-			get<COMMAND_TYPE>(RECURSIVE, command);
-		if(cmdtype == COMMAND_TYPE::MARK_COMPLETE)
-			mark_complete(taskid, isRecursive, true);
-		else
-			mark_complete(taskid, isRecursive, false);
+		inverse = mark_complete(command);
 		undoStack.push_back(inverse);
 		break;
 	case COMMAND_TYPE::UNDO:
@@ -152,53 +173,25 @@ void Executor::executeCommand(Executor::Command command){
 		break;
 	case COMMAND_TYPE::ADD_TASK:
 		//Write in terms of an add and then update.
-		taskid = add_task(command);
-		inverse = [this, taskid](){ ctrl->deleteEvent(taskid); };
-	case COMMAND_TYPE::UPDATE_TASK:
-		try{ //TODO: clean copy paste coding.
-			if(!taskid)
-				taskid = find_task(command);
-		}
-		catch(...)
 		{
-			throw executionError(CANNOT_FIND_TARGET);
+			auto result = add_task(command);
+			taskid = result.first;
+			inverse = result.second;
 		}
-		ss<<ctrl->getEvent(taskid);
-		eventDump = ss.str();
+	case COMMAND_TYPE::UPDATE_TASK:
 		inverse = (cmdtype == COMMAND_TYPE::UPDATE_TASK)? 
-			[this, taskid, eventDump]() { 
-				stringstream ss;
-				ss.str(eventDump);
-				ss>>ctrl->getEvent(taskid); 
-			}: inverse;
-		update_task(command, taskid);
-		undoStack.push_back(inverse);
+			update_task(command, taskid)
+			:inverse;
+		undoStack.push_back(inverse); //It can also be an add task, which takes precedence.
 		break;
 	case COMMAND_TYPE::DELETE_TASK:
-		try{ //TODO: clean copy paste coding.
-			if(!taskid)
-				taskid = find_task(command);
-		}
-		catch(...)
-		{
-			throw executionError(CANNOT_FIND_TARGET);
-		}
-		ss<<ctrl->getEvent(taskid);
-		eventDump = ss.str();
-		delete_task(command);
-		//TODO: implement inverse.
-		inverse = [this, eventDump](){
-			stringstream ss;
-			ss.str(eventDump);
-			ss>>(ctrl->addEvent("placeholder"));
-		};
+		inverse = delete_task(command);
 		undoStack.push_back(inverse);
 		break;
 	default:
 		assert(false); //Unimplemented.
 	}
 }
-
 
 std::pair<Controller::unregisterAction, string> Executor::addFilter(Command cmd){
 	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);

@@ -19,6 +19,7 @@ using namespace std;
 class Executor{
 public:
 	typedef multimap<std::string, boost::any> Command;
+	typedef std::function<void()> InverseFunction;
 
 	Executor(Controller * ctrl);
 	// execute a given command
@@ -32,11 +33,14 @@ protected:
 	Controller * ctrl;
 	vector<std::function<void()>> undoStack;
 	Event::UUID find_task(Executor::Command command);
-	Event::UUID add_task(Executor::Command command);
-	void delete_task(Executor::Command command, Event::UUID taskid);
-	void update_task(Executor::Command command, Event::UUID taskid);
-	void mark_complete(Event::UUID taskid, bool recursive, bool setting);
+	std::pair<Event::UUID, InverseFunction> add_task(Executor::Command command);
+	InverseFunction delete_task(Executor::Command command, Event::UUID taskid);
+	InverseFunction update_task(Executor::Command command, Event::UUID taskid);
+	InverseFunction mark_complete(Executor::Command command);
+	InverseFunction mark_complete(Event::UUID taskid, bool recursive, bool setting);
 	std::map<std::string, std::function<void(boost::any, Controller::CEvent& evt)>> actions; 
 	std::map<std::string, std::function<void(boost::any, Controller::CEvent& evt)>> createActions();
+	InverseFunction makeUpdateInverse(Controller::CEvent& evt);
+	InverseFunction makeDeleteInverse(Controller::CEvent& evt);
 };
 #endif
