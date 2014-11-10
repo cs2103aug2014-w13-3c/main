@@ -252,13 +252,13 @@ table th{
   background: #fefefe;
   border: #333333 solid 1px;
   border-radius: 5px;
-  margin-left: -300px;
+  margin-left: -400px;
   margin-top: -120px;
   position: fixed;
   left: 35%;
   top: -400%;
   z-index: 11;
-  width: 1000px;
+  width: 1200px;
   height: 630px;
   -webkit-transform: translate(0, -500%);
   -ms-transform: translate(0, -500%);

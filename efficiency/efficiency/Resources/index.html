@@ -198,10 +198,11 @@
 					<p>The following is a list of Effi command keywords and option fields.</p>
 					<strong><p>Keywords</p></strong>
 					<strong>/v (view type)</strong or <strong>view (view type)</strong>: switches between agenda view, weekly view and monthly view<br>
-					<strong>/a (task name) [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>add (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong>: add a task with an optional start and end time.<br>
-					<strong>/u (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>update (task name) [-&lt;option&gt; &lt;value&gt; … ]</strong>: update a task.<br>
-					<strong>/d (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>delete (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong>: deletes a task with the specified details. If there are tasks with the same name and no timing is specified, the delete will fail and the user will be prompted to enter the timings to distinguish them.<br>
+					<strong>/a (task name) [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>add (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong>: add a task with an optional start and end time.<br>
+					<strong>/u (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>update (task name) [&lt;option&gt; &lt;value&gt; … ]</strong>: update a task.<br>
+					<strong>/d (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>delete (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong>: deletes a task with the specified details. If there are tasks with the same name and no timing is specified, the delete will fail and the user will be prompted to enter the timings to distinguish them.<br>
 					<strong>/c (task name)</strong> or <strong>complete (task name)</strong>: marks the task as complete.<br>
+					<strong>/sc &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong> or <strong>sort /sc &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong>: sorts the issue type according to the desired header.<br>
 					<strong>/s (boolean function)</strong> or <strong>search (boolean function)</strong>: search for items. See below for syntax.<br>
 					<strong>/f (boolean function)</strong> or <strong>filter (boolean function)</strong>: Filter is a more permanent search - this modifies what is available to all other components. The syntax is similar to that of searching.<br>
 					<strong>/z</strong> or <strong>undo</strong>: undo the most recent action.<br>
@@ -213,18 +214,15 @@
 					The available options are:<br>
 					<strong>-s</strong> or <strong>start  <date&frasl;time format></strong><br>
 					<strong>-e</strong> or <strong>end <date&frasl;time format></strong><br>
-					<strong>-p</strong> or <strong>priority <priority value></strong><br>
-					<strong>-r</strong> or <strong>repeat <repeat string></strong><br>
 					<strong>-t</strong> or <strong>tag <tags, comma separated></strong><br>
 					<strong>-n</strong> or <strong>rename <new name></strong> renames the task, and is only applicable to Update.<br>
 					<p><strong>Search and Filter</strong></p>
 					<p>The following fields are supported, with the following values:</p>
-					<strong>start:</strong> : &gt;, -&lt;, &gt;= , -&lt;= , =, !=, ~, !~. For example, <strong>start:-&lt;date value&gt;</strong>.<br>
-					<strong>end:</strong> : &gt;, -&lt;, &gt;= , -&lt;= , =, !=, ~, !~<br>
-					<strong>tag:</strong> : =, !=, :, !:<br>
-					<strong>name:</strong> : =, !=, :, !:<br>
-					<strong>content:</strong> : =, !=, :, !:<br>
-					<strong>priority:</strong> : &gt;, -&lt;, &gt;= , -&lt;= , =, !=
+					<strong>start:</strong> &gt;, -&lt;, &gt;= , -&lt;= , =, !=, ~, !~. For example, <strong>start:-&lt;date value&gt;</strong>.<br>
+					<strong>end:</strong> &gt;, -&lt;, &gt;= , -&lt;= , =, !=, ~, !~<br>
+					<strong>tag:</strong> :, =, !=, :, !:<br>
+					<strong>name:</strong> :, =, !=, :, !:<br>
+					<strong>content:</strong> :, =, !=, :, !:<br>
 					</div>
 				</div>
 			</div>
