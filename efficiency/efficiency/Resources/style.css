@@ -103,30 +103,6 @@ button {
 	background: #BDBDBD;
 }
 
-.hover:hover {
-	background-color: #5C6166;
-	color: white;
-}
-
-nav, section {
-	display: inline;
-}
-
-nav {
-	top: 50px;
-	text-align: center;
-	position: relative; left: 0;
-}
-
-nav a {
-	font: bold 1em sans-serif;
-	display: block;
-	border-style: solid;
-	border-color: blue;
-	background-color: #ACE;
-}
-nav a:hover {color: #fff; background-color: black;}
-
 section{
 	top: 0px;
 	position: relative;

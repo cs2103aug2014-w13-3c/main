@@ -31,8 +31,6 @@
 	</header>
 	<div id="main-content">
 		<div id="sidebar">
-		  <!--<div id="message-box">
-		  </div>-->
 		  <h1>Messages</h1>
 		  <div id="message-area">
 		  </div>
@@ -40,7 +38,6 @@
 		<div id="display">
 
 		  <section>
-			<!--<header><h1>Home</h1></header>-->
 			<h1>Agenda</h1>
 			<div id="date"></div>
 			<p>
@@ -111,49 +108,11 @@
 				  <tbody id="Tasks-display-target">
 				  </tbody>
 				</table>
-				<!--<h3>Events</h3>
-				<button id="event_back">View Previous 2</button> <button id="event_forward">View Next 2</button>
-				<div id="event-display">
-				</div>
-				<h3>Deadlines</h3>
-				<button id="deadline_back">View Previous 2</button> <button id="deadline_forward">View Next 2</button>
-				<div id="deadline-display">
-				</div>
-				<h3>Tasks</h3>
-				<button id="task_back">View Previous 2</button> <button id="task_forward">View Next 2</button>
-				<div id="task-display">-->
 				</div>
 			</div>
 			</p>
 		  </section>
 		</div>
-		<!--<div id="searchpopup">
-			<h3>Search results</h3>
-			<table>
-			  <col width="12">
-			  <col width="50">
-			  <col width="80">
-			  <col width="80">
-			  <col width="200">
-			  <col width="150">
-			  <col width="200">
-			  <col width="200">
-			  <tr>
-				<th></th>
-				<th>ID</th>
-				<th>Start</th>
-				<th>End</th>
-				<th>Name</th>
-				<th>Tags</th>
-				<th>Description</th>
-			  </tr>
-			  <tbody id="Events-display-target">
-			  </tbody>
-			</table>
-		</div>-->
-		<!--http://codepen.io/maccadb7/pen/nbHEg-->
-		<!--a href="#modal-one" class="btn btn-big">Modal!</a-->
-			<!--I have no idea how this works, so its an intellectual curiosity-->
 		<div id="searchResultsWindow" class="modal" id="modal-one" aria-hidden="true">
 		  <div class="modal-dialog">
 			<div class="modal-header">
@@ -202,7 +161,7 @@
 					<strong>/u (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>update (task name) [&lt;option&gt; &lt;value&gt; … ]</strong>: update a task.<br>
 					<strong>/d (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>delete (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong>: deletes a task with the specified details. If there are tasks with the same name and no timing is specified, the delete will fail and the user will be prompted to enter the timings to distinguish them.<br>
 					<strong>/c (task name)</strong> or <strong>complete (task name)</strong>: marks the task as complete.<br>
-					<strong>/sc &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong> or <strong>sort /sc &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong>: sorts the issue type according to the desired header.<br>
+					<strong>/st &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong> or <strong>sort &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong>: sorts the issue type according to the desired header.<br>
 					<strong>/s (boolean function)</strong> or <strong>search (boolean function)</strong>: search for items. See below for syntax.<br>
 					<strong>/f (boolean function)</strong> or <strong>filter (boolean function)</strong>: Filter is a more permanent search - this modifies what is available to all other components. The syntax is similar to that of searching.<br>
 					<strong>/z</strong> or <strong>undo</strong>: undo the most recent action.<br>
