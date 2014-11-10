@@ -159,7 +159,7 @@ namespace TaskListTest
 			"\n";
 			stringstream ss2;
 			ss2.str(nextcontents);
-			t.addEvent("new test event", [&ss2](Event& evt){ ss2>>evt; });
+			t.addEvent("new test event", true, [&ss2](Event& evt){ ss2>>evt; });
 			std::cout<<t;
 			string result = consoleDump();
 			Logger::WriteMessage(result.c_str());
