@@ -68,7 +68,6 @@ protected:
 	void showOnCalendar(/* takes a vector of issues and date range */);
 	// Manipulate GUI
 	void swapView(view_type_t view);
-	void changeButtonDisplay();
 
 	//Command box related
 	vector<string> commandHistory;
