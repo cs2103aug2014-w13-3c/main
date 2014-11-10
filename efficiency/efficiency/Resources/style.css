@@ -252,13 +252,14 @@ table th{
   background: #fefefe;
   border: #333333 solid 1px;
   border-radius: 5px;
-  margin-left: -200px;
+  margin-left: -300px;
+  margin-top: -110px;
   position: fixed;
   left: 35%;
   top: -400%;
   z-index: 11;
-  width: 800px;
-  height: 400px;
+  width: 1000px;
+  height: 600px;
   -webkit-transform: translate(0, -500%);
   -ms-transform: translate(0, -500%);
   transform: translate(0, -500%);
@@ -287,6 +288,9 @@ table th{
 }
 .modal-body, .modal-header {
 	font-family: Verdana, sans-serif;
+}
+.modal-content {
+	height: 500px;
 }
 /*ADDED TO STOP SCROLLING TO TOP*/
 #close {

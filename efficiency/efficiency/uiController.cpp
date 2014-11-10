@@ -187,6 +187,9 @@ void uiController::onCommandInput(string input){
 				filterResults = executor->addFilter(parsedCommand);
 				displayFilterResults(filterResults);
 			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == HELP){
+				displayHelp();
+			}
 			else {
 				executor->executeCommand(parsedCommand);
 
@@ -242,6 +245,12 @@ void uiController::displayFilterResults(std::pair<Controller::unregisterAction, 
 
 	clearGUI();
 	showOnGUI();
+}
+
+void uiController::displayHelp(){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement searchResultsWindow = dom.findFirst("#helpWindow");
+	searchResultsWindow.addClass("display");
 }
 
 void uiController::displayResultMessage(result_message_t message){

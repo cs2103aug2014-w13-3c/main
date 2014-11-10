@@ -6,8 +6,13 @@
   <title>Effi</title>
   <link rel="stylesheet" href="style.css" type="text/css">
   <script>
-	function modalClose(){
+	function modalSearchClose(){
 		var t= document.getElementById("searchResultsWindow");
+		t.className = "modal";
+	}
+	
+	function modalHelpClose(){
+		var t= document.getElementById("helpWindow");
 		t.className = "modal";
 	}
   </script>
@@ -153,7 +158,7 @@
 		  <div class="modal-dialog">
 			<div class="modal-header">
 			  <h2>Search results</h2>
-			  <a href="#close" onclick = "modalClose()" class="btn-close" aria-hidden="true">×</a> <!--CHANGED TO "#close"-->
+			  <a href="#close" onclick = "modalSearchClose()" class="btn-close" aria-hidden="true">×</a> <!--CHANGED TO "#close"-->
 			</div>
 			<div class="modal-body">
 				<table>
@@ -180,6 +185,42 @@
 			</div>
 			<div class="modal-footer">
 			</div>
+			</div>
+		  </div>
+		<div id="helpWindow" class="modal" id="modal-one" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-header">
+				  <h2>Effi Help</h2>
+				  <a href="#close" onclick = "modalHelpClose()" class="btn-close" aria-hidden="true">×</a> <!--CHANGED TO "#close"-->
+				</div>
+				<div class="modal-body">
+					<div class="modal-content">
+					<p>The following is a list of Effi command keywords and option fields.</p>
+					<strong>Keywords</strong><br>
+					<strong>/v (view type)</strong or <strong>view (view type)</strong>: switches between agenda view, weekly view and monthly view<br>
+					<strong>/a (task name) [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>add (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong>: add a task with an optional start and end time.<br>
+					<strong>/u (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>update (task name) [-&lt;option&gt; &lt;value&gt; … ]</strong>: update a task.<br>
+					<strong>/d (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>delete (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong>: deletes a task with the specified details. If there are tasks with the same name and no timing is specified, the delete will fail and the user will be prompted to enter the timings to distinguish them.<br>
+					<strong>/c (task name)</strong> or <strong>complete (task name)</strong>: marks the task as complete.<br>
+					<strong>/s (boolean function)</strong> or <strong>search (boolean function)</strong>: search for items. See below for syntax.<br>
+					<strong>/f (boolean function)</strong> or <strong>filter (boolean function)</strong>: Filter is a more permanent search - this modifies what is available to all other components. The syntax is similar to that of searching.<br>
+					<strong>/z</strong> or <strong>undo</strong>: undo the most recent action.<br>
+					<strong>/?</strong> or <strong>help</strong>: produces the list of available commands.<br>
+					<strong>exit</strong>: exits the program.
+					<p>Instead of specifying an existing issue’s name, you can simply specify the task ID via #ID.</p>
+					<strong>Options</strong><br>
+					<p>Where applicable, <strong>[-&lt;option&gt; &lt;value&gt; … ]</strong> refers to a list of options and values in any order.</p>
+					The available options are:<br>
+					<strong>-s</strong> or <strong>start  <date&frasl;time format></strong><br>
+					<strong>-e</strong> or <strong>end <date&frasl;time format></strong><br>
+					<strong>-p</strong> or <strong>priority <priority value></strong><br>
+					<strong>-r</strong> or <strong>repeat <repeat string></strong><br>
+					<strong>-t</strong> or <strong>tag <tags, comma separated></strong><br>
+					<strong>-n</strong> or <strong>rename <new name></strong> renames the task, and is only applicable to Update.<br>
+					</div>
+				</div>
+				<div class="modal-footer">
+				</div>
 			</div>
 		  </div>
 		</div>
