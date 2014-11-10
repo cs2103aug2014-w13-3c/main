@@ -190,6 +190,12 @@ void uiController::onCommandInput(string input){
 			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == HELP){
 				displayHelp();
 			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == EXIT){
+				qApp->exit(0);
+			}
+			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == SORT){
+
+			}
 			else {
 				executor->executeCommand(parsedCommand);
 
