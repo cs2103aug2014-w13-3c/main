@@ -153,6 +153,26 @@ namespace effiCommand_Test
 			mmSize = test.size();
 			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//help
+			commandString = "/?";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//exit
+			commandString = "exit";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+
+			mmSize = test.size();
+			expectedMMSize = 3;
+			Assert::AreEqual(expectedMMSize, mmSize);
 			
 		}
 
@@ -204,7 +224,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(0, c);
 
 			mmSize = test.size();
-			expectedMMSize = 3; // not 5, -s is redundant
+			expectedMMSize = 2; //-s is redundant
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 		}
@@ -454,12 +474,9 @@ namespace effiCommand_Test
 			multimap<string, any> test = parser.parseCommand(commandString);
 			bool valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(false, valid);
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "G983";
-			Assert::AreEqual(correctParam, Param);
 			
 			mmSize = test.size();
-			expectedMMSize = 3;
+			expectedMMSize = 2;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 			//Incomplete with unused option
@@ -467,12 +484,9 @@ namespace effiCommand_Test
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(false, valid);
-			Param = any_cast<string> ( test.find("param")->second );
-			correctParam = "G983";
-			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();
-			expectedMMSize = 3;
+			expectedMMSize = 2;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 		}
@@ -488,18 +502,10 @@ namespace effiCommand_Test
 			multimap<string, any> test = parser.parseCommand(commandString);
 
 			bool valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
+			Assert::AreEqual(false, valid);
 
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "G983";
-			Assert::AreEqual(correctParam, Param);
-
-			bool recursive = any_cast<bool> ( test.find("recursive")->second );
-			bool isRecursive = true;
-			Assert::AreEqual(isRecursive, recursive);
-			
 			mmSize = test.size();
-			expectedMMSize = 4;
+			expectedMMSize = 2;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 			//Incomplete with unused option
@@ -507,18 +513,10 @@ namespace effiCommand_Test
 			test = parser.parseCommand(commandString);
 
 			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
-
-			Param = any_cast<string> ( test.find("param")->second );
-			correctParam = "G983";
-			Assert::AreEqual(correctParam, Param);
-
-			recursive = any_cast<bool> ( test.find("recursive")->second );
-			isRecursive = true;
-			Assert::AreEqual(isRecursive, recursive);
+			Assert::AreEqual(false, valid);
 
 			mmSize = test.size();
-			expectedMMSize = 4;
+			expectedMMSize = 2;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 		}

@@ -9,7 +9,8 @@ namespace commandTypeEnum {
 		ADD_TASK, UPDATE_TASK, DELETE_TASK,  
 		SEARCH, FILTER, SORT,
 		UNDO,
-		HELP, EXIT
+		HELP, EXIT,
+		UNKNOWN
 	};
 };
 #endif
