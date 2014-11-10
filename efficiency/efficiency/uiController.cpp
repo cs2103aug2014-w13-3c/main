@@ -305,14 +305,21 @@ string formatTags(vector<string> tags){
 }
 
 void drawTable(vector<Controller::CEvent> issues, QWebElement target){
-	auto addfield = [](QWebElement &e, string field){ 
-		e.appendInside(QString::fromStdString("<td>"+field+"</td>"));
+	auto addfield = [](QWebElement &e, string field, string attribute){ 
+		e.appendInside(QString::fromStdString("<td "+attribute+">"+field+"</td>"));
 	};
 	auto addQfield = [](QWebElement &e, QString field){ 
 		e.appendInside("<td>"+field+"</td>");
 	};
+
 	const QChar notcomplete(0x2610);
 	const QChar complete(0x2611);
+	ptime now = second_clock::local_time();
+	date today_date = now.date();
+	date start_date;
+	date end_date;
+	string attribute;
+
 	for(auto issue = issues.begin(); issue!=issues.end(); ++issue)
 	{
 		qDebug()<<QString::fromStdString(issue->getName());	
@@ -321,17 +328,33 @@ void drawTable(vector<Controller::CEvent> issues, QWebElement target){
 		//is complete?
 		addQfield(tr, issue->getCompleteStatus()?complete: notcomplete); 
 		//ID
-		addfield(tr, to_string(issue->getId()));
+		addfield(tr, to_string(issue->getId()), "");
 		//start
-		addfield(tr, formatDate(issue->getStartDate())); 
+		// highlight if date is today's date
+		start_date = issue->getStartDate().date();
+		if(start_date == today_date){
+			attribute = "style='color:red;'";
+			addfield(tr, formatDate(issue->getStartDate()), attribute);
+		}
+		else  {
+			addfield(tr, formatDate(issue->getStartDate()), "");
+		}
 		//end
-		addfield(tr, formatDate(issue->getEndDate()));
+		// highlight if date is today's date
+		end_date = issue->getEndDate().date();
+		if(end_date == today_date){
+			attribute = "style='color:red;'";
+			addfield(tr, formatDate(issue->getEndDate()), attribute);
+		}
+		else {
+			addfield(tr, formatDate(issue->getEndDate()), "");
+		}
 		//name
-		addfield(tr, issue->getName());
+		addfield(tr, issue->getName(), "");
 		//tags
-		addfield(tr, formatTags(issue->getTags()));
+		addfield(tr, formatTags(issue->getTags()), "");
 		//description
-		addfield(tr, issue->getContent()); 
+		addfield(tr, issue->getContent(), ""); 
 		target.appendInside(tr);
 	}
 }
