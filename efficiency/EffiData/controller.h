@@ -30,7 +30,6 @@ public:
 		void exec(); //commits changes to database.
 		CEvent(Event::UUID id, TaskList * tl, Controller * ctrl);
 		~CEvent();
-		//TODO: All the event related functionalities go here.
 
 		//Literally pasted from eventData.h
 			//Please keep in sync.
@@ -44,7 +43,7 @@ public:
 		ptime getEndDate();
 		Event::UUID getParent();
 		string getContent();
-		//[string] operator -> tuple(string, integer, type(string)
+		//[string] operator -> tuple(string, integer, type(string))
 		std::tuple<string, long, string> operator[](string field);
 	
 		//set properties
@@ -76,7 +75,6 @@ public:
 
 	//Create, delete events, getById.
 	CEvent& addEvent(string name);
-	CEvent& addEvent(Event::UUID id); //For specific use of undoing deletes.
 	CEvent& getEvent(Event::UUID id);
 	CEvent& getEventByName(std::string name);
 	void deleteEvent(Event::UUID id);
