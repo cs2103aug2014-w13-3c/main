@@ -1,3 +1,4 @@
+//@author A0101642X
 #ifndef UICONTROLLER_H
 #define UI_CONTROLLER_H
 
@@ -65,8 +66,6 @@ protected:
 	void sortByNum(int n1, int n2, int j, vector<Controller::CEvent> &issues);
 	void sortByDate(ptime d1, ptime d2, int j, vector<Controller::CEvent> &issues);
 	void swapIssues(int j, vector<Controller::CEvent> &issues);
-	void showOnAgenda(/* takes a vector of issues and date range */);
-	void showOnCalendar(/* takes a vector of issues and date range */);
 	// Manipulate GUI
 	void swapView(view_type_t view);
 
@@ -81,28 +80,5 @@ protected:
 	void commandHistoryNext();
 	void commandHistoryPrev();
 };
-
-/*
-Output to GUI (private methods)
-- outputTask
-	- outputToAgenda
-	- outputToCalendar
-- clearEvent
-	- clearEventFromAgenda
-	- clearEventFromCalendar
-- clearAllEvents
-	- clearAllFromAgenda
-	- clearAllFromCalendar
-- outputMessage
-- swapView(targetView)
-
-Input from GUI (public methods)
-- onCommandInput
-- onButtonClick
-(use these to send to parser and main controller)
-
-Input from main controller (public methods)
-- watchMainController
-*/
 
 #endif // UICONTROLLER_H

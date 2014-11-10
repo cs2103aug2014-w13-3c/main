@@ -1,3 +1,4 @@
+//@author A0086591U
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
@@ -100,6 +101,7 @@ namespace predParserTest
 			Assert::AreEqual(true, p(boost::any(evt)));
 		}
 
+		//@author A0101642X
 		TEST_METHOD(predParseDateSatisfactionTest){
 			Controller ctrl("");
 			auto evt = ctrl.addEvent("woof");

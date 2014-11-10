@@ -1,3 +1,4 @@
+//@author A0086591U
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
@@ -142,6 +143,7 @@ namespace EffiData_Test
 			Assert::AreEqual(to_simple_string(datetime), to_simple_string(e.getStartDate()));
 		}
 
+		//@author A0101642X
 		// Set the content of an event.
 		TEST_METHOD(SetContentTest)
 		{

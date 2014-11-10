@@ -1,3 +1,4 @@
+//@author A0101642X
 #include "stdafx.h"
 #include <boost/algorithm/string.hpp>
 
