@@ -1,16 +1,67 @@
 #include "stdafx.h"
+#include <regex>
+
+
+void TaskList::processJournal(string cmd){
+	//Extract the values.
+	regex extractor("(\\w+?),\\s(\\d+?),\\s(.*)");
+	smatch matches;
+	regex_match(cmd, matches, extractor);
+	if(!matches.ready())
+		throw "Unexpected format";
+	string type = matches[1];
+	Event::UUID id = atol(string(matches[2]).c_str());
+	string content = matches[3];
+
+	//Apply accordingly.
+	if(type == "ADD")
+	{
+		//Grab the dump, restore it to a temp.
+		auto tid = addEvent("placeholder", true);
+		changeId(tid, id);
+		updateEvent(id,[&content](Event& evt) { 
+			stringstream ss;
+			ss.str(content);
+			ss>>evt; 
+		}, true);
+	}
+	else if (type == "UPDATE")
+	{
+		//Assume ID doesn't change.
+		updateEvent(id,[&content](Event& evt) { 
+			stringstream ss;
+			ss.str(content);
+			ss>>evt; 
+		}, true);
+	}
+	else if (type == "DELETE")
+	{
+		deleteEvent(id, true);
+	}
+	else
+		assert(false);
+}
 
 TaskList::TaskList(string f = ""): filebase(f), userTaskList(){
 	//Check if primary file exists
 	if(filebase!= "")
 	{
-		string filename = filebase+".json"; //TODO: remove const.
+		string filename = filebase+".json"; 
 		File db(filename); //creates if it doesn't exist.
 		stringstream ss;
 		ss.str(db.toString());
 		ss>>*this;
-		//TODO: Check for journal file.
+
+		string journalFilename = filebase+".journal"; 
+		File journal(journalFilename);
+		string line = journal.readLine();
 		//If have: read it, then clear it.
+		while(line != "")
+		{
+			processJournal(line);
+			line = journal.readLine();
+		}
+		this->journal = std::move(journal);
 	}
 }
 
@@ -27,22 +78,42 @@ TaskList::~TaskList(){
 		std::remove((filebase+".json").c_str());
 		rename(tempname.c_str(),(filebase+".json").c_str());
 		//TODO: Delete journal file
+		journal.forceClose();
+		remove (journal.filename().c_str());
 	}
 }
-//TODO: test everything.
-Event::UUID TaskList::addEvent(std::string name, EventOperator op){
+
+
+string generate_dump(Event & evt){
+	stringstream ss;
+	ss<<evt;
+	string dump = ss.str();
+	std::replace( dump.begin(), dump.end(), '\n', ' ');
+	return dump;
+}
+
+Event::UUID TaskList::addEvent(std::string name, bool silent, EventOperator op){
 	Event evt(name);
 	op(evt);
 	userTaskList.insert(make_pair(evt.getId(), evt));
+	if(!silent)
+	{
+		journal.writeLine("ADD, "+to_string(evt.getId())+", "+generate_dump(evt));
+	}
 	return evt.getId();
 }
 
-void TaskList::updateEvent(Event::UUID id, EventOperator op){
+void TaskList::updateEvent(Event::UUID id, EventOperator op, bool silent){
 	op(userTaskList.at(id));
+	if(!silent)
+		journal.writeLine("UPDATE, "+to_string(id)+", "+generate_dump(userTaskList.at(id)));
+	
 }
 
-void TaskList::deleteEvent(Event::UUID id){
+void TaskList::deleteEvent(Event::UUID id, bool silent){
 	userTaskList.erase(id);
+	if(!silent)
+		journal.writeLine("DELETE, "+to_string(id)+", {}");
 }
 
 Event TaskList::getEvent(Event::UUID id){
@@ -76,7 +147,7 @@ void TaskList::changeId(Event::UUID prev, Event::UUID curr)
 	userTaskList.insert(make_pair(curr, std::move(evt)));
 }
 
-ostream& operator<<(ostream& os, const TaskList t){
+ostream& operator<<(ostream& os, const TaskList &t){
 	for(auto it = t.userTaskList.begin(); it!= t.userTaskList.end(); ++it)
 	{
 		auto event = get<1>(*it);

@@ -16,13 +16,18 @@ class File{ //RAII wrapper around fstream
 	//Resulting in a compile error.
 private:
 	File(const File& that);
+	File operator =(const File &);
 
 protected:
 	std::string _filename;
 	std::fstream filestream;
 	
 public:
+	File(); //Don't use.
 	File(std::string f);
+	File(File&& that);
+	File * operator =(File &&);
+	
 	~File();
 
 	void writeLine(std::string s);

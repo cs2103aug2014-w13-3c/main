@@ -10,6 +10,19 @@ File::File(std::string f): _filename(f), filestream()
 	}
 }
 
+File::File()//Don't use it pls.
+{ }
+
+File::File(File&& other): _filename(std::move(other._filename)), filestream(std::move(other.filestream))
+{}
+
+File * File::operator =(File && other)
+{
+	_filename = std::move(other._filename);
+	filestream = std::move(other.filestream);
+	return this;
+}
+
 File::~File() { forceClose(); }
 
 void File::writeLine(std::string s){
