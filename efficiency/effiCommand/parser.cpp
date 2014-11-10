@@ -79,8 +79,9 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("filter",commandTypeEnum::FILTER));
 	validCommandKeywords.push_back(make_pair("/f",commandTypeEnum::FILTER));
 
-	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
-	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
+	validCommandKeywords.push_back(make_pair("help",commandTypeEnum::HELP));
+	validCommandKeywords.push_back(make_pair("/h",commandTypeEnum::HELP));
+	validCommandKeywords.push_back(make_pair("/?",commandTypeEnum::HELP));
 
 	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
 	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
@@ -173,6 +174,9 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 	vector<string> dtToken = tokenizeCommandString(dtFieldValue, false);
 
+	pair<bool,ptime> result;
+	result.first = true;
+
 	if(isEnteredDateAndTime(dtToken)){
 
 		string time = dtToken[1];
@@ -186,58 +190,7 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 		int minute = 0;
 		int second = 0;
 
-		// process 24-hour and 12-hour format which has 3 values
-		// e.g 12:00:00pm and 23:59:59
-		if(isLongTimeFormat(timeToken)){
-
-			try{
-				hour = stoi(timeToken[0]);
-				minute = stoi(timeToken[1]);
-			} catch(...) {
-				pair<bool,ptime> result;
-				result.first = false;
-				return result;
-			}
-
-			if(isExistSecond(timeToken)){
-				second = stoi(timeToken[2]);;
-			}
-				
-			if ( hasSuffix(timeToken[timeToken.size() - 1],"noon") ||
-				 hasSuffix(timeToken[timeToken.size() - 1],"PM") || 
-				 hasSuffix(timeToken[timeToken.size() - 1],"AM") ){
-
-				if(isPM(timeToken)){			
-					hour = (hour % 12) + 12;
-				}
-
-				timeToken[0] = to_string(hour);
-
-			}
-		
-		// for 12-hour format only which is short form
-		// e.g 4pm, 5am, 14pm, 3pm
-		} else if(isShortFormTimeFormat(timeToken)) {
-
-			string hourString = timeToken[0].substr(0, timeToken[0].rfind("AM"));
-			hourString = timeToken[0].substr(0, timeToken[0].rfind("PM"));
-			hourString = timeToken[0].substr(0, timeToken[0].rfind("noon"));
-
-			try{
-				hour = stoi(hourString);
-			} catch (...){
-				pair<bool,ptime> result;
-				result.first = false;
-				return result;
-			}
-
-			if(isPM(timeToken)){				
-				hour = (hour % 12) + 12;
-			}
-
-			timeToken[0] = to_string(hour);
-
-		}
+		result = standardizeTo24Hour(timeToken, hour, minute, result, second);
 
 		char buff[100];
 		sprintf_s(buff, "%02d:%02d:%02d", hour, minute, second);
@@ -248,13 +201,13 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 	}
 
 	dtToken[0] = addPaddingZeros(dtToken[0]);
-
 	dtFieldValue = joinVector(dtToken, " ");
+
 	try{
 		auto date = parseDate(dtFieldValue);
-		return make_pair(true, date);
+		result.second = date;
+		return result;
 	}catch(...){
-		pair<bool,ptime> result;
 		result.first = false;
 		return result;
 	}
@@ -263,6 +216,64 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 //@author A0098802X
 bool Parser::isEnteredDateAndTime(vector<string> &dtToken){
 	return dtToken.size() > 1;
+}
+
+//@author A0098802X
+pair<bool, ptime> Parser::standardizeTo24Hour(vector<string> &timeToken, int &hour, int &minute, pair<bool,ptime> &result, int &second){
+	// process 24-hour and 12-hour format which has 3 values
+	// e.g 12:00:00pm and 23:59:59
+	if(isLongTimeFormat(timeToken)){
+
+		try{
+			hour = stoi(timeToken[0]);
+			minute = stoi(timeToken[1]);
+		} catch(...) {
+			result.first = false;
+			return result;
+		}
+
+		if(isExistSecond(timeToken)){
+			second = stoi(timeToken[2]);;
+		}
+
+		if ( hasSuffix(timeToken[timeToken.size() - 1],"noon") ||
+			hasSuffix(timeToken[timeToken.size() - 1],"PM") || 
+			hasSuffix(timeToken[timeToken.size() - 1],"AM") ){
+
+				if(isPM(timeToken)){			
+					hour = (hour % 12) + 12;
+				}
+
+				timeToken[0] = to_string(hour);
+
+		}
+
+		return result;
+
+		// for 12-hour format only which is short form
+		// e.g 4pm, 5am, 14pm, 3pm
+	} else if(isShortFormTimeFormat(timeToken)) {
+
+		string hourString = timeToken[0].substr(0, timeToken[0].rfind("AM"));
+		hourString = timeToken[0].substr(0, timeToken[0].rfind("PM"));
+		hourString = timeToken[0].substr(0, timeToken[0].rfind("noon"));
+
+		try{
+			hour = stoi(hourString);
+		} catch (...){
+			result.first = false;
+			return result;
+		}
+
+		if(isPM(timeToken)){				
+			hour = (hour % 12) + 12;
+		}
+
+		timeToken[0] = to_string(hour);
+
+		return result;
+
+	}
 }
 
 //@author A0098802X
@@ -367,17 +378,18 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 	// Init Enum for identification
 	commandTypeEnum::COMMAND_TYPE cmdType;
-
 	// Final multimap result
 	multimap<string,any> cmdParamAndOptMap;
-
 	cmdParamAndOptMap = checkCommandKeyword(commandStringTokens, cmdParamAndOptMap, cmdType);
+
+	if( isFalseValidKey(cmdParamAndOptMap)){
+		return cmdParamAndOptMap;
+	}
 
 	// Assume user has not entered any options field for commands requiring it
 	bool noOptionsInUserInput = true;
 
 	switch (cmdType){
-
 	// has mandatory parameter and optional option fields
 	case commandTypeEnum::ADD_TASK:
 	case commandTypeEnum::DELETE_TASK:	
@@ -385,27 +397,21 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 		// Iterate through entire user command input except processed command keyword
 		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
-
 			// iterate through lists of available option fields
 			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
-
 				if(isMissingCommandParameters(i, j, commandStringTokens)){
-
 					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
 					return cmdParamAndOptMap;
-
 				// OPTIONS MATCH
 				} else if(areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
 
 					// IF command has no options
 					if (noOptionsInUserInput){
-
 						noOptionsInUserInput = false;
 						vector<string> extractParam;
 						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
 						string Param = joinVector(extractParam, " ");
 						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-
 					}
 
 					// check if the option fields and their values are valid, and if valid, map into final multimap
@@ -419,9 +425,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 					return cmdParamAndOptMap;
 
 				}
-
 			}
-
 		}
 
 		// If the given user input has no option field, process parameters only
@@ -657,6 +661,12 @@ multimap<string, any> Parser::checkCommandKeyword(vector<string> commandStringTo
 		}
 
 	}
+}
+
+//@author A0098802X
+bool Parser::isFalseValidKey(multimap<string,any> &cmdParamAndOptMap){
+	return cmdParamAndOptMap.count("valid") != 0 &&
+		any_cast<bool> ( cmdParamAndOptMap.find("valid")->second ) == false;
 }
 
 //@author A0098802X

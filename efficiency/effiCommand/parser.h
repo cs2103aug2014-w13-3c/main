@@ -64,7 +64,6 @@ private:
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
 	// check the command keyword
 	multimap<string, any> checkCommandKeyword(vector<string> commandStringTokens, multimap<string,any> &cmdParamAndOptMap, commandTypeEnum::COMMAND_TYPE &cmdType);
-
 	// to process all the existing option fields in a user input
 	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, 
 												  multimap<string, any> cmdParamAndOptMap, 
@@ -72,11 +71,15 @@ private:
 												  int fieldPos, 
 												  std::tuple<string, string, bool> currentOptionFieldPair,
 												  bool validUntilNow);
+	// terminate parser if valid key is false
+	bool isFalseValidKey(multimap<string,any> &cmdParamAndOptMap);
 
 	// remove all duplicate tags
 	void checkForDuplicateTags(vector<string> &fieldValueVector);
 	// check the date time format if start and end option fields are used
 	pair<bool, ptime> checkDateTime(string dtFieldValue, bool firstRun);
+	// standardize all time format to format supported by boost ptime library
+	pair<bool, ptime> standardizeTo24Hour(vector<string> &timeToken, int &hour, int &minute, pair<bool,ptime> &result, int &second);
 	// standardize all time format to have :00 seconds
 	string addSeconds(string time);
 

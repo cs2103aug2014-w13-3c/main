@@ -53,6 +53,7 @@ protected:
 	void displayResultMessage(result_message_t message);
 	void displaySearchResults(vector<Controller::CEvent> events);
 	void displayFilterResults(std::pair<Controller::unregisterAction, string> filterResults);
+	void displayHelp();
 	void clearGUI();
 	void clearEvents();
 	void clearDeadlines();
