@@ -79,8 +79,9 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("filter",commandTypeEnum::FILTER));
 	validCommandKeywords.push_back(make_pair("/f",commandTypeEnum::FILTER));
 
-	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
-	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
+	validCommandKeywords.push_back(make_pair("help",commandTypeEnum::HELP));
+	validCommandKeywords.push_back(make_pair("/h",commandTypeEnum::HELP));
+	validCommandKeywords.push_back(make_pair("/?",commandTypeEnum::HELP));
 
 	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
 	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
@@ -372,6 +373,10 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	multimap<string,any> cmdParamAndOptMap;
 
 	cmdParamAndOptMap = checkCommandKeyword(commandStringTokens, cmdParamAndOptMap, cmdType);
+
+	if( any_cast<bool> ( cmdParamAndOptMap.find("valid")->second ) == false){
+		return cmdParamAndOptMap;
+	}
 
 	// Assume user has not entered any options field for commands requiring it
 	bool noOptionsInUserInput = true;
