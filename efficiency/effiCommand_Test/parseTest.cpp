@@ -67,26 +67,51 @@ namespace effiCommand_Test
 			expectedMMSize = 3;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
-			//view
-			/*commandString = "view weekly";
+			//search and filter
+			commandString = "search name:G983";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "weekly";
+			string Param = any_cast<string> ( test.find("parse_string")->second );
+			string correctParam = "name:G983 ";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 4;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			commandString = "filter name:G983";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			Param = any_cast<string> ( test.find("parse_string")->second );
+			correctParam = "name:G983 ";
+			Assert::AreEqual(correctParam, Param);
+
+			mmSize = test.size();
+			expectedMMSize = 4;
+			Assert::AreEqual(expectedMMSize, mmSize);
+
+			//sort
+			commandString = "sort all name";
+			test = parser.parseCommand(commandString);
+			valid = any_cast<bool> ( test.find("valid")->second );
+			Assert::AreEqual(true, valid);
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "all name";
 			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();
 			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);*/
+			Assert::AreEqual(expectedMMSize, mmSize);
 
 			//complete
 			commandString = "/c G983";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
-			string Param = any_cast<string> ( test.find("param")->second );
-			string correctParam = "G983";
+			Param = any_cast<string> ( test.find("param")->second );
+			correctParam = "G983";
 			Assert::AreEqual(correctParam, Param);
 
 			mmSize = test.size();
@@ -121,56 +146,6 @@ namespace effiCommand_Test
 
 			//undo
 			commandString = "/z";
-			test = parser.parseCommand(commandString);
-			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
-
-			mmSize = test.size();
-			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);
-
-			//settings
-			commandString = "/t";
-			test = parser.parseCommand(commandString);
-			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
-
-			mmSize = test.size();
-			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);
-
-			//minimize
-			commandString = "/m";
-			test = parser.parseCommand(commandString);
-			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
-
-			mmSize = test.size();
-			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);
-
-			//help
-			commandString = "/?";
-			test = parser.parseCommand(commandString);
-			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
-
-			mmSize = test.size();
-			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);
-
-			//logout
-			commandString = "logout";
-			test = parser.parseCommand(commandString);
-			valid = any_cast<bool> ( test.find("valid")->second );
-			Assert::AreEqual(true, valid);
-
-			mmSize = test.size();
-			expectedMMSize = 3;
-			Assert::AreEqual(expectedMMSize, mmSize);
-
-			//exit
-			commandString = "exit";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
 			Assert::AreEqual(true, valid);
@@ -308,7 +283,7 @@ namespace effiCommand_Test
 			int mmSize;
 			int expectedMMSize;
 
-			//start/end time good 0 test
+			//start/end time good test
 			string commandString0 = "add meeting next week -s 2014-01-01";
 			multimap<string, any> test0 = parser.parseCommand(commandString0);
 			bool valid0 = any_cast<bool> ( test0.find("valid")->second );
@@ -316,7 +291,7 @@ namespace effiCommand_Test
 			Assert::AreEqual(true, valid0);
 			Assert::IsFalse(t.is_not_a_date_time());
 
-			//start/end time good 1 test
+			//start/end time good test
 			string commandString = "add meeting next week -s 2014-01-01 23:59";
 			multimap<string, any> test = parser.parseCommand(commandString);
 			bool valid = any_cast<bool> ( test.find("valid")->second );
@@ -329,7 +304,7 @@ namespace effiCommand_Test
 			expectedMMSize = 4;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
-			//start/end time good 1 test
+			//start/end time good test
 			commandString = "add submit homework -e 2014-10-30 15:00:00";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
@@ -342,7 +317,7 @@ namespace effiCommand_Test
 			expectedMMSize = 4;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
-			//start/end time good 2 test
+			//start/end time good test
 			commandString = "add meeting tomorrow -s 01-Feb-2014";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
@@ -355,7 +330,7 @@ namespace effiCommand_Test
 			expectedMMSize = 4;
 			Assert::AreEqual(expectedMMSize, mmSize);
 
-			//start/end time good 3 test
+			//start/end time good test
 			commandString = "add meeting tomorrow -s 01-Apr-2014 12:00PM -e 30-Apr-2014 1:00PM";
 			test = parser.parseCommand(commandString);
 			valid = any_cast<bool> ( test.find("valid")->second );
@@ -389,7 +364,6 @@ namespace effiCommand_Test
 
 		}
 
-		// incomplete
 		TEST_METHOD(contentField){
 
 			Parser parser;
@@ -409,7 +383,6 @@ namespace effiCommand_Test
 
 		}
 
-		// incomplete
 		TEST_METHOD(priorityField){
 
 			Parser parser;
@@ -429,7 +402,6 @@ namespace effiCommand_Test
 
 		}
 
-		// incomplete
 		TEST_METHOD(repeatField){
 
 			Parser parser;
@@ -449,7 +421,6 @@ namespace effiCommand_Test
 
 		}
 
-		// incomplete
 		TEST_METHOD(incompleteRepeatField){
 
 			Parser parser;
@@ -600,7 +571,6 @@ namespace effiCommand_Test
 
 		}
 
-		// incomplete
 		TEST_METHOD(tagField){
 
 			Parser parser;
@@ -668,18 +638,6 @@ namespace effiCommand_Test
 			Assert::AreEqual(expectedMMSize, mmSize);
 
 		}
-
-		/*TEST_METHOD(multipleFieldsFormats){
-
-
-
-		}*/
-
-		/*TEST_METHOD(invalidFieldsShouldFailCommand){
-
-
-
-		}*/
 		
 		TEST_METHOD(extractOptionValueEndWithValue){
 

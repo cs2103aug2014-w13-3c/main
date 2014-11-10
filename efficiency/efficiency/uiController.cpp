@@ -32,74 +32,81 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 	// Show existing issues on load
 	webView->registerPageLoad([this](){
 		showOnGUI();
-		changeButtonDisplay();
 
-		//()<<QString::fromStdString("button pressed");
-		/*this->webView->watchButtonPress("deadline_forward", [this](){
-			deadlinePage++;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement deadlinePrevButton = dom.findFirst("#deadline_back");
-			deadlinePrevButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
+		// Tasks
+		this->webView->watchButtonPress("task_id", [this](){
+			showOnGUISorted(id, task_type);
 		});
 
-		this->webView->watchButtonPress("deadline_back", [this](){
-			deadlinePage--;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
-			deadlineNextButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
+		this->webView->watchButtonPress("task_name", [this](){
+			showOnGUISorted(name, task_type);
 		});
 
-		this->webView->watchButtonPress("event_forward", [this](){
-			eventPage++;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement eventPrevButton = dom.findFirst("#event_back");
-			eventPrevButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
+		this->webView->watchButtonPress("task_start", [this](){
+			showOnGUISorted(start_date, task_type);
 		});
 
-		this->webView->watchButtonPress("event_back", [this](){
-			eventPage--;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement eventNextButton = dom.findFirst("#event_forward");
-			eventNextButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
+		this->webView->watchButtonPress("task_end", [this](){
+			showOnGUISorted(end_date, task_type);
 		});
 
-		this->webView->watchButtonPress("task_forward", [this](){
-			taskPage++;
-
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement taskPrevButton = dom.findFirst("#task_back");
-			taskPrevButton.setAttribute("style","display:inline;");
-
-			showOnGUI();
-			changeButtonDisplay();
+		this->webView->watchButtonPress("task_tags", [this](){
+			showOnGUISorted(tags, task_type);
+		});
+		
+		this->webView->watchButtonPress("task_description", [this](){
+			showOnGUISorted(description, task_type);
 		});
 
-		this->webView->watchButtonPress("task_back", [this](){
-			taskPage--;
+		// Deadlines
+		this->webView->watchButtonPress("deadline_id", [this](){
+			showOnGUISorted(id, deadline_type);
+		});
 
-			QWebElement dom = this->webView->page()->mainFrame()->documentElement();
-			QWebElement taskNextButton = dom.findFirst("#task_forward");
-			taskNextButton.setAttribute("style","display:inline;");
+		this->webView->watchButtonPress("deadline_name", [this](){
+			showOnGUISorted(name, deadline_type);
+		});
 
-			showOnGUI();
-			changeButtonDisplay();
-		});*/
+		this->webView->watchButtonPress("deadline_start", [this](){
+			showOnGUISorted(start_date, deadline_type);
+		});
+
+		this->webView->watchButtonPress("deadline_end", [this](){
+			showOnGUISorted(end_date, deadline_type);
+		});
+
+		this->webView->watchButtonPress("deadline_tags", [this](){
+			showOnGUISorted(tags, deadline_type);
+		});
+
+		this->webView->watchButtonPress("deadline_description", [this](){
+			showOnGUISorted(description, deadline_type);
+		});
+
+		// Events
+		this->webView->watchButtonPress("event_id", [this](){
+			showOnGUISorted(id, event_type);
+		});
+
+		this->webView->watchButtonPress("event_name", [this](){
+			showOnGUISorted(name, event_type);
+		});
+
+		this->webView->watchButtonPress("event_start", [this](){
+			showOnGUISorted(start_date, event_type);
+		});
+
+		this->webView->watchButtonPress("event_end", [this](){
+			showOnGUISorted(end_date, event_type);
+		});
+
+		this->webView->watchButtonPress("event_tags", [this](){
+			showOnGUISorted(tags, event_type);
+		});
+
+		this->webView->watchButtonPress("event_description", [this](){
+			showOnGUISorted(description, event_type);
+		});
 	});
 
 	webView->watch("#command-box",
@@ -153,7 +160,6 @@ void uiController::clearCommandBox(){
 	setCommandBox("");
 }
 
-
 void uiController::onCommandInput(string input){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	qDebug()<<QString::fromStdString(input); // check output
@@ -201,7 +207,6 @@ void uiController::onCommandInput(string input){
 				}
 
 				showOnGUI();
-				changeButtonDisplay();
 			}
 		}
 		catch(executionError& e){
@@ -237,7 +242,6 @@ void uiController::displayFilterResults(std::pair<Controller::unregisterAction, 
 
 	clearGUI();
 	showOnGUI();
-	changeButtonDisplay();
 }
 
 void uiController::displayResultMessage(result_message_t message){
@@ -301,14 +305,21 @@ string formatTags(vector<string> tags){
 }
 
 void drawTable(vector<Controller::CEvent> issues, QWebElement target){
-	auto addfield = [](QWebElement &e, string field){ 
-		e.appendInside(QString::fromStdString("<td>"+field+"</td>"));
+	auto addfield = [](QWebElement &e, string field, string attribute){ 
+		e.appendInside(QString::fromStdString("<td "+attribute+">"+field+"</td>"));
 	};
 	auto addQfield = [](QWebElement &e, QString field){ 
 		e.appendInside("<td>"+field+"</td>");
 	};
+
 	const QChar notcomplete(0x2610);
 	const QChar complete(0x2611);
+	ptime now = second_clock::local_time();
+	date today_date = now.date();
+	date start_date;
+	date end_date;
+	string attribute;
+
 	for(auto issue = issues.begin(); issue!=issues.end(); ++issue)
 	{
 		qDebug()<<QString::fromStdString(issue->getName());	
@@ -317,17 +328,33 @@ void drawTable(vector<Controller::CEvent> issues, QWebElement target){
 		//is complete?
 		addQfield(tr, issue->getCompleteStatus()?complete: notcomplete); 
 		//ID
-		addfield(tr, to_string(issue->getId()));
+		addfield(tr, to_string(issue->getId()), "");
 		//start
-		addfield(tr, formatDate(issue->getStartDate())); 
+		// highlight if date is today's date
+		start_date = issue->getStartDate().date();
+		if(start_date == today_date){
+			attribute = "style='color:red;'";
+			addfield(tr, formatDate(issue->getStartDate()), attribute);
+		}
+		else  {
+			addfield(tr, formatDate(issue->getStartDate()), "");
+		}
 		//end
-		addfield(tr, formatDate(issue->getEndDate()));
+		// highlight if date is today's date
+		end_date = issue->getEndDate().date();
+		if(end_date == today_date){
+			attribute = "style='color:red;'";
+			addfield(tr, formatDate(issue->getEndDate()), attribute);
+		}
+		else {
+			addfield(tr, formatDate(issue->getEndDate()), "");
+		}
 		//name
-		addfield(tr, issue->getName());
+		addfield(tr, issue->getName(), "");
 		//tags
-		addfield(tr, formatTags(issue->getTags()));
+		addfield(tr, formatTags(issue->getTags()), "");
 		//description
-		addfield(tr, issue->getContent()); 
+		addfield(tr, issue->getContent(), ""); 
 		target.appendInside(tr);
 	}
 }
@@ -357,220 +384,140 @@ void uiController::showOnGUI(){
 	drawTable(deadlines, deadlinestarget);
 }
 
+void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	QWebElement target;
+	if(issue_type == event_type){
+		target = dom.findFirst("#Events-display-target");
+		clearEvents();
+	}
+	else if(issue_type == deadline_type){
+		target = dom.findFirst("#Deadlines-display-target");
+		clearDeadlines();
+	}
+	else {
+		target = dom.findFirst("#Tasks-display-target");
+		clearTasks();
+	}
+
+	vector<Controller::CEvent> allIssues = controller->getAllEvents();
+	vector<Controller::CEvent> filteredIssues;
+	// Populate the issue list
+	for(auto issue: allIssues){
+		if(issue_type == event_type){
+			if(!(issue.getStartDate().is_not_a_date_time() || issue.getEndDate().is_not_a_date_time()))
+				filteredIssues.push_back(issue);
+		}
+		else if(issue_type == deadline_type){
+			if(!issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
+				filteredIssues.push_back(issue);
+		}
+		else {
+			if(issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
+				filteredIssues.push_back(issue);
+		}
+	}
+
+	// Sort the issue list
+	for(int i = 0; i < filteredIssues.size(); i++){
+		for(int j = 0; j < (filteredIssues.size()-1); j++){
+			if(type == id){
+				int id1 = filteredIssues[j].getId();
+				int id2 = filteredIssues[j+1].getId();
+				sortByNum(id1, id2, j, filteredIssues);
+			}
+			else if(type == name){
+				string name1 = filteredIssues[j].getName();
+				string name2 = filteredIssues[j+1].getName();
+				sortByString(name1, name2, j, filteredIssues);
+			}
+			else if(type == start_date){
+				ptime date1 = filteredIssues[j].getStartDate();
+				ptime date2 = filteredIssues[j+1].getStartDate();
+				sortByDate(date1, date2, j, filteredIssues);
+			}
+			else if(type == end_date){
+				ptime date1 = filteredIssues[j].getEndDate();
+				ptime date2 = filteredIssues[j+1].getEndDate();
+				sortByDate(date1, date2, j, filteredIssues);
+			}
+			else if(type == tags){
+				vector<string> tags1 = filteredIssues[j].getTags();
+				vector<string> tags2 = filteredIssues[j+1].getTags();
+				sortByTag(tags1, tags2, j, filteredIssues);
+			}
+			else if(type == description){
+				string content1 = filteredIssues[j].getContent();
+				string content2 = filteredIssues[j+1].getContent();
+				sortByString(content1, content2, j, filteredIssues);
+			}
+		}
+	}
+
+	drawTable(filteredIssues, target);
+}
+
+void uiController::sortByString(string s1, string s2, int j, 
+								vector<Controller::CEvent> &filteredIssues){
+	transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+	transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
+	if(s1 > s2){
+		swapIssues(j, filteredIssues);
+	}
+}
+
+void uiController::sortByNum(int n1, int n2, int j,
+							 vector<Controller::CEvent> &filteredIssues){
+	if(n1 > n2){
+		swapIssues(j, filteredIssues);
+	}
+}
+
+void uiController::sortByDate(ptime d1, ptime d2, int j,
+					vector<Controller::CEvent> &filteredIssues){
+	if(d1 > d2){
+		swapIssues(j, filteredIssues);
+	}
+}
+
+void uiController::sortByTag(vector<string> tags1, vector<string> tags2, int j,
+							 vector<Controller::CEvent> &filteredIssues){
+	if(tags1.empty()){
+		return;
+	}
+	else if((!tags1.empty() && tags2.empty())
+			|| tags1[0] > tags2[0]){
+		swapIssues(j, filteredIssues);
+	}
+}
+
+void uiController::swapIssues(int j, vector<Controller::CEvent> &issues){
+		auto temp = issues[j];
+		issues[j] = issues[j+1];
+		issues[j+1] = temp;
+}
+
 void uiController::clearGUI(){
+	clearEvents();
+	clearDeadlines();
+	clearTasks();
+}
+
+void uiController::clearEvents(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	auto issuetarget = dom.findFirst("#Events-display-target");
 	issuetarget.removeAllChildren();
-	issuetarget = dom.findFirst("#Deadlines-display-target");
-	issuetarget.removeAllChildren();
-	issuetarget = dom.findFirst("#Tasks-display-target");
+}
+
+void uiController::clearDeadlines(){
+	QWebElement dom = webView->page()->mainFrame()->documentElement();
+	auto issuetarget = dom.findFirst("#Deadlines-display-target");
 	issuetarget.removeAllChildren();
 }
 
-/*
-void uiController::showOnGUI(){
+
+void uiController::clearTasks(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	QWebElement taskDisplay = dom.findFirst("#task-display");
-	QWebElement deadlineDisplay = dom.findFirst("#deadline-display");
-	QWebElement eventDisplay = dom.findFirst("#event-display");
-	vector<Controller::CEvent> events;
-
-	string name;
-	string content;
-	vector<string> tags;
-	ptime start;
-	ptime end;
-	bool isComplete;
-	string isCompleteString;
-
-	int eventCount = 0;
-	int deadlineCount = 0;
-	int taskCount = 0;
-
-	currentTasks = 0;
-	currentDeadlines = 0;
-	currentEvents = 0;
-
-	events = controller->getAllEvents();
-	clearGUI();
-
-	for(auto i = events.begin(); i != events.end(); ++i){
-		name = i->getName();
-		content = i->getContent();
-		start = i->getStartDate();
-		end = i->getEndDate();
-		tags = i->getTags();
-
-		isComplete = i->getCompleteStatus();
-		if(isComplete == true){
-			isCompleteString = "Yes";
-		}
-		else {
-			isCompleteString = "No";
-		}
-
-		if(start.is_not_a_date_time() && end.is_not_a_date_time()){
-			currentTasks++;
-			qDebug()<<QString::fromStdString(to_string(currentTasks));
-			if(taskCount == maxIssues || 
-				taskPage*maxIssues < currentTasks || 
-				(taskPage*maxIssues-1) > currentTasks){
-				continue;
-			}
-			else {
-				taskCount++;
-			}
-
-			taskDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
-			taskDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
-			taskDisplay.appendInside("Description: "+QString::fromStdString(content)+"<br>");
-			taskDisplay.appendInside("Tags: ");
-
-			for(auto j = tags.begin(); j != tags.end(); ++j){
-				taskDisplay.appendInside(QString::fromStdString(*j)+", ");
-			}
-
-			taskDisplay.appendInside("<hr><br>");
-		}
-		else if(end.is_not_a_date_time()){
-			qDebug()<<QString::fromStdString("a deadline!!");
-			currentDeadlines++;
-
-			qDebug()<<QString::fromStdString("deadlinecount "+to_string(deadlineCount));
-			qDebug()<<QString::fromStdString("maxIssues "+to_string(maxIssues));
-			qDebug()<<QString::fromStdString("deadlinePage "+to_string(deadlinePage));
-			qDebug()<<QString::fromStdString("currentDeadlines "+to_string(currentDeadlines));
-
-			if(deadlineCount == maxIssues || 
-				deadlinePage*maxIssues < currentDeadlines || 
-				(deadlinePage*maxIssues-1) > currentDeadlines){
-				continue;
-			}
-			else {
-				deadlineCount++;
-			}
-			qDebug()<<QString::fromStdString("a deadline2!!");
-
-			deadlineDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" <br>");
-			deadlineDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
-			deadlineDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
-			deadlineDisplay.appendInside("Description: "+QString::fromStdString(content)+"<br>");
-			deadlineDisplay.appendInside("Tags: ");
-
-			for(auto j = tags.begin(); j != tags.end(); ++j){
-				deadlineDisplay.appendInside(QString::fromStdString(*j)+", ");
-			}
-
-			deadlineDisplay.appendInside("<hr><br>");
-		}
-		else {
-			currentEvents++;
-
-			qDebug()<<QString::fromStdString("currentEvents:"+to_string(currentEvents));
-			qDebug()<<QString::fromStdString("eventCount:"+to_string(eventCount));
-			qDebug()<<QString::fromStdString("eventPage:"+to_string(eventPage));
-			if(eventCount == maxIssues || 
-				eventPage*maxIssues < currentEvents || 
-				(eventPage*maxIssues-1) > currentEvents){
-				continue;
-			}
-			else {
-				eventCount++;
-			}
-
-			eventDisplay.appendInside(QString::fromStdString(to_simple_string(start))+" to ");
-			eventDisplay.appendInside(QString::fromStdString(to_simple_string(end))+" <br>");
-			eventDisplay.appendInside("Name: "+QString::fromStdString(name)+"<br>");
-			eventDisplay.appendInside("Complete: "+QString::fromStdString(isCompleteString)+"<br>");
-			eventDisplay.appendInside("Description: "+QString::fromStdString(content)+"<br>");
-			eventDisplay.appendInside("Tags: ");
-
-			for(auto j = tags.begin(); j != tags.end(); ++j){
-				eventDisplay.appendInside(QString::fromStdString(*j)+", ");
-			}
-
-			eventDisplay.appendInside("<hr><br>");
-		}
-	}
-
-}*/
-
-/*
-void uiController::clearGUI(){
-	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	QWebElement issueDisplay = dom.findFirst("#event-display");
-	issueDisplay.removeAllChildren();
-	issueDisplay = dom.findFirst("#deadline-display");
-	issueDisplay.removeAllChildren();
-	issueDisplay = dom.findFirst("#task-display");
-	issueDisplay.removeAllChildren();
-}*/
-
-
-
-void uiController::changeButtonDisplay(){
-	QWebElement dom = webView->page()->mainFrame()->documentElement();
-
-	if(taskPage == 1){
-		QWebElement taskPrevButton = dom.findFirst("#task_back");
-		taskPrevButton.setAttribute("style","display:none;");
-	}
-
-	if(taskPage > 1){
-		QWebElement taskPrevButton = dom.findFirst("#task_back");
-		taskPrevButton.setAttribute("style","display:inline;");
-	}
-
-	if(currentTasks > maxIssues || taskPage*maxIssues < currentTasks){
-		QWebElement taskNextButton = dom.findFirst("#task_forward");
-		taskNextButton.setAttribute("style","display:inline;");
-	}
-
-	if((taskPage*maxIssues >= currentTasks && currentTasks >= (taskPage*(maxIssues-1) + 1))
-		|| currentTasks <= maxIssues){
-		QWebElement taskNextButton = dom.findFirst("#task_forward");
-		taskNextButton.setAttribute("style","display:none;");
-	}
-
-	if(deadlinePage == 1){
-		QWebElement deadlinePrevButton = dom.findFirst("#deadline_back");
-		deadlinePrevButton.setAttribute("style","display:none;");
-	}
-
-	if(deadlinePage > 1){
-		QWebElement deadlinePrevButton = dom.findFirst("#deadline_back");
-		deadlinePrevButton.setAttribute("style","display:inline;");
-	}
-
-	if(currentDeadlines > maxIssues || deadlinePage*maxIssues < currentDeadlines){
-		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
-		deadlineNextButton.setAttribute("style","display:inline;");
-	}
-
-	if((deadlinePage*maxIssues >= currentDeadlines && currentDeadlines >= (deadlinePage*(maxIssues-1) + 1))
-		|| currentDeadlines <= maxIssues){
-		QWebElement deadlineNextButton = dom.findFirst("#deadline_forward");
-		deadlineNextButton.setAttribute("style","display:none;");
-	}
-
-	if(eventPage == 1){
-		QWebElement eventPrevButton = dom.findFirst("#event_back");
-		eventPrevButton.setAttribute("style","display:none;");
-	}
-
-	if(eventPage > 1){
-		QWebElement eventPrevButton = dom.findFirst("#event_back");
-		eventPrevButton.setAttribute("style","display:inline;");
-	}
-
-	if(currentEvents > maxIssues || eventPage*maxIssues < currentEvents){
-		QWebElement eventNextButton = dom.findFirst("#event_forward");
-		eventNextButton.setAttribute("style","display:inline;");
-	}
-
-	if((eventPage*maxIssues >= currentEvents && currentEvents >= (eventPage*(maxIssues-1) + 1))
-		|| currentEvents <= maxIssues){
-		QWebElement eventNextButton = dom.findFirst("#event_forward");
-		eventNextButton.setAttribute("style","display:none;");
-	}
+	auto issuetarget = dom.findFirst("#Tasks-display-target");
+	issuetarget.removeAllChildren();
 }
