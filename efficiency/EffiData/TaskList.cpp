@@ -63,6 +63,8 @@ TaskList::TaskList(string f = ""): filebase(f), userTaskList(){
 		}
 		this->journal = std::move(journal);
 	}
+	else
+		this->journal = std::move(File("TEST.journal")); //Strictly for test cases only.
 }
 
 TaskList::~TaskList(){
