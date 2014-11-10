@@ -135,7 +135,7 @@ private:
 								  unsigned int i, 
 								  unsigned int j);
 	// remove all duplicate tags
-	void checkForDuplicateTags(vector<string> fieldValueVector);
+	vector<string> checkForDuplicateTags(vector<string> fieldValueVector);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand, bool forTagComma);

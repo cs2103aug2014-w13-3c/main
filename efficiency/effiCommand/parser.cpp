@@ -156,8 +156,8 @@ void Parser::loadScrollDirection(){
 //@author A0098802X
 void Parser::loadSortByType(){
 
-	sortByType.push_back("ID");
-	sortByType.push_back("IDs");
+	sortByType.push_back("id");
+	sortByType.push_back("ids");
 	sortByType.push_back("name");
 	sortByType.push_back("names");
 	sortByType.push_back("start");
@@ -494,6 +494,7 @@ multimap<string, any> Parser::processCommandsWithTwoStringParam(vector<string> c
 	vector<string> extractParam;
 	copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
 	string Param = joinVector(extractParam, " ");
+	transform(Param.begin(), Param.end(), Param.begin(), ::tolower);
 	if(isInsufficientParameters(commandStringTokens)){
 		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
 		return cmdParamAndOptMap;
@@ -774,7 +775,7 @@ void Parser::identifyAndProcessOption(string mmOptionKey,
 			
 			string extractedTagValues = joinVector(fieldValueVector, " ");
 			fieldValueVector = tokenizeCommandString(extractedTagValues, true);
-			checkForDuplicateTags(fieldValueVector);
+			fieldValueVector = checkForDuplicateTags(fieldValueVector);
 
 			// These fields cannot run on delete command
 			if(cmdType != commandTypeEnum::DELETE_TASK){
@@ -852,7 +853,7 @@ void Parser::identifyAndProcessOption(string mmOptionKey,
 
 
 //@author A0098802X
-void Parser::checkForDuplicateTags(vector<string> fieldValueVector){
+vector<string> Parser::checkForDuplicateTags(vector<string> fieldValueVector){
 	for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
 		for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
 			if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
@@ -861,6 +862,7 @@ void Parser::checkForDuplicateTags(vector<string> fieldValueVector){
 			}
 		}
 	}
+	return fieldValueVector;
 }
 
 //@author A0098802X
