@@ -29,8 +29,6 @@ public:
 	// Accessors
 	// and UI controller (to check valid and parse)
 	multimap<string, any> parseCommand(const string commandString);
-	// check if a command is empty
-	bool isEmptyCommand(const string commandString);
 	// parse a date
 	static ptime parseDate(string s);
 	// trim strings
@@ -39,7 +37,6 @@ public:
 private:
 
 	// Attributes
-
 	// list of available option fields
 	vector< std::tuple<string, string, bool> > optionFieldsChecker;
 	// list of available command keywords
@@ -60,42 +57,57 @@ private:
 	void loadScrollDirection();
 	void loadSortByType();
 
+	// check if a command is empty
+	bool isEmptyCommand(const string commandString);
+
+	// check the date time format if start and end option fields are used
+	pair<bool, ptime> checkDateTime(string dtFieldValue, bool firstRun);
+	// add padding zeros for day or month entered with a single digit by user
+	static string addPaddingZeros(string s);
+
 	// to check the entire user input
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
-
-	multimap<string, any> processCommandsWithPrecidates(vector<string> commandStringTokens, commandTypeEnum::COMMAND_TYPE cmdType);
-
-	multimap<string, any> processCommandsWithTwoStringParam(vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap, commandTypeEnum::COMMAND_TYPE cmdType);
-
-	// check first param which is event type
-	multimap<string, any> checkEventTypeParam(vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap);
-	// check second param which is after the event type (first param)
-	multimap<string, any> checkSpecificCommandParam(commandTypeEnum::COMMAND_TYPE cmdType, vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap);
-
 	// for commands with task names as parameters, extract it
 	multimap<string, any> extractParamOnly(vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap);
 	// check the command keyword
 	pair< multimap<string,any>, commandTypeEnum::COMMAND_TYPE> checkCommandKeyword(vector<string> commandStringTokens, 
-																				   multimap<string,any> cmdParamAndOptMap, 
-																				   commandTypeEnum::COMMAND_TYPE cmdType);
+		multimap<string,any> cmdParamAndOptMap, 
+		commandTypeEnum::COMMAND_TYPE cmdType);
 
 	// process all command types with param and options
 	multimap<string, any> processCommandsWithParamAndOptions(multimap<string,any> cmdParamAndOptMap, 
-														 vector<string> commandStringTokens, 
-														 bool noOptionsInUserInput, 
-														 commandTypeEnum::COMMAND_TYPE cmdType);	
-	// process all option fields
-	pair<multimap<string,any>, bool> processAllOptionFields(vector<string> commandStringTokens, 
-												 multimap<string,any> cmdParamAndOptMap, 
-												 bool noOptionsInUserInput, 
-												 commandTypeEnum::COMMAND_TYPE cmdType);
+															 vector<string> commandStringTokens, 
+															 bool noOptionsInUserInput, 
+															 commandTypeEnum::COMMAND_TYPE cmdType);
 	// process all command types with param and only supports recursive option field
 	multimap<string, any> processCommandsSupportingRecursiveOnly(vector<string> commandStringTokens, 
-															 multimap<string,any> cmdParamAndOptMap, 
-															 commandTypeEnum::COMMAND_TYPE cmdType);
+																multimap<string,any> cmdParamAndOptMap, 
+																commandTypeEnum::COMMAND_TYPE cmdType);
+	// to process commands using predicates (search and filter)
+	multimap<string, any> processCommandsWithPrecidates(vector<string> commandStringTokens, commandTypeEnum::COMMAND_TYPE cmdType);
+	// to process commands using 2 string parameters
+	multimap<string, any> processCommandsWithTwoStringParam(vector<string> commandStringTokens, 
+															multimap<string,any> cmdParamAndOptMap, 
+															commandTypeEnum::COMMAND_TYPE cmdType);
 
 	// check the rules of option fields to see if they are restricted to some commands only
-	void checkOptionCommandConstraints(unsigned int j, multimap<string,any> cmdParamAndOptMap, string Param, commandTypeEnum::COMMAND_TYPE cmdType);
+	void checkRecursiveOptionConstraints(unsigned int j, 
+		multimap<string,any> cmdParamAndOptMap, 
+		string Param, 
+		commandTypeEnum::COMMAND_TYPE cmdType);	
+
+	// check first param which is event type
+	multimap<string, any> checkEventTypeParam(vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap);
+	// check second param which is after the event type (first param)
+	multimap<string, any> checkSpecificCommandParam(commandTypeEnum::COMMAND_TYPE cmdType, 
+		vector<string> commandStringTokens, 
+		multimap<string,any> cmdParamAndOptMap);
+
+	// process all option fields
+	pair<multimap<string,any>, bool> processAllOptionFields(vector<string> commandStringTokens, 
+															multimap<string,any> cmdParamAndOptMap, 
+															bool noOptionsInUserInput, 
+															commandTypeEnum::COMMAND_TYPE cmdType);
 	
 	// recursively process all the existing option fields in a user input according to command restraints
 	// a part of process
@@ -105,17 +117,25 @@ private:
 												  int fieldPos, 
 												  std::tuple<string, string, bool> currentOptionFieldPair,
 												  bool validUntilNow);
-	// terminate parser if valid key is false
-	bool isFalseValidKey(multimap<string,any> cmdParamAndOptMap);
-
+	bool processOptionWithoutNeededValues(multimap<string, any> &cmdParamAndOptMap, 
+		string mmOptionKey, 
+		int fieldPos, 
+		vector<string> &commandStringTokens, 
+		bool validUntilNow, 
+		commandTypeEnum::COMMAND_TYPE cmdType, 
+		bool processComplete);
+	// Identify and process option fields 
+	void identifyAndProcessOption(string mmOptionKey, 
+								  vector<string> &fieldValueVector, 
+								  commandTypeEnum::COMMAND_TYPE cmdType, 
+								  multimap<string, any> &cmdParamAndOptMap, 
+								  bool &validUntilNow, 
+								  any &fieldValue, 
+								  vector<string> commandStringTokens, 
+								  unsigned int i, 
+								  unsigned int j);
 	// remove all duplicate tags
 	void checkForDuplicateTags(vector<string> fieldValueVector);
-	// check the date time format if start and end option fields are used
-	pair<bool, ptime> checkDateTime(string dtFieldValue, bool firstRun);
-	// standardize all time format to format supported by boost ptime library
-	pair<bool, ptime> standardizeTo24Hour(vector<string> timeToken, int hour, int minute, pair<bool,ptime> result, int second);
-	// standardize all time format to have :00 seconds
-	string addSeconds(string time);
 
 	// convert the command string to a string vector
 	static vector<string> tokenizeCommandString(string userCommand, bool forTagComma);
@@ -132,9 +152,6 @@ private:
 	// check for a suffix
 	bool hasSuffix(string str, string suffix);
 
-	// add padding zeros for day or month entered with a single digit by user
-	static string addPaddingZeros(string s);
-
 	// conditional refactoring
 
 	// for time and date parsing
@@ -150,6 +167,8 @@ private:
 	bool isMissingCommandParameters(unsigned int i, unsigned int j, vector<string> commandStringTokens);
 	bool isInvalidCommandKeyword(unsigned int i);
 	bool isInsufficientParameters(vector<string> commandStringTokens);	
+	// terminate parser if valid key is false
+	bool isFalseValidKey(multimap<string,any> cmdParamAndOptMap);
 
 };
 #endif
