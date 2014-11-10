@@ -15,9 +15,9 @@ class uiController
 public:
 	// Properties
 	enum result_message_t {add_message, delete_message, update_message, undo_message, 
-							search_message, filter_message, mark_complete_message, 
-							invalid_message, undo_error_message, duplicate_message, 
-							not_found_message};
+							search_message, filter_message, mark_complete_message,
+							mark_incomplete_message, invalid_message, undo_error_message, 
+							duplicate_message, not_found_message};
 
 	// Methods
 	// Constructor

@@ -228,6 +228,9 @@ void uiController::onCommandInput(string input){
 				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == MARK_COMPLETE){
 					displayResultMessage(mark_complete_message);
 				}
+				else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == MARK_INCOMPLETE){
+					displayResultMessage(mark_incomplete_message);
+				}
 
 				showOnGUI();
 			}
@@ -302,6 +305,9 @@ void uiController::displayResultMessage(result_message_t message){
 		}
 		else if(*it == mark_complete_message) {
 			messageArea.appendInside("Marked issue as completed.<br>");
+		}
+		else if(*it == mark_incomplete_message) {
+			messageArea.appendInside("Marked issue as uncompleted.<br>");
 		}
 		else if(*it == invalid_message){
 			messageArea.appendInside("Error: Enter valid command.<br>");

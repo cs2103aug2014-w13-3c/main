@@ -127,7 +127,14 @@ Executor::InverseFunction Executor::delete_task(Executor::Command command, Event
 
 Executor::InverseFunction Executor::mark_complete(Executor::Command command)
 {
-	Event::UUID taskid = find_task(command);
+	Event::UUID taskid;
+	try{
+		taskid = find_task(command);
+	}
+	catch(...)
+	{
+		throw executionError(CANNOT_FIND_TARGET);
+	}
 	bool isRecursive = command.find(RECURSIVE)!=command.end()  && 
 				get<COMMAND_TYPE>(RECURSIVE, command);
 	bool setting = get<COMMAND_TYPE>("cmd", command) == COMMAND_TYPE::MARK_COMPLETE;
