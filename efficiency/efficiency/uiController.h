@@ -59,7 +59,7 @@ protected:
 	void clearDeadlines();
 	void clearTasks();
 	void showOnGUI();
-	void showOnGUISorted(sort_type_t type, issue_type_t issue);
+	void showOnGUISorted(string type, string issue);
 	void sortByString(string s1, string s2, int j, vector<Controller::CEvent> &issues);
 	void sortByTag(vector<string> s1, vector<string> s2, int j, vector<Controller::CEvent> &issues);
 	void sortByNum(int n1, int n2, int j, vector<Controller::CEvent> &issues);

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 using namespace commandTypeEnum;
@@ -35,77 +36,77 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 
 		// Tasks
 		this->webView->watchButtonPress("task_id", [this](){
-			showOnGUISorted(id, task_type);
+			showOnGUISorted("id", "tasks");
 		});
 
 		this->webView->watchButtonPress("task_name", [this](){
-			showOnGUISorted(name, task_type);
+			showOnGUISorted("name", "tasks");
 		});
 
 		this->webView->watchButtonPress("task_start", [this](){
-			showOnGUISorted(start_date, task_type);
+			showOnGUISorted("start", "tasks");
 		});
 
 		this->webView->watchButtonPress("task_end", [this](){
-			showOnGUISorted(end_date, task_type);
+			showOnGUISorted("end", "tasks");
 		});
 
 		this->webView->watchButtonPress("task_tags", [this](){
-			showOnGUISorted(tags, task_type);
+			showOnGUISorted("tags", "tasks");
 		});
 		
 		this->webView->watchButtonPress("task_description", [this](){
-			showOnGUISorted(description, task_type);
+			showOnGUISorted("description", "tasks");
 		});
 
 		// Deadlines
 		this->webView->watchButtonPress("deadline_id", [this](){
-			showOnGUISorted(id, deadline_type);
+			showOnGUISorted("id", "deadlines");
 		});
 
 		this->webView->watchButtonPress("deadline_name", [this](){
-			showOnGUISorted(name, deadline_type);
+			showOnGUISorted("name", "deadlines");
 		});
 
 		this->webView->watchButtonPress("deadline_start", [this](){
-			showOnGUISorted(start_date, deadline_type);
+			showOnGUISorted("start", "deadlines");
 		});
 
 		this->webView->watchButtonPress("deadline_end", [this](){
-			showOnGUISorted(end_date, deadline_type);
+			showOnGUISorted("end", "deadlines");
 		});
 
 		this->webView->watchButtonPress("deadline_tags", [this](){
-			showOnGUISorted(tags, deadline_type);
+			showOnGUISorted("tags", "deadlines");
 		});
 
 		this->webView->watchButtonPress("deadline_description", [this](){
-			showOnGUISorted(description, deadline_type);
+			showOnGUISorted("description", "deadlines");
 		});
 
 		// Events
 		this->webView->watchButtonPress("event_id", [this](){
-			showOnGUISorted(id, event_type);
+			showOnGUISorted("id", "events");
 		});
 
 		this->webView->watchButtonPress("event_name", [this](){
-			showOnGUISorted(name, event_type);
+			showOnGUISorted("name", "events");
 		});
 
 		this->webView->watchButtonPress("event_start", [this](){
-			showOnGUISorted(start_date, event_type);
+			showOnGUISorted("start", "events");
 		});
 
 		this->webView->watchButtonPress("event_end", [this](){
-			showOnGUISorted(end_date, event_type);
+			showOnGUISorted("end", "events");
 		});
 
 		this->webView->watchButtonPress("event_tags", [this](){
-			showOnGUISorted(tags, event_type);
+			showOnGUISorted("tags", "events");
 		});
 
 		this->webView->watchButtonPress("event_description", [this](){
-			showOnGUISorted(description, event_type);
+			showOnGUISorted("description", "events");
 		});
 	});
 
@@ -194,7 +195,12 @@ void uiController::onCommandInput(string input){
 				qApp->exit(0);
 			}
 			else if(any_cast<COMMAND_TYPE>(parsedCommand.find("cmd")->second) == SORT){
+				string params = any_cast<string>(parsedCommand.find("param")->second);
+	
+				vector<string> split_params;
+				boost::split(split_params, params, boost::is_any_of(" "));
 
+				showOnGUISorted(split_params[1], split_params[0]);
 			}
 			else {
 				executor->executeCommand(parsedCommand);
@@ -399,31 +405,36 @@ void uiController::showOnGUI(){
 	drawTable(deadlines, deadlinestarget);
 }
 
-void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
+void uiController::showOnGUISorted(string type, string issue_type){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement target;
-	if(issue_type == event_type){
+	if(issue_type == "events"){
 		target = dom.findFirst("#Events-display-target");
 		clearEvents();
 	}
-	else if(issue_type == deadline_type){
+	else if(issue_type == "deadlines"){
 		target = dom.findFirst("#Deadlines-display-target");
 		clearDeadlines();
 	}
-	else {
+	else if(issue_type == "tasks")
+	{
 		target = dom.findFirst("#Tasks-display-target");
 		clearTasks();
+	}
+	else {
+		displayResultMessage(invalid_message);
+		return;
 	}
 
 	vector<Controller::CEvent> allIssues = controller->getAllEvents();
 	vector<Controller::CEvent> filteredIssues;
 	// Populate the issue list
 	for(auto issue: allIssues){
-		if(issue_type == event_type){
+		if(issue_type == "events"){
 			if(!(issue.getStartDate().is_not_a_date_time() || issue.getEndDate().is_not_a_date_time()))
 				filteredIssues.push_back(issue);
 		}
-		else if(issue_type == deadline_type){
+		else if(issue_type == "deadlines"){
 			if(!issue.getStartDate().is_not_a_date_time() && issue.getEndDate().is_not_a_date_time())
 				filteredIssues.push_back(issue);
 		}
@@ -436,35 +447,39 @@ void uiController::showOnGUISorted(sort_type_t type, issue_type_t issue_type){
 	// Sort the issue list
 	for(int i = 0; i < filteredIssues.size(); i++){
 		for(int j = 0; j < (filteredIssues.size()-1); j++){
-			if(type == id){
+			if(type == "id"){
 				int id1 = filteredIssues[j].getId();
 				int id2 = filteredIssues[j+1].getId();
 				sortByNum(id1, id2, j, filteredIssues);
 			}
-			else if(type == name){
+			else if(type == "name"){
 				string name1 = filteredIssues[j].getName();
 				string name2 = filteredIssues[j+1].getName();
 				sortByString(name1, name2, j, filteredIssues);
 			}
-			else if(type == start_date){
+			else if(type == "start"){
 				ptime date1 = filteredIssues[j].getStartDate();
 				ptime date2 = filteredIssues[j+1].getStartDate();
 				sortByDate(date1, date2, j, filteredIssues);
 			}
-			else if(type == end_date){
+			else if(type == "end"){
 				ptime date1 = filteredIssues[j].getEndDate();
 				ptime date2 = filteredIssues[j+1].getEndDate();
 				sortByDate(date1, date2, j, filteredIssues);
 			}
-			else if(type == tags){
+			else if(type == "tags"){
 				vector<string> tags1 = filteredIssues[j].getTags();
 				vector<string> tags2 = filteredIssues[j+1].getTags();
 				sortByTag(tags1, tags2, j, filteredIssues);
 			}
-			else if(type == description){
+			else if(type == "description"){
 				string content1 = filteredIssues[j].getContent();
 				string content2 = filteredIssues[j+1].getContent();
 				sortByString(content1, content2, j, filteredIssues);
+			}
+			else {
+				displayResultMessage(invalid_message);
+				return;
 			}
 		}
 	}
