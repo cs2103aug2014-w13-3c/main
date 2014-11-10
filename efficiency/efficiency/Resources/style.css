@@ -253,13 +253,13 @@ table th{
   border: #333333 solid 1px;
   border-radius: 5px;
   margin-left: -300px;
-  margin-top: -110px;
+  margin-top: -120px;
   position: fixed;
   left: 35%;
   top: -400%;
   z-index: 11;
   width: 1000px;
-  height: 600px;
+  height: 630px;
   -webkit-transform: translate(0, -500%);
   -ms-transform: translate(0, -500%);
   transform: translate(0, -500%);
@@ -269,18 +269,21 @@ table th{
   transition: transform 0.3s ease-out;
 }
 .modal-body {
-  padding: 20px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left:20px;
+  padding-right: 20px;
   font-size: 12px;
 }
 .modal-header,
 .modal-footer {
-  padding: 10px 20px;
+  padding: 2px 20px;
 }
 .modal-header {
   border-bottom: #eeeeee solid 1px;
 }
 .modal-header h2 {
-  font-size: 20px;
+  font-size: 16px;
 }
 .modal-footer {
   border-top: #eeeeee solid 1px;

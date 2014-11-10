@@ -196,7 +196,7 @@
 				<div class="modal-body">
 					<div class="modal-content">
 					<p>The following is a list of Effi command keywords and option fields.</p>
-					<strong>Keywords</strong><br>
+					<strong><p>Keywords</p></strong>
 					<strong>/v (view type)</strong or <strong>view (view type)</strong>: switches between agenda view, weekly view and monthly view<br>
 					<strong>/a (task name) [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>add (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong>: add a task with an optional start and end time.<br>
 					<strong>/u (task name)  [-&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>update (task name) [-&lt;option&gt; &lt;value&gt; … ]</strong>: update a task.<br>
@@ -217,9 +217,15 @@
 					<strong>-r</strong> or <strong>repeat <repeat string></strong><br>
 					<strong>-t</strong> or <strong>tag <tags, comma separated></strong><br>
 					<strong>-n</strong> or <strong>rename <new name></strong> renames the task, and is only applicable to Update.<br>
+					<p><strong>Search and Filter</strong></p>
+					<p>The following fields are supported, with the following values:</p>
+					<strong>start:</strong> : &gt;, -&lt;, &gt;= , -&lt;= , =, !=, ~, !~. For example, <strong>start:-&lt;date value&gt;</strong>.<br>
+					<strong>end:</strong> : &gt;, -&lt;, &gt;= , -&lt;= , =, !=, ~, !~<br>
+					<strong>tag:</strong> : =, !=, :, !:<br>
+					<strong>name:</strong> : =, !=, :, !:<br>
+					<strong>content:</strong> : =, !=, :, !:<br>
+					<strong>priority:</strong> : &gt;, -&lt;, &gt;= , -&lt;= , =, !=
 					</div>
-				</div>
-				<div class="modal-footer">
 				</div>
 			</div>
 		  </div>
