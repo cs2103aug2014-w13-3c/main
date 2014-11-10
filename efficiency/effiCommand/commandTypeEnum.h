@@ -8,7 +8,8 @@ namespace commandTypeEnum {
 		VIEW, SCROLL, MARK_COMPLETE, MARK_INCOMPLETE,
 		ADD_TASK, UPDATE_TASK, DELETE_TASK,  
 		SEARCH, FILTER, SORT,
-		UNDO
+		UNDO,
+		HELP, EXIT
 	};
 };
 #endif

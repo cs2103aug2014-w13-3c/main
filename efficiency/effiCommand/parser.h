@@ -62,6 +62,9 @@ private:
 
 	// to check the entire user input
 	multimap<string, any> checkCommandSyntax(vector<string> commandStringTokens);
+	// check the command keyword
+	multimap<string, any> checkCommandKeyword(vector<string> commandStringTokens, multimap<string,any> &cmdParamAndOptMap, commandTypeEnum::COMMAND_TYPE &cmdType);
+
 	// to process all the existing option fields in a user input
 	multimap<string, any> extractOptionsAndValues(commandTypeEnum::COMMAND_TYPE cmdType, 
 												  multimap<string, any> cmdParamAndOptMap, 

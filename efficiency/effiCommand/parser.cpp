@@ -82,6 +82,12 @@ void Parser::loadValidCommandKeywords(){
 	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
 	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
 
+	validCommandKeywords.push_back(make_pair("sort",commandTypeEnum::SORT));
+	validCommandKeywords.push_back(make_pair("/st",commandTypeEnum::SORT));
+
+	validCommandKeywords.push_back(make_pair("exit",commandTypeEnum::EXIT));
+	validCommandKeywords.push_back(make_pair("/e",commandTypeEnum::EXIT));
+
 }
 
 //@author A0098802X
@@ -365,22 +371,7 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	// Final multimap result
 	multimap<string,any> cmdParamAndOptMap;
 
-	// Iterate through the list of all valid command keywords
-	for(unsigned int i = 0; i < validCommandKeywords.size(); i++){
-
-		// found available command
-		if( areEqualStringsIgnoreCase(commandStringTokens[0], validCommandKeywords[i].first) ){
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::COMMAND, validCommandKeywords[i].second));
-			cmdType = validCommandKeywords[i].second;
-			break;
-
-		// reached end of list and no valid command keyword is found
-		} else if(isInvalidCommandKeyword(i)){
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
-			return cmdParamAndOptMap;
-		}
-		
-	}
+	cmdParamAndOptMap = checkCommandKeyword(commandStringTokens, cmdParamAndOptMap, cmdType);
 
 	// Assume user has not entered any options field for commands requiring it
 	bool noOptionsInUserInput = true;
@@ -630,6 +621,8 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 	// has no param and options
 	case commandTypeEnum::UNDO:
+	case commandTypeEnum::HELP:
+	case commandTypeEnum::EXIT:
 
 		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
 		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::COMMAND, cmdType) );
@@ -643,6 +636,27 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 
 	}
 
+}
+
+//@author A0098802X
+multimap<string, any> Parser::checkCommandKeyword(vector<string> commandStringTokens, multimap<string,any> &cmdParamAndOptMap, commandTypeEnum::COMMAND_TYPE &cmdType)
+{
+	// Iterate through the list of all valid command keywords
+	for(unsigned int i = 0; i < validCommandKeywords.size(); i++){
+
+		// found available command
+		if( areEqualStringsIgnoreCase(commandStringTokens[0], validCommandKeywords[i].first) ){
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::COMMAND, validCommandKeywords[i].second));
+			cmdType = validCommandKeywords[i].second;
+			return cmdParamAndOptMap;
+
+			// reached end of list and no valid command keyword is found
+		} else if(isInvalidCommandKeyword(i)){
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
+			return cmdParamAndOptMap;
+		}
+
+	}
 }
 
 //@author A0098802X
