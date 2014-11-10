@@ -7,8 +7,9 @@ using namespace commandTypeEnum;
 using namespace boost::posix_time;
 using namespace boost::gregorian;
 
-void  drawTable(vector<Controller::CEvent> issues, QWebElement target);
+void drawTable(vector<Controller::CEvent> issues, QWebElement target);
 
+// Constructor. Initialises class variables.
 uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ctrl):webView(webView),
 							controller(std::move(ctrl)),
 							maxIssues(2),
@@ -35,6 +36,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 	webView->registerPageLoad([this](){
 		showOnGUI();
 
+		// Register watches on headers for clicks.
 		// Tasks
 		this->webView->watchButtonPress("task_id", [this](){
 			showOnGUISorted("id", "tasks");
@@ -111,6 +113,7 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 		});
 	});
 
+	// Register a watch on the input box for change in input.
 	webView->watch("#command-box",
 		[](QWebElement &element)->QString{ return element.evaluateJavaScript("this.value").toString(); },
 		[this](std::string s, QKeyEvent *key) { 
@@ -127,18 +130,25 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			});
 }
 
+// Gets input from the command box.
 string uiController::getCommandBox(){
 	auto element = webView->page()->mainFrame()->documentElement().findFirst("#command-box");
 	return element.evaluateJavaScript("this.value").toString().toStdString();
 }
 
-
+// Sets the contents of the command box.
 void uiController::setCommandBox(string str){
 	auto element = webView->page()->mainFrame()->documentElement().findFirst("#command-box");
 	element.evaluateJavaScript(QString::fromStdString("this.value=\'"+str+"\'"));
 }
-void uiController::commandHistoryNext()
-{
+
+// Empties the command box.
+void uiController::clearCommandBox(){
+	setCommandBox("");
+}
+
+// Gets the next command in the command history.
+void uiController::commandHistoryNext(){
 	if(commandIndex == commandHistory.size())
 		return;
 	commandIndex++;
@@ -148,8 +158,8 @@ void uiController::commandHistoryNext()
 		setCommandBox(commandHistory[commandIndex]);
 }
 
-void uiController::commandHistoryPrev()
-{
+// Gets the previous command in the command history.
+void uiController::commandHistoryPrev(){
 	if(commandIndex == 0 || commandHistory.size() == 0)
 		return;
 	commandIndex--;
@@ -158,16 +168,13 @@ void uiController::commandHistoryPrev()
 	setCommandBox(commandHistory[commandIndex]);
 }
 
-void uiController::clearCommandBox(){
-	setCommandBox("");
-}
-
+// Sends command input to the parser and executor, and outputs the results.
 void uiController::onCommandInput(string input){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
-	qDebug()<<QString::fromStdString(input); // check output
 	std::pair<Controller::unregisterAction, string> filterResults;
 	vector<Controller::CEvent> searchResults;
 	multimap<string,any> parsedCommand;
+
 	try{
 		parsedCommand = parser.parseCommand(input);
 	}
@@ -242,6 +249,7 @@ void uiController::onCommandInput(string input){
 	}
 }
 
+// Displays search results in a modal box.
 void uiController::displaySearchResults(vector<Controller::CEvent> events){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement searchResultsTarget = dom.findFirst("#Search-display-target");
@@ -251,6 +259,7 @@ void uiController::displaySearchResults(vector<Controller::CEvent> events){
 	searchResultsWindow.addClass("display");
 }
 
+// Displays filtered results in the GUI.
 void uiController::displayFilterResults(std::pair<Controller::unregisterAction, string> events){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement messageArea = dom.findFirst("#message-area");
@@ -260,12 +269,14 @@ void uiController::displayFilterResults(std::pair<Controller::unregisterAction, 
 	showOnGUI();
 }
 
+// Brings up the Help screen.
 void uiController::displayHelp(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement searchResultsWindow = dom.findFirst("#helpWindow");
 	searchResultsWindow.addClass("display");
 }
 
+// Displays result messages in the Message area.
 void uiController::displayResultMessage(result_message_t message){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement messageArea = dom.findFirst("#message-area");
@@ -308,6 +319,7 @@ void uiController::displayResultMessage(result_message_t message){
 	}
 }
 
+// Changes a date into a string for printing.
 string formatDate(ptime t){
 	if(t.is_not_a_date_time())
 		return "-";
@@ -319,6 +331,7 @@ string formatDate(ptime t){
 	return ss.str();
 }
 
+// Formats tags for printing.
 string formatTags(vector<string> tags){
 	stringstream ss;
 	for(auto tag: tags)
@@ -326,61 +339,7 @@ string formatTags(vector<string> tags){
 	return ss.str();
 }
 
-void drawTable(vector<Controller::CEvent> issues, QWebElement target){
-	auto addfield = [](QWebElement &e, string field, string attribute){ 
-		e.appendInside(QString::fromStdString("<td "+attribute+">"+field+"</td>"));
-	};
-	auto addQfield = [](QWebElement &e, QString field){ 
-		e.appendInside("<td>"+field+"</td>");
-	};
-
-	const QChar notcomplete(0x2610);
-	const QChar complete(0x2611);
-	ptime now = second_clock::local_time();
-	date today_date = now.date();
-	date start_date;
-	date end_date;
-	string attribute;
-
-	for(auto issue = issues.begin(); issue!=issues.end(); ++issue)
-	{
-		qDebug()<<QString::fromStdString(issue->getName());	
-		target.appendInside("<tr></tr>");
-		auto tr = target.lastChild();
-		//is complete?
-		addQfield(tr, issue->getCompleteStatus()?complete: notcomplete); 
-		//ID
-		addfield(tr, to_string(issue->getId()), "");
-		//start
-		// highlight if date is today's date
-		start_date = issue->getStartDate().date();
-		if(start_date == today_date){
-			attribute = "style='color:red;'";
-			addfield(tr, formatDate(issue->getStartDate()), attribute);
-		}
-		else  {
-			addfield(tr, formatDate(issue->getStartDate()), "");
-		}
-		//end
-		// highlight if date is today's date
-		end_date = issue->getEndDate().date();
-		if(end_date == today_date){
-			attribute = "style='color:red;'";
-			addfield(tr, formatDate(issue->getEndDate()), attribute);
-		}
-		else {
-			addfield(tr, formatDate(issue->getEndDate()), "");
-		}
-		//name
-		addfield(tr, issue->getName(), "");
-		//tags
-		addfield(tr, formatTags(issue->getTags()), "");
-		//description
-		addfield(tr, issue->getContent(), ""); 
-		target.appendInside(tr);
-	}
-}
-
+// Outputs all issues onto the GUI.
 void uiController::showOnGUI(){
 	clearGUI();
 	//draw table with Issues.
@@ -406,6 +365,62 @@ void uiController::showOnGUI(){
 	drawTable(deadlines, deadlinestarget);
 }
 
+// Outputs issues of a specific type onto the GUI.
+void drawTable(vector<Controller::CEvent> issues, QWebElement target){
+	auto addfield = [](QWebElement &e, string field, string attribute){ 
+		e.appendInside(QString::fromStdString("<td "+attribute+">"+field+"</td>"));
+	};
+	auto addQfield = [](QWebElement &e, QString field){ 
+		e.appendInside("<td>"+field+"</td>");
+	};
+
+	const QChar notcomplete(0x2610);
+	const QChar complete(0x2611);
+	ptime now = second_clock::local_time();
+	date today_date = now.date();
+	date start_date;
+	date end_date;
+	string attribute;
+
+	for(auto issue = issues.begin(); issue!=issues.end(); ++issue)
+	{
+		target.appendInside("<tr></tr>");
+		auto tr = target.lastChild();
+		// Is complete?
+		addQfield(tr, issue->getCompleteStatus()?complete: notcomplete); 
+		// ID
+		addfield(tr, to_string(issue->getId()), "");
+		// Start
+		// Highlight if date is today's date
+		start_date = issue->getStartDate().date();
+		if(start_date == today_date){
+			attribute = "style='color:red;'";
+			addfield(tr, formatDate(issue->getStartDate()), attribute);
+		}
+		else  {
+			addfield(tr, formatDate(issue->getStartDate()), "");
+		}
+		// End
+		// Highlight if date is today's date
+		end_date = issue->getEndDate().date();
+		if(end_date == today_date){
+			attribute = "style='color:red;'";
+			addfield(tr, formatDate(issue->getEndDate()), attribute);
+		}
+		else {
+			addfield(tr, formatDate(issue->getEndDate()), "");
+		}
+		// Name
+		addfield(tr, issue->getName(), "");
+		// Tags
+		addfield(tr, formatTags(issue->getTags()), "");
+		// Description
+		addfield(tr, issue->getContent(), ""); 
+		target.appendInside(tr);
+	}
+}
+
+// Sorts issues of a certain type by a certain header and outputs them onto the GUI.
 void uiController::showOnGUISorted(string type, string issue_type){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	QWebElement target;
@@ -496,6 +511,7 @@ void uiController::showOnGUISorted(string type, string issue_type){
 	drawTable(filteredIssues, target);
 }
 
+// Swap issues using a string comparator.
 void uiController::sortByString(string s1, string s2, int j, 
 								vector<Controller::CEvent> &filteredIssues){
 	transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
@@ -505,6 +521,7 @@ void uiController::sortByString(string s1, string s2, int j,
 	}
 }
 
+// Swap issues using an integer comparator.
 void uiController::sortByNum(int n1, int n2, int j,
 							 vector<Controller::CEvent> &filteredIssues){
 	if(n1 > n2){
@@ -512,6 +529,7 @@ void uiController::sortByNum(int n1, int n2, int j,
 	}
 }
 
+// Swap issues using a date comparator.
 void uiController::sortByDate(ptime d1, ptime d2, int j,
 					vector<Controller::CEvent> &filteredIssues){
 	if(d1 > d2){
@@ -519,6 +537,7 @@ void uiController::sortByDate(ptime d1, ptime d2, int j,
 	}
 }
 
+// Swap issues by comparing the first tag.
 void uiController::sortByTag(vector<string> tags1, vector<string> tags2, int j,
 							 vector<Controller::CEvent> &filteredIssues){
 	if(tags1.empty()){
@@ -530,31 +549,35 @@ void uiController::sortByTag(vector<string> tags1, vector<string> tags2, int j,
 	}
 }
 
+// Generic swap for issues.
 void uiController::swapIssues(int j, vector<Controller::CEvent> &issues){
 		auto temp = issues[j];
 		issues[j] = issues[j+1];
 		issues[j+1] = temp;
 }
 
+// Clear all issues from the GUI.
 void uiController::clearGUI(){
 	clearEvents();
 	clearDeadlines();
 	clearTasks();
 }
 
+// Clear Events from the GUI.
 void uiController::clearEvents(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	auto issuetarget = dom.findFirst("#Events-display-target");
 	issuetarget.removeAllChildren();
 }
 
+// Clear Deadlines from the GUI.
 void uiController::clearDeadlines(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	auto issuetarget = dom.findFirst("#Deadlines-display-target");
 	issuetarget.removeAllChildren();
 }
 
-
+// Clear Tasks from the GUI.
 void uiController::clearTasks(){
 	QWebElement dom = webView->page()->mainFrame()->documentElement();
 	auto issuetarget = dom.findFirst("#Tasks-display-target");
