@@ -173,24 +173,66 @@ void Parser::loadSortByType(){
 pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 
 	vector<string> dtToken = tokenizeCommandString(dtFieldValue, false);
-
 	pair<bool,ptime> result;
 	result.first = true;
 
 	if(isEnteredDateAndTime(dtToken)){
 
 		string time = dtToken[1];
-
 		replace(time.begin(), time.end(), ':', ' ');
 		replace(time.begin(), time.end(), '.', ' ');
-
 		vector<string> timeToken = tokenizeCommandString(time, false);
 
 		int hour = 0;
 		int minute = 0;
 		int second = 0;
 
-		result = standardizeTo24Hour(timeToken, hour, minute, result, second);
+		if(isLongTimeFormat(timeToken)){
+			try{
+				hour = stoi(timeToken[0]);
+				minute = stoi(timeToken[1]);
+			} catch(...) {
+				result.first = false;
+				return result;
+			}
+
+			if(isExistSecond(timeToken)){
+				second = stoi(timeToken[2]);;
+			}
+
+			if ( hasSuffix(timeToken[timeToken.size() - 1],"noon") ||
+				hasSuffix(timeToken[timeToken.size() - 1],"PM") || 
+				hasSuffix(timeToken[timeToken.size() - 1],"AM") ){
+
+					if(isPM(timeToken)){			
+						hour = (hour % 12) + 12;
+					}
+					timeToken[0] = to_string(hour);
+
+			}
+
+			// for 12-hour format only which is short form
+			// e.g 4pm, 5am, 14pm, 3pm
+		} else if(isShortFormTimeFormat(timeToken)) {
+
+			string hourString = timeToken[0].substr(0, timeToken[0].rfind("AM"));
+			hourString = timeToken[0].substr(0, timeToken[0].rfind("PM"));
+			hourString = timeToken[0].substr(0, timeToken[0].rfind("noon"));
+
+			try{
+				hour = stoi(hourString);
+			} catch (...){
+				result.first = false;
+				return result;
+			}
+
+			if(isPM(timeToken)){				
+				hour = (hour % 12) + 12;
+			}
+
+			timeToken[0] = to_string(hour);
+
+		}
 
 		char buff[100];
 		sprintf_s(buff, "%02d:%02d:%02d", hour, minute, second);
@@ -214,85 +256,27 @@ pair<bool,ptime> Parser::checkDateTime(string dtFieldValue, bool firstRun){
 }
 
 //@author A0098802X
-bool Parser::isEnteredDateAndTime(vector<string> &dtToken){
+bool Parser::isEnteredDateAndTime(vector<string> dtToken){
 	return dtToken.size() > 1;
 }
 
 //@author A0098802X
-pair<bool, ptime> Parser::standardizeTo24Hour(vector<string> &timeToken, int &hour, int &minute, pair<bool,ptime> &result, int &second){
-	// process 24-hour and 12-hour format which has 3 values
-	// e.g 12:00:00pm and 23:59:59
-	if(isLongTimeFormat(timeToken)){
-
-		try{
-			hour = stoi(timeToken[0]);
-			minute = stoi(timeToken[1]);
-		} catch(...) {
-			result.first = false;
-			return result;
-		}
-
-		if(isExistSecond(timeToken)){
-			second = stoi(timeToken[2]);;
-		}
-
-		if ( hasSuffix(timeToken[timeToken.size() - 1],"noon") ||
-			hasSuffix(timeToken[timeToken.size() - 1],"PM") || 
-			hasSuffix(timeToken[timeToken.size() - 1],"AM") ){
-
-				if(isPM(timeToken)){			
-					hour = (hour % 12) + 12;
-				}
-
-				timeToken[0] = to_string(hour);
-
-		}
-
-		return result;
-
-		// for 12-hour format only which is short form
-		// e.g 4pm, 5am, 14pm, 3pm
-	} else if(isShortFormTimeFormat(timeToken)) {
-
-		string hourString = timeToken[0].substr(0, timeToken[0].rfind("AM"));
-		hourString = timeToken[0].substr(0, timeToken[0].rfind("PM"));
-		hourString = timeToken[0].substr(0, timeToken[0].rfind("noon"));
-
-		try{
-			hour = stoi(hourString);
-		} catch (...){
-			result.first = false;
-			return result;
-		}
-
-		if(isPM(timeToken)){				
-			hour = (hour % 12) + 12;
-		}
-
-		timeToken[0] = to_string(hour);
-
-		return result;
-
-	}
-}
-
-//@author A0098802X
-bool Parser::isLongTimeFormat(vector<string> &timeToken){
+bool Parser::isLongTimeFormat(vector<string> timeToken){
 	return timeToken.size() >= 2 && timeToken.size() <= 3;
 }
 
 //@author A0098802X
-bool Parser::isShortFormTimeFormat(vector<string> &timeToken){
+bool Parser::isShortFormTimeFormat(vector<string> timeToken){
 	return timeToken.size() == 1;
 }
 
 //@author A0098802X
-bool Parser::isExistSecond(vector<string> &timeToken){
+bool Parser::isExistSecond(vector<string> timeToken){
 	return timeToken.size() == 3;
 }
 
 //@author A0098802X
-bool Parser::isPM(vector<string> &timeToken){
+bool Parser::isPM(vector<string> timeToken){
 	return hasSuffix(timeToken[timeToken.size() - 1],"PM");
 }
 
@@ -300,16 +284,17 @@ bool Parser::isPM(vector<string> &timeToken){
 ptime Parser::parseDate(string s){
 
 	s = addPaddingZeros(s);
-
 	const size_t dtFormats = sizeof(inputFormats)/sizeof(inputFormats[0]);
+
 	for(size_t i=0; i < dtFormats; i++){
 		istringstream ss(s);
 		ss.imbue(inputFormats[i]);
 		ptime dateTime;
 		ss >> dateTime;
 
-		if(dateTime != not_a_date_time)
+		if(dateTime != not_a_date_time){
 			return dateTime;
+		}
 	}
 	throw "Cannot parse";
 
@@ -332,7 +317,6 @@ string Parser::addPaddingZeros(string s){
 	}
 
 	s = joinVector(dateToken, "-");
-
 	return s;
 
 }
@@ -340,12 +324,11 @@ string Parser::addPaddingZeros(string s){
 //@author A0098802X
 // Constructor
 Parser::Parser(){
-
 	loadValidCommandKeywords();
 	loadOptionFieldsChecker();
 	loadViewToScrollAndSort();
 	loadScrollDirection();
-
+	loadSortByType();
 }
 
 //@author A0098802X
@@ -363,8 +346,8 @@ multimap<string, any> Parser::parseCommand(const string commandString){
 	}
 
 	vector<string> commandStringTokens = tokenizeCommandString(commandString, false);
-	return checkCommandSyntax(commandStringTokens);
-
+	multimap<string, any> result = checkCommandSyntax(commandStringTokens);
+	return result;
 }
 
 //@author A0098802X
@@ -377,10 +360,14 @@ bool Parser::isEmptyCommand(const string commandString){
 multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTokens){
 
 	// Init Enum for identification
-	commandTypeEnum::COMMAND_TYPE cmdType;
+	commandTypeEnum::COMMAND_TYPE cmdType = commandTypeEnum::UNKNOWN;
 	// Final multimap result
 	multimap<string,any> cmdParamAndOptMap;
-	cmdParamAndOptMap = checkCommandKeyword(commandStringTokens, cmdParamAndOptMap, cmdType);
+	pair< multimap<string,any>, commandTypeEnum::COMMAND_TYPE> cmdTypeResult;
+
+	cmdTypeResult = checkCommandKeyword(commandStringTokens, cmdParamAndOptMap, cmdType);
+	cmdParamAndOptMap = cmdTypeResult.first;
+	cmdType = cmdTypeResult.second;
 
 	if( isFalseValidKey(cmdParamAndOptMap)){
 		return cmdParamAndOptMap;
@@ -394,277 +381,192 @@ multimap<string, any> Parser::checkCommandSyntax(vector<string> commandStringTok
 	case commandTypeEnum::ADD_TASK:
 	case commandTypeEnum::DELETE_TASK:	
 	case commandTypeEnum::UPDATE_TASK:		
-
-		// Iterate through entire user command input except processed command keyword
-		for(unsigned int i = 1; i < commandStringTokens.size(); i++){
-			// iterate through lists of available option fields
-			for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
-				if(isMissingCommandParameters(i, j, commandStringTokens)){
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-					return cmdParamAndOptMap;
-				// OPTIONS MATCH
-				} else if(areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
-
-					// IF command has no options
-					if (noOptionsInUserInput){
-						noOptionsInUserInput = false;
-						vector<string> extractParam;
-						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
-						string Param = joinVector(extractParam, " ");
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-					}
-
-					// check if the option fields and their values are valid, and if valid, map into final multimap
-					cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j], true);	
-					
-					// if no option field is invalid, mark as valid
-					if(cmdParamAndOptMap.count("valid") == 0){
-						cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
-					}
-
-					return cmdParamAndOptMap;
-
-				}
-			}
-		}
-
-		// If the given user input has no option field, process parameters only
-		if(noOptionsInUserInput){
-			 
-			vector<string> extractParam;
-			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-			
-			// If parameter is not found, user input is invalid
-			if(extractParam.empty()){
-				cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
-				return cmdParamAndOptMap;
-			}
-
-			// otherwise, extract parameter and mark map as true
-			string Param = joinVector(extractParam, " ");
-			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, Param) );
-			cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
-			return cmdParamAndOptMap;
-
-		}
-
+		return processCommandsWithParamAndOptions(cmdParamAndOptMap, commandStringTokens, noOptionsInUserInput, cmdType);
 	// has only param and a recursive option
 	case commandTypeEnum::MARK_COMPLETE:	
 	case commandTypeEnum::MARK_INCOMPLETE:	
-
-		if(commandStringTokens.size() <= 1){
-
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-			return cmdParamAndOptMap;
-
-		} else {
-
-			// ITERATE THRU ENTIRE ENTERED COMMAND
-			for(unsigned int i = 1; i < commandStringTokens.size(); i++){
-
-				// ITERATE THRU AVAILABLE OPTIONS FIELD
-				for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
-
-					// PARAM MISSING
-					if(isMissingCommandParameters(i, j, commandStringTokens)){
-
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-						return cmdParamAndOptMap;
-
-					} else if (areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )) {
-
-						vector<string> extractParam;
-						copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
-						string Param = joinVector(extractParam, " ");
-
-						if(isRecursiveField(j)) {
-
-							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );	
-							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RECURSIVE, true) );
-
-						} else {
-
-							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-							cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );	
-
-						}
-
-						return cmdParamAndOptMap;
-
-					} else if(isNotFoundOptionField(i, j, commandStringTokens)) {
-
-						vector<string> extractParam;
-						copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-						string Param = joinVector(extractParam, " ");
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-						cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-						return cmdParamAndOptMap;
-
-					}
-
-				}
-
-			}
-
-		}
-
-	// has only param
+		return processCommandsSupportingRecursiveOnly(commandStringTokens, cmdParamAndOptMap, cmdType);
+	// has only a 2-string-param
 	case commandTypeEnum::SCROLL:
-
-		if(isInsufficientParameters(commandStringTokens)){
-
-			vector<string> extractParam;
-			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-			string Param = joinVector(extractParam, " ");
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-			return cmdParamAndOptMap;
-
-		} else {
-
-			vector<string> extractParam;
-			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-			string Param = joinVector(extractParam, " ");
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-
-			for(unsigned int i = 0; i < viewToScrollAndSort.size(); i++) {
-
-				if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScrollAndSort[i]) ) {
-					break;
-				} else if ( i == viewToScrollAndSort.size() - 1 ) {
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-					return cmdParamAndOptMap;
-				}
-
-			}
-
-			for(unsigned int i = 0; i < scrollDirection.size(); i++) {
-
-				if( areEqualStringsIgnoreCase(commandStringTokens[2], scrollDirection[i]) ) {
-					break;
-				} else if ( i == scrollDirection.size() - 1 ) {
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-					return cmdParamAndOptMap;
-				}
-
-			}
-
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-			return cmdParamAndOptMap;
-
-		}
-
 	case commandTypeEnum::SORT:
-
-		if(isInsufficientParameters(commandStringTokens)){
-
-			vector<string> extractParam;
-			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-			string Param = joinVector(extractParam, " ");
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-			return cmdParamAndOptMap;
-
-		} else {
-
-			vector<string> extractParam;
-			copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
-			string Param = joinVector(extractParam, " ");
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
-
-			for(unsigned int i = 0; i < viewToScrollAndSort.size(); i++) {
-
-				if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScrollAndSort[i]) ) {
-					break;
-				} else if ( i == viewToScrollAndSort.size() - 1 ) {
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-					return cmdParamAndOptMap;
-				}
-
-			}
-
-			for(unsigned int i = 0; i < sortByType.size(); i++) {
-
-				if( areEqualStringsIgnoreCase(commandStringTokens[2], sortByType[i]) ) {
-					break;
-				} else if ( i == sortByType.size() - 1 ) {
-					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
-					return cmdParamAndOptMap;
-				}
-
-			}
-
-			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
-			return cmdParamAndOptMap;
-
-		}
-
+		cmdParamAndOptMap = processCommandsWithTwoStringParam(commandStringTokens, cmdParamAndOptMap, cmdType);
+		return cmdParamAndOptMap;
 	// supports logical operations (search and filter)
 	case commandTypeEnum::SEARCH:
 	case commandTypeEnum::FILTER:
-		{
-			try{
-				stringstream joined;
-				for(int i = 1; i<commandStringTokens.size();i++)
-					joined<<commandStringTokens[i]<<" ";
-				multimap<string,any> cmdmap;
-				cmdmap.insert(make_pair(cmdOptionField::VALID, true) );
-				cmdmap.insert(make_pair(cmdOptionField::COMMAND, cmdType) );
-				cmdmap.insert(make_pair(cmdOptionField::PREDICATE, parsePredicate(joined.str())));
-				cmdmap.insert(make_pair(cmdOptionField::PARSE_STRING, joined.str()));
-				return cmdmap;
-			}catch(expected& e)
-			{
-				multimap<string,any> cmdmap;
-				cmdmap.insert( pair<string, any>(cmdOptionField::VALID, false) );
-				cmdmap.insert( pair<string, any>(cmdOptionField::COMMAND, cmdType) );
-				return cmdmap;
-			}
-		}
-
+		return processCommandsWithPrecidates(commandStringTokens, cmdType);
 	// has no param and options
 	case commandTypeEnum::UNDO:
 	case commandTypeEnum::HELP:
 	case commandTypeEnum::EXIT:
-
 		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
 		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::COMMAND, cmdType) );
 		return cmdParamAndOptMap;
-
+	case commandTypeEnum::UNKNOWN:
 	default:
-
 		// SHOULD NEVER BE RUN
 		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
 		return cmdParamAndOptMap;
-
 	}
 
 }
 
 //@author A0098802X
-multimap<string, any> Parser::checkCommandKeyword(vector<string> commandStringTokens, multimap<string,any> &cmdParamAndOptMap, commandTypeEnum::COMMAND_TYPE &cmdType)
+pair< multimap<string,any>, commandTypeEnum::COMMAND_TYPE> Parser::checkCommandKeyword(vector<string> commandStringTokens, 
+																					   multimap<string,any> cmdParamAndOptMap, 
+																					   commandTypeEnum::COMMAND_TYPE cmdType)
 {
 	// Iterate through the list of all valid command keywords
 	for(unsigned int i = 0; i < validCommandKeywords.size(); i++){
-
 		// found available command
 		if( areEqualStringsIgnoreCase(commandStringTokens[0], validCommandKeywords[i].first) ){
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::COMMAND, validCommandKeywords[i].second));
 			cmdType = validCommandKeywords[i].second;
-			return cmdParamAndOptMap;
-
-			// reached end of list and no valid command keyword is found
+			break;
+		// reached end of list and no valid command keyword is found
 		} else if(isInvalidCommandKeyword(i)){
 			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false));
-			return cmdParamAndOptMap;
+			break;
 		}
+	}
 
+	return make_pair(cmdParamAndOptMap, cmdType);
+}
+
+//@author A0098802X
+multimap<string, any> Parser::processCommandsWithParamAndOptions(multimap<string,any> cmdParamAndOptMap, 
+															 vector<string> commandStringTokens, 
+															 bool noOptionsInUserInput, 
+															 commandTypeEnum::COMMAND_TYPE cmdType){
+
+	pair<multimap<string,any>, bool> optionResult;
+
+	optionResult = processAllOptionFields(commandStringTokens, cmdParamAndOptMap, noOptionsInUserInput, cmdType);
+
+	if( isFalseValidKey(optionResult.first)){
+		return optionResult.first;
+	}
+
+	// If the given user input has no option field, process parameters only
+	if(optionResult.second){
+		return extractParamOnly(commandStringTokens, cmdParamAndOptMap);
+	}
+
+	return optionResult.first;
+
+}
+
+//@author A0098802X
+multimap<string, any> Parser::processCommandsSupportingRecursiveOnly(vector<string> commandStringTokens, 
+																	 multimap<string,any> cmdParamAndOptMap, 
+																	 commandTypeEnum::COMMAND_TYPE cmdType)
+{
+	// Iterate through entire user input
+	for(unsigned int i = 1; i < commandStringTokens.size(); i++){
+		// Iterate through the list of available option fields
+		for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+			// If parameter is missing, set valid to false
+			if(isMissingCommandParameters(i, j, commandStringTokens)){
+				cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+				return cmdParamAndOptMap;
+			// Only recursive option field is supported here
+			} else if (areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )) {
+				vector<string> extractParam;
+				copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+				string Param = joinVector(extractParam, " ");
+				if(isInsufficientParameters(commandStringTokens)){
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+				} else {
+					checkOptionCommandConstraints(j, cmdParamAndOptMap, Param, cmdType);
+				}
+				return cmdParamAndOptMap;
+			// Parameters only, no option fields
+			} else if(isNotFoundOptionField(i, j, commandStringTokens)) {
+				return extractParamOnly(commandStringTokens, cmdParamAndOptMap);
+			}
+		}
 	}
 }
 
 //@author A0098802X
-bool Parser::isFalseValidKey(multimap<string,any> &cmdParamAndOptMap){
+multimap<string, any> Parser::processCommandsWithTwoStringParam(vector<string> commandStringTokens, 
+																multimap<string,any> cmdParamAndOptMap, 
+																commandTypeEnum::COMMAND_TYPE cmdType){
+	vector<string> extractParam;
+	copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+	string Param = joinVector(extractParam, " ");
+	if(isInsufficientParameters(commandStringTokens)){
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+		return cmdParamAndOptMap;
+	} else {
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param) );
+	}
+	cmdParamAndOptMap = checkEventTypeParam(commandStringTokens, cmdParamAndOptMap);
+	if(cmdParamAndOptMap.count("valid") == 0){
+		cmdParamAndOptMap = checkSpecificCommandParam(cmdType, commandStringTokens, cmdParamAndOptMap);
+	}
+	if(cmdParamAndOptMap.count("valid") == 0){
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );
+	}
+	return cmdParamAndOptMap;
+}
+
+multimap<string, any> Parser::processCommandsWithPrecidates(vector<string> commandStringTokens, commandTypeEnum::COMMAND_TYPE cmdType){
+	try{
+		stringstream joined;
+		for(int i = 1; i<commandStringTokens.size();i++)
+			joined<<commandStringTokens[i]<<" ";
+		multimap<string,any> cmdmap;
+		cmdmap.insert(make_pair(cmdOptionField::VALID, true) );
+		cmdmap.insert(make_pair(cmdOptionField::COMMAND, cmdType) );
+		cmdmap.insert(make_pair(cmdOptionField::PREDICATE, parsePredicate(joined.str())));
+		cmdmap.insert(make_pair(cmdOptionField::PARSE_STRING, joined.str()));
+		return cmdmap;
+	}catch(expected& e)
+	{
+		multimap<string,any> cmdmap;
+		cmdmap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+		cmdmap.insert( pair<string, any>(cmdOptionField::COMMAND, cmdType) );
+		return cmdmap;
+	}
+}
+
+//@author A0098802X
+void Parser::checkOptionCommandConstraints(unsigned int j, 
+										   multimap<string,any> cmdParamAndOptMap, 
+										   string Param, 
+										   commandTypeEnum::COMMAND_TYPE cmdType){
+	if(isValidRecursiveField(j, cmdType)) {
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, true) );	
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::RECURSIVE, true) );
+	} else {
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+		cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );	
+	}
+}
+
+//@author A0098802X
+multimap<string, any> Parser::extractParamOnly(vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap)
+{
+	vector<string> extractParam;
+	copy(commandStringTokens.begin() + 1, commandStringTokens.end(), back_inserter(extractParam));
+
+	// If parameter is not found, user input is invalid
+	if(extractParam.empty()){
+		cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, false) );
+		return cmdParamAndOptMap;
+	}
+
+	// otherwise, extract parameter and mark map as true
+	string Param = joinVector(extractParam, " ");
+	cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::PARAMETERS, Param) );
+	cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
+	return cmdParamAndOptMap;
+}
+
+//@author A0098802X
+bool Parser::isFalseValidKey(multimap<string,any> cmdParamAndOptMap){
 	return cmdParamAndOptMap.count("valid") != 0 &&
 		any_cast<bool> ( cmdParamAndOptMap.find("valid")->second ) == false;
 }
@@ -680,20 +582,115 @@ bool Parser::isMissingCommandParameters(unsigned int i, unsigned int j, vector<s
 }
 
 //@author A0098802X
-bool Parser::isRecursiveField(unsigned int j){
-	return (areEqualStringsIgnoreCase("recursive", get<0>(optionFieldsChecker[j]) ) || 
-		( areEqualStringsIgnoreCase("-r", get<0>(optionFieldsChecker[j])) ) );
+bool Parser::isValidRecursiveField(unsigned int j, commandTypeEnum::COMMAND_TYPE cmdType){
+	return ( (areEqualStringsIgnoreCase("recursive", get<0>(optionFieldsChecker[j]) ) || 
+			  areEqualStringsIgnoreCase("-r", get<0>(optionFieldsChecker[j])) ) &&
+			 (cmdType == commandTypeEnum::DELETE_TASK ||
+			  cmdType == commandTypeEnum::MARK_COMPLETE ||
+			  cmdType == commandTypeEnum::MARK_INCOMPLETE));
 }
 
 //@author A0098802X
-bool Parser::isNotFoundOptionField(unsigned int i, unsigned int j, vector<string> &commandStringTokens){
+multimap<string, any> Parser::checkEventTypeParam(vector<string> commandStringTokens, multimap<string,any> cmdParamAndOptMap)
+{
+	for(unsigned int i = 0; i < viewToScrollAndSort.size(); i++) {
+		if( areEqualStringsIgnoreCase(commandStringTokens[1], viewToScrollAndSort[i]) ) {
+			return cmdParamAndOptMap;
+		} else if ( i == viewToScrollAndSort.size() - 1 ) {
+			cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+			return cmdParamAndOptMap;
+		}
+	}
+}
+
+//@author A0098802X
+multimap<string, any> Parser::checkSpecificCommandParam(commandTypeEnum::COMMAND_TYPE cmdType, 
+														vector<string> commandStringTokens, 
+														multimap<string,any> cmdParamAndOptMap){
+	if(cmdType == commandTypeEnum::SCROLL){
+		for(unsigned int i = 0; i < scrollDirection.size(); i++) {
+			if( areEqualStringsIgnoreCase(commandStringTokens[2], scrollDirection[i]) ) {
+				return cmdParamAndOptMap;
+			} else if ( i == scrollDirection.size() - 1 ) {
+				cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+				return cmdParamAndOptMap;
+			}
+		}
+	} else if(cmdType == commandTypeEnum::SORT){
+		for(unsigned int i = 0; i < sortByType.size(); i++) {
+			if( areEqualStringsIgnoreCase(commandStringTokens[2], sortByType[i]) ) {
+				return cmdParamAndOptMap;
+			} else if ( i == sortByType.size() - 1 ) {
+				cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+				return cmdParamAndOptMap;
+			}
+		}
+	}
+}
+
+//@author A0098802X
+bool Parser::isNotFoundOptionField(unsigned int i, unsigned int j, vector<string> commandStringTokens){
 	return (i == commandStringTokens.size() - 1) && (j == optionFieldsChecker.size() - 1);
 }
 
 //@author A0098802X
-bool Parser::isInsufficientParameters(vector<string> &commandStringTokens)
+bool Parser::isInsufficientParameters(vector<string> commandStringTokens)
 {
 	return commandStringTokens.size() != 3;
+}
+
+//@author A0098802X
+pair<multimap<string,any>, bool> Parser::processAllOptionFields(vector<string> commandStringTokens, 
+													 multimap<string,any> cmdParamAndOptMap, 
+													 bool noOptionsInUserInput, 
+													 commandTypeEnum::COMMAND_TYPE cmdType){
+
+	pair<multimap<string,any>, bool> result;
+
+	// Iterate through entire user command input except processed command keyword
+	for(unsigned int i = 1; i < commandStringTokens.size(); i++){
+		// iterate through lists of available option fields
+		for(unsigned int j = 0; j < optionFieldsChecker.size(); j++){
+
+			if(isMissingCommandParameters(i, j, commandStringTokens)){
+				cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::VALID, false) );
+				break;
+				// OPTIONS MATCH
+			} else if(areEqualStringsIgnoreCase(commandStringTokens[i], get<0>(optionFieldsChecker[j]) )){
+
+				// IF command has no options
+				if (noOptionsInUserInput){
+					noOptionsInUserInput = false;
+					vector<string> extractParam;
+					copy(commandStringTokens.begin() + 1, commandStringTokens.begin() + i, back_inserter(extractParam));
+					string Param = joinVector(extractParam, " ");
+					cmdParamAndOptMap.insert( pair<string,any> (cmdOptionField::PARAMETERS, Param));
+				}
+
+				// check if the option fields and their values are valid, and if valid, map into final multimap
+				cmdParamAndOptMap = extractOptionsAndValues(cmdType, cmdParamAndOptMap, commandStringTokens, i , optionFieldsChecker[j], true);	
+
+				// if no option field is invalid, mark as valid
+				if(cmdParamAndOptMap.count("valid") == 0){
+					cmdParamAndOptMap.insert( pair<string, any>(cmdOptionField::VALID, true) );
+					break;
+				} else {
+					break;
+				}
+
+			}
+		}
+
+		if(cmdParamAndOptMap.count("valid") != 0){
+			break;
+		}
+
+	}
+
+	result.first = cmdParamAndOptMap;
+	result.second = noOptionsInUserInput;
+	return result;
+
 }
 
 //@author A0098802X
@@ -903,7 +900,7 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 									}
 
 							} else if (areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::START) ||
-								areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::END)){
+										areEqualStringsIgnoreCase(mmOptionKey, cmdOptionField::END)){
 
 									fieldValue = joinVector(fieldValueVector, " ");
 
@@ -989,7 +986,7 @@ multimap<string, any> Parser::extractOptionsAndValues(commandTypeEnum::COMMAND_T
 }
 
 //@author A0098802X
-void Parser::checkForDuplicateTags(vector<string> &fieldValueVector){
+void Parser::checkForDuplicateTags(vector<string> fieldValueVector){
 	for(unsigned int m = 0; m < fieldValueVector.size() - 1; m++){
 		for(unsigned int n = m + 1; n <= fieldValueVector.size() - 1; n++){
 			if(areEqualStringsIgnoreCase(fieldValueVector[m], fieldValueVector[n])){
