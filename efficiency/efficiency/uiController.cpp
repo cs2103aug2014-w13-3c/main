@@ -411,16 +411,13 @@ void uiController::showOnGUISorted(string type, string issue_type){
 	QWebElement target;
 	if(issue_type == "events"){
 		target = dom.findFirst("#Events-display-target");
-		clearEvents();
 	}
 	else if(issue_type == "deadlines"){
 		target = dom.findFirst("#Deadlines-display-target");
-		clearDeadlines();
 	}
 	else if(issue_type == "tasks")
 	{
 		target = dom.findFirst("#Tasks-display-target");
-		clearTasks();
 	}
 	else {
 		displayResultMessage(invalid_message);
@@ -483,6 +480,17 @@ void uiController::showOnGUISorted(string type, string issue_type){
 				return;
 			}
 		}
+	}
+
+	if(issue_type == "events"){
+		clearEvents();
+	}
+	else if(issue_type == "deadlines"){
+		clearDeadlines();
+	}
+	else
+	{
+		clearTasks();
 	}
 
 	drawTable(filteredIssues, target);
