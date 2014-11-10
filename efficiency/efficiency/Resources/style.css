@@ -52,12 +52,16 @@ header, #main-content, footer {
 	margin-top: 10px;
 	position: absolute;
 	height: 100%;
-	font: 11px Verdana, sans-serif;
+	font-family: Verdana, sans-serif;
+}
+
+#sidebar h1 {
+	font-size: 20px;
 }
 
 #message-area {
 	color: black;
-	font: 11px Verdana, sans-serif;
+	font: 12px Verdana, sans-serif;
 }
 
 #message-box {
@@ -265,6 +269,7 @@ table th{
 }
 .modal-body {
   padding: 20px;
+  font-size: 12px;
 }
 .modal-header,
 .modal-footer {
@@ -279,6 +284,9 @@ table th{
 .modal-footer {
   border-top: #eeeeee solid 1px;
   text-align: right;
+}
+.modal-body, .modal-header {
+	font-family: Verdana, sans-serif;
 }
 /*ADDED TO STOP SCROLLING TO TOP*/
 #close {
