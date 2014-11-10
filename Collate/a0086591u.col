@@ -1,0 +1,2163 @@
+//@author: a0086591u
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\ExecutionError.cpp
+	 */
+
+#include "ExecutionError.h"
+
+executionError::executionError(executionErrType t): type(t){}
+
+executionErrType executionError::getErrType(){
+	return type;
+}
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\ExecutionError.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\ExecutionError.h
+	 */
+
+#include <exception>
+
+enum executionErrType { NOTHING_TO_UNDO, NAME_ALREADY_EXISTS, CANNOT_FIND_TARGET };
+class executionError: public std::exception
+{
+protected:
+	executionErrType type;
+public:
+	executionError(executionErrType);
+	executionErrType getErrType();
+};
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\ExecutionError.h
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\executor.cpp
+	 */
+
+#include "parser.h"
+#include "executor.h"
+#include "Undo.h"
+#include "controller.h"
+#include "optionField.h"
+#include "ExecutionError.h"
+#include <regex>
+
+using namespace std;
+using commandTypeEnum::COMMAND_TYPE;
+using namespace cmdOptionField;
+
+//Not static in case i need to grab anything off the controller.
+std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> Executor::createActions(){
+	std::map<std::string, std::function<void(boost::any, Controller::CEvent&)>> actions;
+	actions.insert(make_pair(START, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setStartDate(any_cast<ptime>(value)); }));
+	actions.insert(make_pair(END, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setEndDate(any_cast<ptime>(value)); }));
+	actions.insert(make_pair(NAME, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setName(any_cast<string>(value)); }));
+	actions.insert(make_pair(TAGS, 
+		[](boost::any value, Controller::CEvent& evt){ evt.addTags(any_cast<vector<string>>(value)); }));
+	actions.insert(make_pair(PRIORITY, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setPriority(any_cast<int>(value)); }));
+	actions.insert(make_pair(CONTENT, 
+		[](boost::any value, Controller::CEvent& evt){ evt.setContent(any_cast<string>(value)); }));
+	return actions;
+}
+
+template<typename T>
+T get(std::string key, Executor::Command command){
+	return any_cast<T>((*command.find(key)).second);
+}
+
+Executor::Executor(Controller* ptr): ctrl(ptr), undoStack(), actions(createActions())
+{}
+
+Event::UUID Executor::find_task(Executor::Command command){
+	string param = get<string>("param",command);
+	regex extract_id("#(\\d+)");
+	std::smatch results;
+	std::regex_search (param, results, extract_id);
+	if(results.ready() && results.prefix() == "" && results.suffix() == "") //Assume trimmed by parser.
+		return ctrl->getEvent(atoi(string(results[1]).c_str())).getId(); //ensure that it exists.
+	else
+		return ctrl->getEventByName(param).getId();
+}
+
+std::pair<Event::UUID, Executor::InverseFunction> Executor::add_task(Executor::Command command){
+	try{
+		find_task(command);
+	}
+	catch(...)
+	{
+		auto id = ctrl->addEvent(get<string>("param",command)).getId();
+		auto inverse = [this, id](){ ctrl->deleteEvent(id); };
+		return make_pair(id, inverse);
+	}
+	throw executionError(NAME_ALREADY_EXISTS);
+}
+
+Executor::InverseFunction Executor::makeUpdateInverse(Controller::CEvent &evt){
+	stringstream ss;
+	ss<<evt;
+	Event::UUID taskid = evt.getId();
+	auto eventDump = ss.str();
+	return [this, taskid, eventDump]() { 
+				stringstream ss;
+				ss.str(eventDump);
+				ss>>ctrl->getEvent(taskid); 
+		};
+}
+
+Executor::InverseFunction Executor::makeDeleteInverse(Controller::CEvent &evt){
+	stringstream ss;
+	ss<<evt;
+	auto eventDump = ss.str();
+	return [this, eventDump](){
+			stringstream ss;
+			ss.str(eventDump);
+			ss>>(ctrl->addEvent("placeholder"));
+		};
+}
+
+
+//update_task must be able to work on both add/update commands.
+Executor::InverseFunction Executor::update_task(Executor::Command command, Event::UUID taskid = 0){
+	try{
+		if(!taskid)
+			taskid = find_task(command);
+	}
+	catch(...)
+	{
+		throw executionError(CANNOT_FIND_TARGET);
+	}
+	auto inverse = makeUpdateInverse(ctrl->getEvent(taskid));
+		
+	Controller::CEvent& evt = ctrl->getEvent(taskid);
+	for(auto it = command.begin(); it!=command.end();++it)
+	{
+		string field = it->first;
+		boost::any value = it->second;
+		auto action = actions.find(field);
+		if(action != actions.end())
+			action->second(value, evt);
+	}
+	evt.exec();
+	return inverse;
+}
+
+Executor::InverseFunction Executor::delete_task(Executor::Command command, Event::UUID taskid = 0)
+{
+	try{
+		if(!taskid)
+			taskid = find_task(command);
+	}
+	catch(...)
+	{
+		throw executionError(CANNOT_FIND_TARGET);
+	}
+	auto inverse = makeDeleteInverse(ctrl->getEvent(taskid));
+	ctrl->deleteEvent(taskid);
+	return inverse;
+}
+
+Executor::InverseFunction Executor::mark_complete(Executor::Command command)
+{
+	Event::UUID taskid;
+	try{
+		taskid = find_task(command);
+	}
+	catch(...)
+	{
+		throw executionError(CANNOT_FIND_TARGET);
+	}
+	bool isRecursive = command.find(RECURSIVE)!=command.end()  && 
+				get<COMMAND_TYPE>(RECURSIVE, command);
+	bool setting = get<COMMAND_TYPE>("cmd", command) == COMMAND_TYPE::MARK_COMPLETE;
+	return mark_complete(taskid, isRecursive, setting);
+}
+Executor::InverseFunction Executor::mark_complete(Event::UUID taskid, bool recursive, bool setting){
+	auto thisInverse = makeUpdateInverse(ctrl->getEvent(taskid));
+	vector<InverseFunction> childInverses;
+	if(recursive)
+	{
+		vector<Controller::CEvent> evts = ctrl->getAllEvents();
+		for(auto it = evts.begin(); it!=evts.end();++it)
+			if(it->getParent() == taskid)
+				childInverses.push_back(mark_complete(it->getId() , recursive, setting));
+	}
+	Controller::CEvent& evt = ctrl->getEvent(taskid);
+	evt.setCompleteStatus(setting);
+	evt.exec();
+	return [childInverses, thisInverse]() { 
+		for(InverseFunction child: childInverses)
+			child();
+		thisInverse();
+	};
+}
+
+void Executor::executeCommand(Executor::Command command){
+	assert(ctrl!=NULL);
+	assert(get<bool>("valid", command) == true);
+	
+	COMMAND_TYPE cmdtype = get<COMMAND_TYPE>("cmd", command);
+	Event::UUID taskid = 0; //assume nothing can have taskid of 0.
+	function<void()> inverse;
+	switch(cmdtype){
+	case COMMAND_TYPE::MARK_COMPLETE:
+	case COMMAND_TYPE::MARK_INCOMPLETE:
+		inverse = mark_complete(command);
+		undoStack.push_back(inverse);
+		break;
+	case COMMAND_TYPE::UNDO:
+		if(undoStack.size() == 0)
+			throw executionError(NOTHING_TO_UNDO);
+		undoStack.back()();
+		undoStack.pop_back();
+		break;
+	case COMMAND_TYPE::ADD_TASK:
+		//Write in terms of an add and then update.
+		{
+			auto result = add_task(command);
+			taskid = result.first;
+			inverse = result.second;
+		}
+	case COMMAND_TYPE::UPDATE_TASK:
+		{
+			auto update_inv = update_task(command, taskid);
+			inverse = (cmdtype == COMMAND_TYPE::UPDATE_TASK)? 
+			update_inv
+			:inverse;
+			undoStack.push_back(inverse); //It can also be an add task, which takes precedence.
+		}
+		break;
+	case COMMAND_TYPE::DELETE_TASK:
+		inverse = delete_task(command);
+		undoStack.push_back(inverse);
+		break;
+	default:
+		assert(false); //Unimplemented.
+	}
+}
+
+std::pair<Controller::unregisterAction, string> Executor::addFilter(Command cmd){
+	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);
+	string filterstring = get<string>(PARSE_STRING, cmd);
+	auto undo = ctrl->addFilter([pred](Controller::CEvent e)->bool{
+		return pred(boost::any(e));
+	});
+	undoStack.push_back(undo);
+	return make_pair(undo, filterstring);
+}
+vector<Controller::CEvent> Executor::search(Command cmd){
+	auto pred = get<std::function<bool(boost::any& e)>>(PREDICATE, cmd);
+	auto evts = ctrl->getAllEvents();
+	vector<Controller::CEvent> newevts;
+	for(auto it = evts.begin(); it!=evts.end();++it)
+	{
+		if(pred(boost::any(*it)))
+			newevts.push_back(*it);
+	}
+	return newevts;
+}
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\executor.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\executor.h
+	 */
+
+#ifndef EXECUTOR_H_
+#define EXECUTOR_H_
+
+#include <string>
+#include <vector>
+#include <map>
+#include <functional>
+
+#include "commandTypeEnum.h"
+#include "optionField.h"
+#include "controller.h"
+
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/any.hpp"
+using namespace boost;
+using namespace boost::posix_time;
+using namespace std;
+
+class Executor{
+public:
+	typedef multimap<std::string, boost::any> Command;
+	typedef std::function<void()> InverseFunction;
+
+	Executor(Controller * ctrl);
+	// execute a given command
+		// NOTE TO SELF: TO BE CALLED BY UI CONTROLLER
+	//Throws: CannotFindTarget('targetstring')
+	void executeCommand(Command processedCommand);
+	std::pair<Controller::unregisterAction, string> addFilter(Command processedCommand);
+	vector<Controller::CEvent> search(Command processedCommand);
+
+protected:
+	Controller * ctrl;
+	vector<std::function<void()>> undoStack;
+	Event::UUID find_task(Executor::Command command);
+	std::pair<Event::UUID, InverseFunction> add_task(Executor::Command command);
+	InverseFunction delete_task(Executor::Command command, Event::UUID taskid);
+	InverseFunction update_task(Executor::Command command, Event::UUID taskid);
+	InverseFunction mark_complete(Executor::Command command);
+	InverseFunction mark_complete(Event::UUID taskid, bool recursive, bool setting);
+	std::map<std::string, std::function<void(boost::any, Controller::CEvent& evt)>> actions; 
+	std::map<std::string, std::function<void(boost::any, Controller::CEvent& evt)>> createActions();
+	InverseFunction makeUpdateInverse(Controller::CEvent& evt);
+	InverseFunction makeDeleteInverse(Controller::CEvent& evt);
+};
+#endif
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\executor.h
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\predParser.cpp
+	 */
+
+#include "predParser.h"
+#include <vector>
+#include <boost/algorithm/string.hpp>
+#include <regex>
+#include <map>
+#include "boost/date_time/gregorian/gregorian.hpp"
+
+using namespace std;
+using namespace boost::gregorian;
+
+expected::expected(string s, int position): expect(s), location(position)
+{}
+
+expected expected::operator+(const int& rhs){
+	return expected(expect, location+rhs);
+}
+
+parseTreeNode::parseTreeNode(pred p):
+	is_predicate(true),
+	predicate(p) {}
+
+parseTreeNode::parseTreeNode(parseTreeNode * left, boolop mid,  parseTreeNode * right):
+	is_predicate(false), 
+	left(unique_ptr<parseTreeNode>(left)),
+	right(unique_ptr<parseTreeNode>(right)),
+	op(mid) {}
+
+pred parseTreeNode::toPredicate(){
+	if(is_predicate)
+		return predicate;
+	else
+		return op(left->toPredicate(), right->toPredicate());
+}
+
+pred boolop_or(pred a, pred b)
+{
+	return [a, b](boost::any x) { return a(x) || b(x); };
+}
+
+pred boolop_and(pred a, pred b)
+{
+	return [a, b](boost::any x) { return a(x) && b(x); };
+}
+
+pred boolop_xor(pred a, pred b)
+{
+	return [a, b](boost::any x) { return a(x) ^ b(x); };
+}
+
+
+pred parsePredicate(string str){
+	int bracketerr = findBracketMatchFail(str);
+	if(bracketerr != -1)
+		throw "FAIL";
+	auto tree = unique_ptr<parseTreeNode>(parsePred(str));
+	return tree->toPredicate();
+}
+
+int findBracketMatchFail(string str)
+{
+	int count = 0;
+	for(int pos = 0; pos != str.length(); pos++){
+		char c = str.at(pos);
+		if(c == '(')
+			count++;
+		else if (c == ')')
+		{
+			count--;
+			if(count < 0)
+				return pos;
+		}
+	}
+	return count == 0 ? -1 : str.length();
+}
+
+//we know the brackets match.
+pair<int, int> findFirstMatchingBrackets(string str){
+	int count = 0;
+	int start = -1, end = -1;
+	for(int pos = 0; pos != str.length(); pos++){
+		char c = str.at(pos);
+		if(c == '('){
+			if(count == 0)
+				start = pos;
+			count++;
+		}
+		else if (c == ')')
+		{
+			count--;
+			if(count == 0){
+				end = pos;
+				return make_pair(start, end);
+			}
+		}
+	}
+	return make_pair(start, -1);
+}
+
+std::tuple<string, string, string> splitPredicate(string str){
+	str = Parser::trim(str);
+	//find matching right bracket to first left bracket.
+	auto brackets = findFirstMatchingBrackets(str);
+	if(brackets.first == 0){ //there are brackets, split out the first bracket set.
+		string first = string(str.begin()+1, str.begin() + brackets.second); //but ignore the brackets
+		auto opAndRemainder = splitOp(str.substr(brackets.second+1, str.length())); 
+		return make_tuple(first, opAndRemainder.first, opAndRemainder.second);
+	} 
+	else //if(brackets.first == -1) //in this case, no brackets, split by first boolop
+	{
+		regex extractor("(.+?)((?:\\|\\|)|(?:\\&\\&))(.*)");
+		smatch matches;
+		regex_match(str, matches, extractor);
+		regex hasBoolop ("(\\|\\|)|(\\&\\&)");
+		if(regex_match(string(matches[1]), hasBoolop))
+			throw expected("(", 0);
+		return make_tuple(string(matches[1]), string(matches[2]), string(matches[3]));
+	} 
+}
+
+pair<string, string> splitOp(string str){
+	str = Parser::trim(str);
+	regex extractor ("((?:\\|\\|)|(?:\\&\\&))(.*)");
+	smatch matches;
+	regex_match(str, matches, extractor);
+	return make_pair(matches[1],matches[2]);
+}
+
+boolop parseOp(string str){
+	str = Parser::trim(str);
+	if(str == "||")
+		return boolop_or;
+	if(str == "&&")
+		return boolop_and;
+	else
+		throw std::exception("impossibru");
+}
+
+//Guarantee: brackets match
+parseTreeNode* parsePred(string str){
+	str = Parser::trim(str);
+	//format 1: empty string
+	if( str.length() == 0 )
+		throw expected("predicate", 0);
+	//Format 2: first and last brackets match
+	if(str.at(0) == '(' && str.at(str.length() - 1) == ')') 
+		return parsePred(string(str.begin()+1, str.end()-1));
+	//Format 3: assume that there's a boolop inside.
+	regex hasBoolop ("(\\|\\|)|(\\&\\&)");
+	if(regex_search(str, hasBoolop))
+	{
+		//matches the || and && operators
+		auto split = splitPredicate(str);
+		string left = std::get<0>(split);
+		string op = std::get<1>(split);
+		string right = std::get<2>(split);
+		return new parseTreeNode(parsePred(left), parseOp(op), parsePred(right));
+	}
+	//Otherwise: treat as single conditional.
+	return new parseTreeNode(parseConditional(str));
+}
+
+#include <controller.h>
+//This part needs to know things about the controller.
+
+//Assume [string] operator -> tuple(string, integer, type(string)).
+	//Check the corresponding fields.
+
+//Much copy pasta after here.
+//integer operator.
+pred operator_gt(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value > compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+pred operator_gte(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value >= compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+
+//integer operator.
+pred operator_lt(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value < compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+pred operator_lte(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value <= compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+//integer operator.
+pred operator_eq(long compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "STRING")
+			return false;
+		//Do comparison
+		if(int_value == compvalue)
+			return true;
+		else
+			return false;
+	};
+}
+
+//string operator
+pred operator_eq(string compvalue){
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "INTEGER")
+			return false;
+		//Do comparison
+		if(boost::iequals(str_value, compvalue))
+			return true;
+		else
+			return false;
+	};
+}
+
+pred operator_has(string compvalue){
+	compvalue = to_lower_copy(compvalue);
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "INTEGER")
+			return false;
+		//Do comparison
+		if(to_lower_copy(str_value).find(compvalue)!=-1)
+			return true;
+		else
+			return false;
+	};
+}
+
+pred operator_nothas(string compvalue){
+	compvalue = to_lower_copy(compvalue);
+	return [compvalue](boost::any e){
+		auto values = any_cast<std::tuple<string, long, string >>(e);
+		string str_value = std::get<0>(values);
+		int int_value = std::get<1>(values);
+		string type = std::get<2>(values);
+		//Check presence
+		if(type == "NONE" || type == "INTEGER")
+			return false;
+		//Do comparison
+		if(!(to_lower_copy(str_value).find(compvalue)!=-1))
+			return true;
+		else
+			return false;
+	};
+}
+
+//TODO: test the hell out of it.
+std::tuple<string, string, string> splitConditional(string str)
+{
+	regex extractor("(.*?)(:|!:|>|<|=|>=|<=|~|!~)(.*)");
+	smatch matches;
+	regex_match(str, matches, extractor);
+	regex symbols("(:|!:|>|<|=|>=|<=|~|!~)");
+	if(matches[0].length() == 0)
+		throw expected("operator", 0);
+	string s = string(matches[3]);
+	/*if(regex_search(string(matches[3]), symbols))
+		throw expected("!operator",matches[1].length()+matches[2].length());*/ //unexpected
+	if(matches[1].length() == 0)
+		throw expected("field", 0);
+	return make_tuple(Parser::trim(matches[1]), matches[2], Parser::trim(matches[3]));
+}
+
+const map<string, map<string, string>> makeOpTable()
+{
+	map<string, map<string, string>> OpTable;
+	OpTable.insert(make_pair("start",map<string, string>()));
+	OpTable["start"].insert(make_pair("=", "PTIME"));
+	OpTable["start"].insert(make_pair(">", "PTIME"));
+	OpTable["start"].insert(make_pair("<", "PTIME"));
+	OpTable["start"].insert(make_pair(">=", "PTIME"));
+	OpTable["start"].insert(make_pair("<=", "PTIME"));
+	OpTable["start"].insert(make_pair("=", "PTIME"));
+	OpTable["start"].insert(make_pair("~", "PTIME"));
+	OpTable["start"].insert(make_pair("!~", "PTIME"));
+	OpTable.insert(make_pair("end",map<string, string>()));
+	OpTable["end"].insert(make_pair("=", "PTIME"));
+	OpTable["end"].insert(make_pair(">", "PTIME"));
+	OpTable["end"].insert(make_pair("<", "PTIME"));
+	OpTable["end"].insert(make_pair(">=", "PTIME"));
+	OpTable["end"].insert(make_pair("<=", "PTIME"));
+	OpTable["end"].insert(make_pair("=", "PTIME"));
+	OpTable["end"].insert(make_pair("~", "PTIME"));
+	OpTable["end"].insert(make_pair("!~", "PTIME"));
+	OpTable.insert(make_pair("name",map<string, string>()));
+	OpTable["name"].insert(make_pair(":", "STRING"));
+	OpTable["name"].insert(make_pair("!:", "STRING"));
+	OpTable["name"].insert(make_pair("=", "STRING"));
+	OpTable.insert(make_pair("tags",map<string, string>()));
+	OpTable["tags"].insert(make_pair(":", "STRING"));
+	OpTable["tags"].insert(make_pair("!:", "STRING"));
+	OpTable["tags"].insert(make_pair("=", "STRING"));
+	OpTable.insert(make_pair("content",map<string, string>()));
+	OpTable["content"].insert(make_pair(":", "STRING"));
+	OpTable["content"].insert(make_pair("!:", "STRING"));
+	OpTable["content"].insert(make_pair("=", "STRING"));
+	OpTable.insert(make_pair("priority",map<string, string>()));
+	OpTable["priority"].insert(make_pair("=", "INTEGER"));
+	OpTable["priority"].insert(make_pair(">", "INTEGER"));
+	OpTable["priority"].insert(make_pair("<", "INTEGER"));
+	OpTable["priority"].insert(make_pair(">=", "INTEGER"));
+	OpTable["priority"].insert(make_pair("<=", "INTEGER"));
+	OpTable["priority"].insert(make_pair("=", "INTEGER"));
+	return OpTable;
+}
+
+const map<string, std::function<pred (boost::any e)>> makeOplookup()
+{
+	map<string, std::function<pred (boost::any e)>> oplookup;
+	oplookup.insert(make_pair("=_STRING" , 
+		[](boost::any e)->pred{ return operator_eq(any_cast<string>(e)); }));
+	oplookup.insert(make_pair("=_INTEGER" , 
+		[](boost::any e)->pred{ return operator_eq(any_cast<long>(e)); }));
+	oplookup.insert(make_pair(">_INTEGER" , 
+		[](boost::any e)->pred{ return operator_gt(any_cast<long>(e)); }));
+	oplookup.insert(make_pair("<_INTEGER" , 
+		[](boost::any e)->pred{ return operator_lt(any_cast<long>(e)); }));
+	oplookup.insert(make_pair("<=_INTEGER" , 
+		[](boost::any e)->pred{ return operator_lte(any_cast<long>(e)); }));
+	oplookup.insert(make_pair(">=_INTEGER" , 
+		[](boost::any e)->pred{ return operator_gte(any_cast<long>(e)); }));
+	oplookup.insert(make_pair(":_STRING" , 
+		[](boost::any e)->pred{ return operator_has(any_cast<string>(e)); }));
+	oplookup.insert(make_pair("!:_STRING" , 
+		[](boost::any e)->pred{ return operator_nothas(any_cast<string>(e)); }));
+	return oplookup;
+}
+
+//Based on the field and op_str, decide the operator to use 
+// and cast comp_str to the appropriate type.
+pred decide_op(string field, string op_str, string comp_str){
+	auto OpTable = makeOpTable();
+	auto oplookup = makeOplookup();
+	if(OpTable.find(field) == OpTable.end())
+		throw expected("!"+field, 0);
+	auto validOps = OpTable.find(field)->second;
+	if(validOps.find(op_str) == validOps.end())
+		throw expected("!"+op_str, field.length()+1);
+	string optype = validOps.find(op_str)->second;
+	string op = op_str+"_"+optype;
+	if(optype == "STRING")
+		return oplookup[op](comp_str);
+	if(optype == "INTEGER")
+		return oplookup[op](atol(comp_str.c_str())); 
+	if(optype == "PTIME")
+	{
+		try{//copy pasted from Controller.cpp.
+			ptime t = Parser::parseDate(comp_str);
+			ptime myEpoch(date(1970,Jan,1));
+			time_duration myTimeFromEpoch = t-myEpoch;
+			auto op = oplookup[op_str+"_INTEGER"];
+			long ticks= myTimeFromEpoch.ticks();
+			return op(ticks);
+		}
+		catch(std::exception &e)
+		{
+			throw expected("formatted date time", field.length() + op_str.length() + 1);
+		}
+	}
+	else
+		throw "IMPOSSIBRU";
+}
+
+//<comparator>:= >= || <= || = || :(has) || != || !: (does not have) || ~ (present) || !~ (not present)
+pred parseConditional(string str){
+	to_lower(str);
+	auto split = splitConditional(str);
+	string field = std::get<0>(split);
+	string op_str = std::get<1>(split);
+	string comp_str = std::get<2>(split);
+	pred op = decide_op(field, op_str, comp_str);
+	return [op, field](boost::any &e)->bool{  
+		std::tuple<string, long, string> val = any_cast<Controller::CEvent>(e)[field];
+		return op(boost::any(val));
+	};
+}
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\predParser.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\predParser.h
+	 */
+
+#ifndef PREDPARSER_H_
+#define PREDPARSER_H_
+
+#include <string>
+#include "parser.h"
+#include <functional>
+#include "boost/any.hpp"
+#include <memory>
+
+
+typedef std::function<bool(boost::any& e)> pred;
+typedef std::function<pred(pred A, pred B)> boolop;
+
+class expected: public std::exception{
+protected:
+	string expect;
+	int location;
+public:
+	expected(string s, int position);
+	expected operator+(const int& rhs);
+};
+
+class parseTreeNode{
+protected:
+	std::unique_ptr<parseTreeNode> left;
+	std::unique_ptr<parseTreeNode> right;
+	boolop op;
+	pred predicate;
+	bool is_predicate;
+
+public:
+	parseTreeNode(pred p);
+	parseTreeNode(parseTreeNode * left, boolop mid, parseTreeNode * right);
+	pred toPredicate();
+};
+
+pred parsePredicate(std::string);
+
+//helper functions
+int findBracketMatchFail(string str);
+parseTreeNode* parsePred(string str);
+pred parseConditional(string str);
+boolop parseOp(string str);
+std::tuple<string, string, string> splitPredicate(string str);
+std::tuple<string, string, string> splitConditional(string str);
+pair<string, string> splitOp(string str);
+
+#endif
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand\predParser.h
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand_Test\predicateParserTest.cpp
+	 */
+
+#include "stdafx.h"
+#include "CppUnitTest.h"
+
+#include "predParser.h"
+#include "controller.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
+
+
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+namespace predParserTest
+{		
+	TEST_CLASS(predParserTest){
+	public:
+		TEST_METHOD(splitPredicate1){
+			auto result = splitPredicate("A||B");
+			Assert::AreEqual(string("A"),std::get<0>(result));
+			Assert::AreEqual(string("||"),std::get<1>(result));
+			Assert::AreEqual(string("B"),std::get<2>(result));
+		}
+
+		TEST_METHOD(splitPredicate2){
+			auto result = splitPredicate("(A||B)||C");
+			Assert::AreEqual(string("A||B"),std::get<0>(result));
+			Assert::AreEqual(string("||"),std::get<1>(result));
+			Assert::AreEqual(string("C"),std::get<2>(result));
+		}
+
+		TEST_METHOD(splitPredicate3){
+			auto result = splitPredicate("A||(B||C)");
+			Assert::AreEqual(string("A"),std::get<0>(result));
+			Assert::AreEqual(string("||"),std::get<1>(result));
+			Assert::AreEqual(string("(B||C)"),std::get<2>(result));
+		}
+
+		TEST_METHOD(splitPredicate4){
+			auto result = splitPredicate("A||(B)||C");
+			Assert::AreEqual(string("A"),std::get<0>(result));
+			Assert::AreEqual(string("||"),std::get<1>(result));
+			Assert::AreEqual(string("(B)||C"),std::get<2>(result));
+		}
+
+		TEST_METHOD(splitConditional1){
+			auto result = splitConditional("field> 5");
+			Assert::AreEqual(string("field"),std::get<0>(result));
+			Assert::AreEqual(string(">"),std::get<1>(result));
+			Assert::AreEqual(string("5"),std::get<2>(result));
+		}
+
+		TEST_METHOD(splitConditional2){
+			auto result = splitConditional("name: some shit");
+			Assert::AreEqual(string("name"),std::get<0>(result));
+			Assert::AreEqual(string(":"),std::get<1>(result));
+			Assert::AreEqual(string("some shit"),std::get<2>(result));
+		}
+
+		TEST_METHOD(splitConditional3){
+			auto result = splitConditional("name!: some shit");
+			Assert::AreEqual(string("name"),std::get<0>(result));
+			Assert::AreEqual(string("!:"),std::get<1>(result));
+			Assert::AreEqual(string("some shit"),std::get<2>(result));
+		}
+
+		//Removed since dates need to include some of the forbidden symbols.
+		/*TEST_METHOD(splitConditionalFail1){
+			Assert::ExpectException<expected>([](){splitConditional("name: some ~shit");});
+		}*/
+
+		TEST_METHOD(predParseNameSatisfactionTest){
+			//Despite appearances, this is not an integration test. This is just the easiest way to do it.
+			Controller ctrl(""); 
+			auto evt = ctrl.addEvent("meow");
+			pred p = parsePredicate("name=meow");
+			Assert::AreEqual(true, p(boost::any(evt)));
+			pred p2 = parsePredicate("name=meowz");
+			Assert::AreEqual(false, p2(boost::any(evt)));
+			pred p3 = parsePredicate("name=meowz||name=meowzy");
+			Assert::AreEqual(false, p3(boost::any(evt)));
+			pred p4 = parsePredicate("name=meowz||name=meowzy||name=meow");
+			Assert::AreEqual(true, p4(boost::any(evt)));
+			pred p5 = parsePredicate("(name=meowz||name=meowzy)&&name=meow");
+			Assert::AreEqual(false, p5(boost::any(evt)));
+			pred p6 = parsePredicate("(name=meowz&&name=meowzy)||name=meow");
+			Assert::AreEqual(true, p6(boost::any(evt)));
+			pred p7 = parsePredicate("((((name=meow))))");
+			Assert::AreEqual(true, p7(boost::any(evt)));
+		}
+
+		TEST_METHOD(predParseTagSatisfactionTest){
+			//Despite appearances, this is not an integration test. This is just the easiest way to do it.
+			Controller ctrl(""); 
+			auto evt = ctrl.addEvent("meow");
+			evt.addTag("tag1");
+			evt.addTag("much");
+			evt.addTag("frustrate");
+			evt.addTag("such");
+			evt.addTag("wow");
+			evt.exec();
+			pred p = parsePredicate("name=meow&&tags:much&&tags:frustrate");
+			Assert::AreEqual(true, p(boost::any(evt)));
+		}
+
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\effiCommand_Test\predicateParserTest.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\Controller.cpp
+	 */
+
+#include "stdafx.h"
+
+using namespace boost::gregorian;
+
+Controller::CEvent::CEvent(Event::UUID id, TaskList * tl, Controller* ctrl) : uuid(id), cmdlist(), events(tl), controller(ctrl)
+{}
+
+Controller::CEvent::~CEvent()
+{
+	assert(cmdlist.size() == 0); //if you got this error, you forgot to call exec after making changes.
+}
+void Controller::CEvent::exec(){
+	events->updateEvent(uuid, [this](Event & evt){
+		for(auto cmd = cmdlist.begin(); cmd!=cmdlist.end(); ++cmd)
+			(*cmd)(evt);
+	});
+	cmdlist.clear();
+}
+
+//One ton of wrapper functions over here.
+/*
+		//get information
+		UUID getId();
+		string getName();
+		int getPriority();
+		vector<string> getTags();
+		bool getCompleteStatus();
+		ptime getStartDate();
+		ptime getEndDate();
+		UUID getParent();
+		string getContent();
+	
+		//set properties
+		CEvent& setName(string name);
+		CEvent& setPriority(int priority);
+		CEvent& addTags(vector<string>tags);
+		CEvent& addTag(string tag);
+		CEvent& removeTag(string tag);
+		CEvent& setCompleteStatus(bool status);
+		CEvent& setStartDate(ptime sd);
+		CEvent& setEndDate(ptime ed);
+		CEvent& setParent(UUID p);
+		CEvent& setContent(string s);
+
+*/
+
+Event::UUID Controller::CEvent::getId(){
+	return uuid;
+}
+
+string Controller::CEvent::getName(){
+	return events->getEvent(uuid).getName();
+}
+
+int Controller::CEvent::getPriority(){
+	return events->getEvent(uuid).getPriority();
+}
+
+vector<string> Controller::CEvent::getTags(){
+	return events->getEvent(uuid).getTags();
+}
+
+bool Controller::CEvent::getCompleteStatus(){
+	return events->getEvent(uuid).getCompleteStatus();
+}
+
+ptime Controller::CEvent::getStartDate(){
+	return events->getEvent(uuid).getStartDate();
+}
+
+ptime Controller::CEvent::getEndDate(){
+	return events->getEvent(uuid).getEndDate();
+}
+
+Event::UUID Controller::CEvent::getParent(){
+	return events->getEvent(uuid).getParent();
+}
+
+string Controller::CEvent::getContent(){
+	return events->getEvent(uuid).getContent();
+}
+
+long toLong(ptime time)
+{
+	ptime myEpoch(date(1970,Jan,1));
+	time_duration myTimeFromEpoch = time-myEpoch;
+	return myTimeFromEpoch.ticks();
+}
+
+std::tuple<string, long, string> Controller::CEvent::operator[](string field){
+	if(field == "start")
+	{
+		auto date = getStartDate();
+		if(date.is_not_a_date_time())
+			return make_tuple("", 0, "NONE");
+		return make_tuple("", toLong(date), "INTEGER");
+	}
+	if(field == "end")
+	{
+		auto date = getEndDate();
+		if(date.is_not_a_date_time())
+			return make_tuple("", 0, "NONE");
+		return make_tuple("", toLong(date), "INTEGER");
+	}
+	if(field == "name")
+		return make_tuple(getName(), 0, "STRING");
+	if(field == "content")
+		return make_tuple(getContent(), 0, "STRING");
+	if(field == "priority")
+		return make_tuple("", getPriority(), "INTEGER");
+	if(field == "tags"){
+		stringstream ss;
+		auto tags = getTags();
+		for(auto it = tags.begin(); it!=tags.end();++it)
+			ss<<*it<<" ";
+		return make_tuple(ss.str(), getPriority(), "STRING");
+	}
+	throw exception("impossibru");
+}
+
+
+Controller::CEvent& Controller::CEvent::setName(string name){
+	cmdlist.push_back([name](Event& evt) { evt.changeName(name); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::setPriority(int priority){
+	cmdlist.push_back([priority](Event& evt) { evt.setPriority(priority); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::addTags(vector<string> tags){
+	cmdlist.push_back([tags](Event& evt) { evt.addTags(tags); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::addTag(string tag){
+	cmdlist.push_back([tag](Event& evt) { evt.addTag(tag); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::removeTag(string tag){
+	cmdlist.push_back([tag](Event& evt) { evt.removeTag(tag); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::setCompleteStatus(bool status){
+	cmdlist.push_back([status](Event& evt) { evt.setCompleteStatus(status); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::setStartDate(ptime sd){
+	cmdlist.push_back([sd](Event& evt) { evt.setStartDate(sd); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::setEndDate(ptime ed){
+	cmdlist.push_back([ed](Event& evt) { evt.setEndDate(ed); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::setParent(Event::UUID parent){
+	cmdlist.push_back([parent](Event& evt) { evt.setParent(parent); } );
+	return *this;
+}
+
+Controller::CEvent& Controller::CEvent::setContent(string content){
+	cmdlist.push_back([content](Event& evt) { evt.setContent(content); } );
+	return *this;
+}
+
+//Actual controller stuff.
+Controller::Controller(): events("TESTUSER"), cevents(), filterid(0)
+{
+	auto _events = events.getAllEvents();
+	//get data from previous events.
+	for(auto it = _events.begin(); it!= _events.end(); ++it)
+		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events, this)));
+}
+
+Controller::Controller(string user): events(user), cevents()
+{
+	auto _events = events.getAllEvents();
+	//get data from previous events.
+	for(auto it = _events.begin(); it!= _events.end(); ++it)
+		cevents.insert(make_pair((*it).getId(),CEvent( (*it).getId(), &events, this)));
+}
+
+Controller::CEvent& Controller::addEvent(string name){
+	auto id = events.addEvent(name);
+	cevents.insert(make_pair(id, CEvent(id, &events, this)));
+	return cevents.at(id);
+}
+
+Controller::CEvent& Controller::getEvent(Event::UUID id){
+	return cevents.at(id);
+}
+
+vector<Controller::CEvent> Controller::getAllEvents(){
+	vector<Controller::CEvent> t;
+	for(auto it = cevents.begin(); it!=cevents.end();++it)
+	{
+		bool satisfied = true;
+		for(auto filter = filters.begin();filter!=filters.end();++filter)
+		{
+			if(!(filter->second)(it->second))
+			{
+				satisfied = false;
+				break;
+			}
+		}
+		if(satisfied)
+			t.push_back((*it).second);
+	}
+	return t;
+}
+
+Controller::CEvent& Controller::getEventByName(string name){
+	for(auto it = cevents.begin(); it!=cevents.end();++it)
+		if((*it).second.getName() == name)
+			return (*it).second;
+	throw std::exception("Failed to find target"); //TODO: throw specialized exception.
+}
+
+void Controller::deleteEvent(Event::UUID id){
+	events.deleteEvent(id); //TODO: check if event exists. Actually don't bother, just let it throw out.
+	cevents.erase(id);
+}
+
+void Controller::changeId(Event::UUID prev, Event::UUID curr)
+{
+	CEvent evt = cevents.find(prev)->second;
+	cevents.erase(prev);
+	cevents.insert(make_pair(curr, std::move(evt)));
+	events.changeId(prev, curr);
+}
+
+ostream& operator<<(ostream& os, const Controller::CEvent& evt){
+	os<<evt.events->getEvent(evt.uuid);
+	return os;
+}
+
+istream& operator>>(istream& is, Controller::CEvent& evt){
+	auto currid = evt.getId();
+	evt.events->updateEvent(currid, [&is, &evt](Event & _evt){ 
+		is>>_evt;
+		evt.uuid = _evt.getId();
+	});
+	evt.controller->changeId(currid, evt.uuid);
+	return is;
+}
+
+Controller::unregisterAction Controller::addFilter(filter f){
+	auto id = filterid++;
+	filters[id] = f;
+	return [this, id](){
+		this->filters.erase(id);
+	};
+}
+
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\Controller.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\EventData.cpp
+	 */
+
+#include "stdafx.h"
+
+//static
+Event::UUID Event::id = 0;
+
+//TODO: move to EventData.h
+// constant key values
+const string NAME ="name";
+const string ID = "id";
+const string PRIORITY = "priority";
+const string TAGS = "tags";
+const string COMPLETE = "complete";
+const string START = "start";
+const string END = "end";
+const string PARENT = "parent";
+const string CONTENT = "content";
+
+//TODO: change to enum.
+// constant priority values
+const int VERY_LOW = 5;
+const int LOW = 4;
+const int MODERATE = 3;
+const int HIGH = 2;
+const int VERY_HIGH = 1;
+const int URGENT = 0;
+
+Event::Event(string name = NULL){
+	this->eventContent = ptree();
+	this->eventContent.put(NAME, name);
+	this->eventContent.put(ID, Event::generateID());
+	this->eventContent.put(PRIORITY, VERY_LOW);
+	this->eventContent.add_child(TAGS , Event::TagArray());
+	this->eventContent.put(COMPLETE, false);
+	this->eventContent.put(START, ptime());
+	this->eventContent.put(END, ptime());
+	this->eventContent.put(PARENT, 0);
+	this->eventContent.put(CONTENT, "");
+}
+
+Event::UUID Event::getId(){
+	return this->eventContent.get<Event::UUID>(ID);
+}
+string Event::getName(){
+	return this->eventContent.get<string>(NAME);	
+}
+int Event::getPriority(){
+	return this->eventContent.get<int>(PRIORITY);
+}
+
+bool Event::getCompleteStatus(){
+	return this->eventContent.get<bool>(COMPLETE);
+}
+ptime Event::getStartDate(){
+	return this->eventContent.get<ptime>(START);	
+}
+ptime Event::getEndDate(){
+	return this->eventContent.get<ptime>(END);
+}
+
+Event::UUID Event::getParent(){
+	return this->eventContent.get<UUID>(PARENT);
+}
+
+string Event::getContent(){
+	return this->eventContent.get<string>(CONTENT);
+}
+
+void Event::setContent(string content){
+	this->eventContent.put(CONTENT, content);
+}
+
+void Event::changeName(string name){
+	this->eventContent.put(NAME, name);
+}
+void Event::setPriority(int priority){
+	this->eventContent.put(PRIORITY, priority);
+}
+void Event::addTags(vector<string> tags){
+	for(size_t i =0; i<tags.size(); i++){
+		addTag(tags[i]);
+	}
+}
+void Event::addTag(string tag){
+	ptree& currtags = this->_getTags();
+	ptree child;
+	child.put("", tag);
+	currtags.push_back(std::make_pair("", child));
+}
+
+//TODO: maybe notify success/failure?
+void Event::removeTag(string tag){
+	ptree& currtags = this->_getTags();
+	auto& tags = currtags.get_child("");
+	for(auto it = tags.begin();it!=tags.end();++it)
+	{
+		if(it->second.get<std::string>("") == tag)
+		{
+			tags.erase(it);
+			break;
+			//return true;
+		}
+	}
+	//return false;
+}
+
+vector<string> Event::getTags(){
+	auto& tags = this->_getTags();
+	vector<string> result;
+	BOOST_FOREACH(const ptree::value_type& tag,
+                  tags.get_child("")) {
+		result.push_back(tag.second.get<std::string>(""));
+    }
+	return result;
+}
+
+Event::TagArray& Event::_getTags(){
+	return this->eventContent.get_child(TAGS); 
+}
+
+void Event::setCompleteStatus(bool status){
+	this->eventContent.put(COMPLETE, status);
+}
+void Event::setStartDate(ptime sd){
+	this->eventContent.put(START, sd);
+}
+void Event::setEndDate(ptime ed){
+	this->eventContent.put(END, ed);
+}
+void Event::setParent(Event::UUID p){
+	this->eventContent.put(PARENT, p);	
+}
+
+Event::UUID Event::generateID(){
+	return ++id;
+}
+
+void Event::setGlobalID(Event::UUID _id)
+{
+	id = _id;
+}
+
+ostream& operator<<(ostream& os, const Event& evt){
+	write_json(os, evt.eventContent);
+	return os;
+}
+
+istream& operator>>(istream& is, Event& evt){
+	read_json(is, evt.eventContent);
+	return is;
+}
+
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\EventData.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\File.cpp
+	 */
+
+#include "stdafx.h"
+
+File::File(std::string f): _filename(f), filestream()
+{
+	filestream.open(f, std::ios_base::app | std::ios_base::in | std::ios_base::out);
+	if (!filestream.is_open())
+	{
+		std::cout << "Error opening file";
+		throw ("Unable to open file:"+f);
+	}
+}
+
+File::File()//Don't use it pls.
+{ }
+
+File::File(File&& other): _filename(std::move(other._filename)), filestream(std::move(other.filestream))
+{}
+
+File * File::operator =(File && other)
+{
+	_filename = std::move(other._filename);
+	filestream = std::move(other.filestream);
+	return this;
+}
+
+File::~File() { forceClose(); }
+
+void File::writeLine(std::string s){
+		
+	assert(filestream.is_open());
+	//Apparently if you don't clear the EOF bit...
+		//it refuses to write.
+	filestream.clear() ; 
+	filestream<<s<<std::endl;
+	assert(!filestream.bad());
+}
+
+std::string File::readLine() { 
+	std::string t;
+	std::getline(filestream, t);
+	return t;
+}
+
+void File::forceClose()
+{
+	if(filestream.is_open())
+		filestream.close();
+}
+
+ostream& operator<<(ostream &os, File &f){
+	string t;
+	while(f.filestream.good())
+	{
+		std::getline(f.filestream, t);
+		os<<t<<std::endl;
+	}
+	return os;
+}
+
+
+std::string File::toString(){
+	std::stringstream ss;
+	ss<<*this;
+	return ss.str();
+}
+
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\File.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\TaskList.cpp
+	 */
+
+#include "stdafx.h"
+#include <regex>
+
+
+void TaskList::processJournal(string cmd){
+	//Extract the values.
+	regex extractor("(\\w+?),\\s(\\d+?),\\s(.*)");
+	smatch matches;
+	regex_match(cmd, matches, extractor);
+	if(!matches.ready())
+		throw "Unexpected format";
+	string type = matches[1];
+	Event::UUID id = atol(string(matches[2]).c_str());
+	string content = matches[3];
+
+	//Apply accordingly.
+	if(type == "ADD")
+	{
+		//Grab the dump, restore it to a temp.
+		auto tid = addEvent("placeholder", true);
+		changeId(tid, id);
+		updateEvent(id,[&content](Event& evt) { 
+			stringstream ss;
+			ss.str(content);
+			ss>>evt; 
+		}, true);
+	}
+	else if (type == "UPDATE")
+	{
+		//Assume ID doesn't change.
+		updateEvent(id,[&content](Event& evt) { 
+			stringstream ss;
+			ss.str(content);
+			ss>>evt; 
+		}, true);
+	}
+	else if (type == "DELETE")
+	{
+		deleteEvent(id, true);
+	}
+	else
+		assert(false);
+}
+
+TaskList::TaskList(string f = ""): filebase(f), userTaskList(){
+	//Check if primary file exists
+	if(filebase!= "")
+	{
+		string filename = filebase+".json"; 
+		File db(filename); //creates if it doesn't exist.
+		stringstream ss;
+		ss.str(db.toString());
+		ss>>*this;
+
+		string journalFilename = filebase+".journal"; 
+		File journal(journalFilename);
+		string line = journal.readLine();
+		//If have: read it, then clear it.
+		while(line != "")
+		{
+			processJournal(line);
+			line = journal.readLine();
+		}
+		this->journal = std::move(journal);
+	}
+	else
+		this->journal = std::move(File("TEST.journal")); //Strictly for test cases only.
+}
+
+TaskList::~TaskList(){
+	//Save to primary file
+	if(filebase != "")
+	{
+		auto tempname = "~"+filebase+".json";
+		File newFile(tempname);
+		auto contents = toString(); //This is causing an infinite loop?!?!?!?!?!??
+			//Apparently because something to do with destructor.
+		newFile.writeLine(contents);
+		newFile.forceClose();
+		std::remove((filebase+".json").c_str());
+		rename(tempname.c_str(),(filebase+".json").c_str());
+		//TODO: Delete journal file
+		journal.forceClose();
+		remove (journal.filename().c_str());
+	}
+}
+
+
+string generate_dump(Event & evt){
+	stringstream ss;
+	ss<<evt;
+	string dump = ss.str();
+	std::replace( dump.begin(), dump.end(), '\n', ' ');
+	return dump;
+}
+
+Event::UUID TaskList::addEvent(std::string name, bool silent, EventOperator op){
+	Event evt(name);
+	op(evt);
+	userTaskList.insert(make_pair(evt.getId(), evt));
+	if(!silent)
+	{
+		journal.writeLine("ADD, "+to_string(evt.getId())+", "+generate_dump(evt));
+	}
+	return evt.getId();
+}
+
+void TaskList::updateEvent(Event::UUID id, EventOperator op, bool silent){
+	op(userTaskList.at(id));
+	if(!silent)
+		journal.writeLine("UPDATE, "+to_string(id)+", "+generate_dump(userTaskList.at(id)));
+	
+}
+
+void TaskList::deleteEvent(Event::UUID id, bool silent){
+	userTaskList.erase(id);
+	if(!silent)
+		journal.writeLine("DELETE, "+to_string(id)+", {}");
+}
+
+Event TaskList::getEvent(Event::UUID id){
+	return Event(userTaskList.at(id));
+}
+
+vector<Event> TaskList::getAllEvents(){
+	vector<Event> results;
+	for(auto it = userTaskList.begin(); it!= userTaskList.end(); ++it)
+	{
+		results.push_back(Event(get<1>(*it)));
+	}
+	return results;
+}
+
+string TaskList::toString(){
+	stringstream os;
+	//i copy pasted, because <<*this causes infinite destructor loops.
+	for(auto it = userTaskList.begin(); it!= userTaskList.end(); ++it)
+	{
+		auto event = get<1>(*it);
+		os<<event<<endl; //Since JSON escapes newline characters, its safe to add newlines.
+	}
+	return os.str();
+}
+
+void TaskList::changeId(Event::UUID prev, Event::UUID curr)
+{
+	Event evt = userTaskList.find(prev)->second;
+	userTaskList.erase(prev);
+	userTaskList.insert(make_pair(curr, std::move(evt)));
+}
+
+ostream& operator<<(ostream& os, const TaskList &t){
+	for(auto it = t.userTaskList.begin(); it!= t.userTaskList.end(); ++it)
+	{
+		auto event = get<1>(*it);
+		os<<event<<endl; //Since JSON escapes newline characters, its safe to add newlines.
+	}
+	return os;
+}
+
+//TODO: test.
+istream& operator>>(istream& is, TaskList &t){
+	std::stringstream ss;
+	string input; 
+	std::getline(is, input);
+	Event::UUID idmax = 0;
+	while(true)
+	{
+		if(input == "")
+		{
+			auto eventstring = ss.str();
+			if(eventstring == "")
+				break;
+			else
+			{
+				Event newevent("");
+				ss>>newevent;
+				t.userTaskList.insert(make_pair(newevent.getId(), newevent));
+				ss.str("");
+				idmax = max(newevent.getId(), idmax);
+			}
+		}
+		ss<<input;
+		std::getline(is, input);
+	}
+	Event::setGlobalID(idmax);
+	return is;
+}
+
+
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData\TaskList.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData_Test\EventDataTest.cpp
+	 */
+
+#include "stdafx.h"
+#include "CppUnitTest.h"
+
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+namespace EffiData_Test
+{		
+	TEST_CLASS(EffiData_Test)
+	{
+	protected:
+		streambuf * oldStdoutBuf;
+		stringstream consoleOutput;
+		string consoleDump(){ 
+			std::istreambuf_iterator<char> eos;
+			std::string sout(std::istreambuf_iterator<char>(consoleOutput), eos);
+			return sout;
+		}
+	public:
+		//Redirect cout.
+		TEST_METHOD_INITIALIZE(pre) {
+			oldStdoutBuf = std::cout.rdbuf();
+			std::cout.rdbuf(consoleOutput.rdbuf());
+		}
+
+		//Restore redirect cout
+		TEST_METHOD_CLEANUP(post) 
+		{
+			std::cout.rdbuf(oldStdoutBuf);
+		}
+
+		TEST_METHOD(BasicPrintCheck)
+		{//id = 1
+			Event e("test event");
+			string expected = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"1\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": \"\",\n" //Should be [], but boost property tree doesn't support it.
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"not-a-date-time\",\n"
+			"    \"end\": \"not-a-date-time\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"\"\n"
+			"}\n";
+			std::cout<<e;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			Assert::AreEqual(expected, result);
+		}
+
+
+		//WARNING: DO NOT RE-ORDER TESTS. ADD TO THE END.
+		TEST_METHOD(TagCheck)
+		{//id = 2
+			Event e("test event");
+			e.addTag("tag 1");
+			e.addTag("nextTag");
+			
+			auto tags = e.getTags();
+			Assert::AreEqual(2, (int)tags.size());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "tag 1")!=tags.end());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "nextTag")!=tags.end());
+		}
+
+		TEST_METHOD(TagPrintCheck)
+		{ //id = 3
+			Event e("test event");
+			e.addTag("tag 1");
+			e.addTag("nextTag");
+			std::cout<<e;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			std::string expected = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"3\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"not-a-date-time\",\n"
+			"    \"end\": \"not-a-date-time\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"\"\n"
+			"}\n";
+			Assert::AreEqual(expected, result);
+		
+		}
+
+		TEST_METHOD(IDIncrementCheck)
+		{ //id = 4,5
+			Event e("test event");
+			Event e2("test event");
+			Assert::AreEqual(e.getId() +1 ,e2.getId());
+		}
+
+		TEST_METHOD(InputTest)
+		{ //id=6.
+			string contents = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"40\",\n"
+			"    \"priority\": \"3\",\n"
+			"    \"tags\": \"\",\n"
+			"    \"complete\": \"true\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n";
+			Event e("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>e;
+			std::cout<<e;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			Assert::AreEqual(contents, result);
+		}
+
+		TEST_METHOD(TagDeleteCheck)
+		{//id = 6
+			Event e("test event");
+			e.addTag("tag 1");
+			e.addTag("nextTag");
+			e.addTag("final tag");
+			e.removeTag("nextTag");
+			e.removeTag("noexisttag");
+			auto tags = e.getTags();
+			Assert::AreEqual(2, (int)tags.size());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "tag 1")!=tags.end());
+			Assert::IsTrue(std::find(tags.begin(), tags.end(), "final tag")!=tags.end());
+		}
+
+		// Set the start date for an event.
+		TEST_METHOD(SetStartDateTest)
+		{
+			string ts("2002-01-20 23:59:59.000");
+			ptime datetime(time_from_string(ts));
+			Event e("test event");
+			e.setStartDate(datetime);
+			Assert::AreEqual(to_simple_string(datetime), to_simple_string(e.getStartDate()));
+		}
+
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData_Test\EventDataTest.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData_Test\TaskListTest.cpp
+	 */
+
+#include "stdafx.h"
+#include "CppUnitTest.h"
+
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+namespace TaskListTest
+{		
+	TEST_CLASS(TaskListTest)
+	{
+	protected:
+		streambuf * oldStdoutBuf;
+		stringstream consoleOutput;
+		string consoleDump(){ 
+			std::istreambuf_iterator<char> eos;
+			std::string sout(std::istreambuf_iterator<char>(consoleOutput), eos);
+			return sout;
+		}
+	public:
+		//Redirect cout.
+		TEST_METHOD_INITIALIZE(pre) {
+			oldStdoutBuf = std::cout.rdbuf();
+			std::cout.rdbuf(consoleOutput.rdbuf());
+		}
+
+		//Restore redirect cout
+		TEST_METHOD_CLEANUP(post) 
+		{
+			std::cout.rdbuf(oldStdoutBuf);
+		}
+
+		TEST_METHOD(TaskInputTest){
+			string contents = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"2\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n"
+			"{\n"
+			"    \"name\": \"test event2\",\n"
+			"    \"id\": \"40\",\n"
+			"    \"priority\": \"3\",\n"
+			"    \"tags\": \"\",\n"
+			"    \"complete\": \"true\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			TaskList t("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>t;
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			Assert::AreEqual(contents, result);
+		}
+
+		TEST_METHOD(DeleteTest){
+			string contents = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"2\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n"
+			"{\n"
+			"    \"name\": \"test event2\",\n"
+			"    \"id\": \"40\",\n"
+			"    \"priority\": \"3\",\n"
+			"    \"tags\": \"\",\n"
+			"    \"complete\": \"true\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			TaskList t("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>t;
+			t.deleteEvent(40);
+			
+			string expected = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"2\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			Assert::AreEqual(expected, result);
+		}
+
+		TEST_METHOD(AddTest){
+			string contents = "{\n"
+			"    \"name\": \"test event\",\n"
+			"    \"id\": \"2\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			TaskList t("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>t;
+			
+			string nextcontents = "{\n"
+			"    \"name\": \"new test event\",\n"
+			"    \"id\": \"5\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			stringstream ss2;
+			ss2.str(nextcontents);
+			t.addEvent("new test event", true, [&ss2](Event& evt){ ss2>>evt; });
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			Assert::AreEqual(contents + nextcontents, result);
+		}
+
+		TEST_METHOD(UpdateTest){
+			string contents = "{\n"
+			"    \"name\": \"new test event\",\n"
+			"    \"id\": \"5\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+			TaskList t("");
+			stringstream ss;
+			ss.str(contents);
+			ss>>t;
+			t.updateEvent(5, [](Event& e){ e.addTag("meow"); });
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			string expected = "{\n"
+			"    \"name\": \"new test event\",\n"
+			"    \"id\": \"5\",\n"
+			"    \"priority\": \"5\",\n"
+			"    \"tags\": [\n"
+			"        \"tag 1\",\n"
+			"        \"nextTag\",\n"
+			"        \"meow\"\n"
+			"    ],\n"
+			"    \"complete\": \"false\",\n"
+			"    \"start\": \"0\",\n"
+			"    \"end\": \"0\",\n"
+			"    \"parent\": \"0\",\n"
+			"    \"content\": \"0\"\n"
+			"}\n"
+			"\n";
+
+			Assert::AreEqual(expected, result);
+		}
+
+		TEST_METHOD(AddFromEmptyTest){
+
+			std::remove("TESTUSER10X.json");
+			TaskList t("TESTUSER10X");
+			t.addEvent("add");
+			std::cout<<t;
+			string result = consoleDump();
+			Logger::WriteMessage(result.c_str());
+			//Well it clearly DOES NOT CRASH HERE.
+			Assert::IsTrue(true);
+			//Assert::AreEqual(nextcontents, result);
+		}
+	};
+}
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiData_Test\TaskListTest.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiUndo\Undo.cpp
+	 */
+
+#include "Undo.h"
+
+using namespace std;
+
+string matchInverseFunction(vector<string> commandStringVector){
+
+	return "a";
+
+}
+
+vector<string> undo(){
+
+	vector<string> test;
+	test.push_back("test");
+	return test;
+
+}
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiUndo\Undo.cpp
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiUndo\Undo.h
+	 */
+
+#ifndef UNDO_H_
+#define UNDO_H_
+
+#include <iostream>
+#include <string>
+#include <stack>
+#include <vector>
+
+using namespace std;
+
+class Undo{
+
+public:
+
+	// find inverse function of an executed function to be push to undo stack
+	static string matchInverseFunction(vector<string> commandStringVector);
+
+	static vector<string> undo();
+
+private:
+
+	static stack< vector<string> > undoStack;
+
+};
+#endif
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\EffiUndo\Undo.h
+
+
+
+
+
+	/**
+	 * origin: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\IntegrationTests\unittest1.cpp
+	 */
+
+#include "stdafx.h"
+#include "CppUnitTest.h"
+#include "parser.h"
+#include "executor.h"
+#include "controller.h"
+
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+namespace IntegrationTests
+{		
+	TEST_CLASS(IntegrationTest)
+	{
+	public:
+		
+		TEST_METHOD(Addxecution)
+		{
+			Parser parser;
+			Controller ctrl("");
+			Executor executor(&ctrl);
+			auto cmd = parser.parseCommand("add something");
+			executor.executeCommand(cmd);
+			Assert::AreEqual(int(ctrl.getAllEvents().size()),1);
+		}
+
+		TEST_METHOD(testAddDate)
+		{
+			Parser parser;
+			Controller ctrl("");
+			Executor executor(&ctrl);
+			auto cmd = parser.parseCommand("add something -s 2014-10-30 15:30");
+			//Logger::WriteMessage(to_string(any_cast<bool>(cmd.find("valid")->second)).c_str());
+			Logger::WriteMessage(to_iso_string(any_cast<ptime>(cmd.find("start")->second)).c_str());
+
+			executor.executeCommand(cmd);
+			Assert::AreEqual(int(ctrl.getAllEvents().size()),1);
+		}
+
+
+	};
+}
+	// End of segment: C:\Users\SuGi\My Documents\GitHub\CS2103T-Project\efficiency\IntegrationTests\unittest1.cpp
+
+
+
+
+
