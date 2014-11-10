@@ -18,14 +18,12 @@ public:
 							search_message, filter_message, mark_complete_message, 
 							invalid_message, undo_error_message, duplicate_message, 
 							not_found_message};
-	enum button_click_t {add_button, delete_button, search_button, exit_button};
 
 	// Methods
 	// Constructor
 	uiController(QWebViewWithHooks *webView, unique_ptr<Controller> mainController);
 	// Input from GUI
 	void onCommandInput(std::string input);
-	void onButtonInput(button_click_t button);
 	
 protected:
 	// Properties
@@ -34,8 +32,7 @@ protected:
 	Parser parser;
 	unique_ptr<Executor> executor;
 	enum view_type_t {agenda_view, calendar_view};
-	enum button_type_t {task_next, task_prev, deadline_next, deadline_prev, event_next, event_prev};
-	enum sort_type_t {id, name, start_date, end_date, tags, description};
+	enum sort_type_t {id, name, start_date, end_date, tags, content};
 	enum issue_type_t {event_type, deadline_type, task_type};
 	std::vector<result_message_t> resultMessageStore;
 	vector<Controller::CEvent> currentTasksStore;

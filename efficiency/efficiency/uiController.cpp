@@ -58,8 +58,8 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			showOnGUISorted("tags", "tasks");
 		});
 		
-		this->webView->watchButtonPress("task_description", [this](){
-			showOnGUISorted("description", "tasks");
+		this->webView->watchButtonPress("task_content", [this](){
+			showOnGUISorted("content", "tasks");
 		});
 
 		// Deadlines
@@ -83,8 +83,8 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			showOnGUISorted("tags", "deadlines");
 		});
 
-		this->webView->watchButtonPress("deadline_description", [this](){
-			showOnGUISorted("description", "deadlines");
+		this->webView->watchButtonPress("deadline_content", [this](){
+			showOnGUISorted("content", "deadlines");
 		});
 
 		// Events
@@ -108,8 +108,8 @@ uiController::uiController(QWebViewWithHooks *webView, unique_ptr<Controller> ct
 			showOnGUISorted("tags", "events");
 		});
 
-		this->webView->watchButtonPress("event_description", [this](){
-			showOnGUISorted("description", "events");
+		this->webView->watchButtonPress("event_content", [this](){
+			showOnGUISorted("content", "events");
 		});
 	});
 
@@ -414,7 +414,7 @@ void drawTable(vector<Controller::CEvent> issues, QWebElement target){
 		addfield(tr, issue->getName(), "");
 		// Tags
 		addfield(tr, formatTags(issue->getTags()), "");
-		// Description
+		// Content
 		addfield(tr, issue->getContent(), ""); 
 		target.appendInside(tr);
 	}
@@ -485,7 +485,7 @@ void uiController::showOnGUISorted(string type, string issue_type){
 				vector<string> tags2 = filteredIssues[j+1].getTags();
 				sortByTag(tags1, tags2, j, filteredIssues);
 			}
-			else if(type == "description"){
+			else if(type == "content"){
 				string content1 = filteredIssues[j].getContent();
 				string content2 = filteredIssues[j+1].getContent();
 				sortByString(content1, content2, j, filteredIssues);

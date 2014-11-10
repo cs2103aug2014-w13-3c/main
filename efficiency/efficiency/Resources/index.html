@@ -1,3 +1,4 @@
+<!-- Authored by //@author A0101642X -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,7 +60,7 @@
 					<th id="event_end" class="table-header">End</th>
 					<th id="event_name" class="table-header">Name</th>
 					<th id="event_tags" class="table-header">Tags</th>
-					<th id="event_description" class="table-header">Description</th>
+					<th id="event_content" class="table-header">Content</th>
 				  </tr>
 				  <tbody id="Events-display-target">
 				  </tbody>
@@ -81,7 +82,7 @@
 					<th id="deadline_end" class="table-header">End</th>
 					<th id="deadline_name" class="table-header">Name</th>
 					<th id="deadline_tags" class="table-header">Tags</th>
-					<th id="deadline_description" class="table-header">Description</th>
+					<th id="deadline_content" class="table-header">Content</th>
 				  </tr>
 				  <tbody id="Deadlines-display-target">
 				  </tbody>
@@ -103,7 +104,7 @@
 					<th id="task_end" class="table-header">End</th>
 					<th id="task_name" class="table-header">Name</th>
 					<th id="task_tags" class="table-header">Tags</th>
-					<th id="task_description" class="table-header">Description</th>
+					<th id="task_content" class="table-header">Content</th>
 				  </tr>
 				  <tbody id="Tasks-display-target">
 				  </tbody>
@@ -117,7 +118,7 @@
 		  <div class="modal-dialog">
 			<div class="modal-header">
 			  <h2>Search results</h2>
-			  <a href="#close" onclick = "modalSearchClose()" class="btn-close" aria-hidden="true">×</a> <!--CHANGED TO "#close"-->
+			  <a href="#close" onclick = "modalSearchClose()" class="btn-close" aria-hidden="true">×</a>
 			</div>
 			<div class="modal-body">
 				<table>
@@ -150,7 +151,7 @@
 			<div class="modal-dialog">
 				<div class="modal-header">
 				  <h2>Effi Help</h2>
-				  <a href="#close" onclick = "modalHelpClose()" class="btn-close" aria-hidden="true">×</a> <!--CHANGED TO "#close"-->
+				  <a href="#close" onclick = "modalHelpClose()" class="btn-close" aria-hidden="true">×</a>
 				</div>
 				<div class="modal-body">
 					<div class="modal-content">
@@ -161,7 +162,7 @@
 					<strong>/u (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>update (task name) [&lt;option&gt; &lt;value&gt; … ]</strong>: update a task.<br>
 					<strong>/d (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong> or <strong>delete (task name)  [&lt;option&gt; &lt;value&gt; … ]</strong>: deletes a task with the specified details. If there are tasks with the same name and no timing is specified, the delete will fail and the user will be prompted to enter the timings to distinguish them.<br>
 					<strong>/c (task name)</strong> or <strong>complete (task name)</strong>: marks the task as complete.<br>
-					<strong>/st &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong> or <strong>sort &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong>: sorts the issue type according to the desired header.<br>
+					<strong>/st &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/description&gt;</strong> or <strong>sort &lt;tasks/deadlines/events&gt; &lt;id/name/start/end/tags/content&gt;</strong>: sorts the issue type according to the desired header.<br>
 					<strong>/s (boolean function)</strong> or <strong>search (boolean function)</strong>: search for items. See below for syntax.<br>
 					<strong>/f (boolean function)</strong> or <strong>filter (boolean function)</strong>: Filter is a more permanent search - this modifies what is available to all other components. The syntax is similar to that of searching.<br>
 					<strong>/z</strong> or <strong>undo</strong>: undo the most recent action.<br>
