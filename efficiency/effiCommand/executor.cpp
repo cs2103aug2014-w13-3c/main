@@ -179,10 +179,13 @@ void Executor::executeCommand(Executor::Command command){
 			inverse = result.second;
 		}
 	case COMMAND_TYPE::UPDATE_TASK:
-		inverse = (cmdtype == COMMAND_TYPE::UPDATE_TASK)? 
-			update_task(command, taskid)
+		{
+			auto update_inv = update_task(command, taskid);
+			inverse = (cmdtype == COMMAND_TYPE::UPDATE_TASK)? 
+			update_inv
 			:inverse;
-		undoStack.push_back(inverse); //It can also be an add task, which takes precedence.
+			undoStack.push_back(inverse); //It can also be an add task, which takes precedence.
+		}
 		break;
 	case COMMAND_TYPE::DELETE_TASK:
 		inverse = delete_task(command);
